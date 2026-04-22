@@ -2748,7 +2748,7 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, onSig
 }
 
 // ── HERO ─────────────────────────────────────────────────────────────────────
-function Hero({ jobCount, scrollToJobs, scrollToProfile }) {
+function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile }) {
   return (
     <div className="hero">
       <div className="hero-inner">
@@ -2769,7 +2769,11 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile }) {
           </p>
           <div className="hero-actions">
             <button className="btn-primary" onClick={scrollToJobs}>Browse Opportunities</button>
-            <button className="btn-outline" onClick={scrollToProfile}>Create Executive Profile</button>
+            {authUser ? (
+              <button className="btn-outline" onClick={onGoToProfile}>Go to My Profile</button>
+            ) : (
+              <button className="btn-outline" onClick={scrollToProfile}>Create Executive Profile</button>
+            )}
           </div>
         </div>
 
@@ -5364,7 +5368,9 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   }).length;
 
   const slotAvailable = thisMonthPostings < 1;
-  const firmName = submissions[0]?.firm_name || userEmail;
+  const firmName = submissions[0]?.firm_name || 'Your Firm';
+  // Detect if this user is actually an executive (has profile but no submissions)
+  // In that case, redirect them to their executive profile
 
   if (loading) return (
     <div style={{textAlign:'center',padding:'4rem',color:'var(--ink-4)'}}>
@@ -5455,6 +5461,8 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
             No live searches yet.
             {submissions.some(s=>s.status==='pending')
               ? " You have a submission under review — we'll publish it within 24 hours."
+              : submissions.length === 0
+              ? ' If you are an executive (not a recruiter), click My Profile in the nav instead.'
               : ' Post your first search using the button above.'
             }
           </div>
@@ -5596,19 +5604,25 @@ function App() {
     sb.auth.getSession().then(({ data: { session } }) => {
       setAuthUser(session?.user ?? null);
       setAuthLoading(false);
-      // If redirected back from magic link, go to profile
-      if (session?.user && window.location.search.includes('view=myprofile')) {
+      // Only redirect if coming back from a magic link (URL has view param)
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('view');
+      if (session?.user && view === 'myprofile') {
         setActiveView('myprofile');
-      } else if (session?.user && window.location.search.includes('view=recruiter')) {
+        // Clean the URL after handling
+        window.history.replaceState({}, '', window.location.pathname);
+      } else if (session?.user && view === 'recruiter') {
         setActiveView('recruiter-dash');
+        // Clean the URL after handling
+        window.history.replaceState({}, '', window.location.pathname);
       }
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
       setAuthUser(session?.user ?? null);
-      if (session?.user) {
-        // Only auto-navigate if on an auth view
+      // Only auto-navigate on actual sign-in event, not on page load session restore
+      if (event === 'SIGNED_IN' && session?.user) {
         const params = new URLSearchParams(window.location.search);
         if (params.get('view') === 'recruiter') {
           setActiveView('recruiter-dash');
@@ -5622,12 +5636,23 @@ function App() {
   }, []);
 
   function scrollTo(view, id) {
+    // If signed in and trying to create a profile, go to existing profile instead
+    if (view === 'profile' && authUser) {
+      setActiveView('myprofile');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setActiveView(view);
     setTimeout(() => document.getElementById(id)?.scrollIntoView({behavior:'smooth'}), 50);
   }
 
   function goToView(view) {
-    setActiveView(view);
+    // If signed in and trying to create a profile, go to existing profile instead
+    if (view === 'profile' && authUser) {
+      setActiveView('myprofile');
+    } else {
+      setActiveView(view);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -5690,7 +5715,7 @@ function App() {
       {/* Hero and manifesto only on public views */}
       {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy'].includes(activeView) && (
         <>
-          <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} />
+          <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} authUser={authUser} onGoToProfile={() => goToView('myprofile')} />
           <div className="manifesto">
             <p className="manifesto-text">
               Executive search has always been opaque by design.{' '}
@@ -5747,7 +5772,7 @@ function App() {
 
         <div id="profile-anchor" />
 
-        {activeView === 'profile' && (
+        {activeView === 'profile' && !authUser && (
           <div className="profile-section">
             <div className="profile-left">
               <div className="profile-eyebrow">Executive Profile</div>
