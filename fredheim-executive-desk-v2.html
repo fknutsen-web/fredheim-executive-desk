@@ -1675,6 +1675,216 @@
   .big-five-bar-track { height: 4px; background: var(--rule-lt); border-radius: 0; overflow: hidden; }
   .big-five-bar-fill { height: 100%; background: var(--ink); border-radius: 0; transition: width 0.4s ease; }
 
+
+  /* ── LEGAL PAGES ── */
+  .legal-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 3rem 0 5rem;
+  }
+
+  .legal-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .legal-eyebrow::before { content: ''; display: block; width: 24px; height: 1px; background: var(--gold); }
+
+  .legal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .legal-meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .legal-body h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .legal-body h3 {
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+  }
+
+  .legal-body p {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    font-weight: 300;
+  }
+
+  .legal-body ul, .legal-body ol {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    font-weight: 300;
+  }
+
+  .legal-body li { margin-bottom: 0.375rem; }
+
+  .legal-clause {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--ink);
+    padding: 1.25rem 1.5rem;
+    margin: 1.25rem 0;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    line-height: 1.75;
+    font-style: italic;
+  }
+
+  .legal-clause strong { font-style: normal; color: var(--ink); }
+
+  .legal-highlight {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-rule);
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0;
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    line-height: 1.7;
+  }
+
+  .legal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.25rem 0;
+    font-size: 0.85rem;
+  }
+
+  .legal-table th {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    padding: 0.625rem 1rem;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .legal-table td {
+    border: 1px solid var(--rule);
+    padding: 0.625rem 1rem;
+    color: var(--ink-3);
+    vertical-align: top;
+    line-height: 1.6;
+  }
+
+  .legal-table tr:hover td { background: var(--paper); }
+
+  .legal-nav {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+
+  .legal-nav-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    padding: 0.3rem 0.75rem;
+    border: 1px solid var(--rule);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .legal-nav-item:hover { border-color: var(--ink-3); color: var(--ink); }
+
+  .legal-caps {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.75;
+    font-weight: 500;
+    margin-bottom: 1rem;
+  }
+
+  .legal-contact-box {
+    background: var(--ink);
+    color: var(--white);
+    padding: 2rem;
+    margin-top: 3rem;
+  }
+
+  .legal-contact-box h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 0.75rem;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 1.1rem;
+  }
+
+  .legal-contact-box p {
+    color: rgba(250,250,248,0.6);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    margin-bottom: 0.375rem;
+    font-weight: 300;
+  }
+
+  .legal-contact-box a {
+    color: var(--gold-lt);
+    text-decoration: none;
+  }
+  .legal-contact-box a:hover { text-decoration: underline; }
+
+  .attorney-note {
+    font-size: 0.72rem;
+    color: var(--ink-4);
+    font-style: italic;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--rule-lt);
+    line-height: 1.6;
+  }
+
 </style>
 </head>
 <body>
@@ -2844,6 +3054,353 @@ function PricingPage({ setActiveView, openRecruiterModal }) {
   );
 }
 
+
+// ── TERMS OF SERVICE PAGE ────────────────────────────────────────────────────
+function TermsPage() {
+  return (
+    <div className="legal-page">
+      <div className="legal-eyebrow">Legal</div>
+      <h1 className="legal-title">Terms of Service</h1>
+      <div className="legal-meta">
+        Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
+        Fredheim Technologies LLC &nbsp;·&nbsp; Houston, Texas
+      </div>
+
+      <div className="legal-body">
+        <p>
+          These Terms of Service govern your access to and use of the Fredheim Executive Desk
+          platform, operated by Fredheim Technologies LLC. By accessing or using the platform,
+          you agree to be bound by these Terms.
+        </p>
+
+        <h2>1. The Platform</h2>
+        <p>
+          Fredheim Executive Desk is an executive opportunity marketplace connecting senior
+          professionals in maritime, energy, and industrial logistics with retained executive
+          search firms. Fredheim Technologies LLC facilitates introductions — we are not a
+          licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
+          searches, vetting, or placement services on behalf of any party.
+        </p>
+
+        <h2>2. Executive Member Terms</h2>
+
+        <h3>2.1 Profile & Confidentiality</h3>
+        <p>
+          Your current employer is stored confidentially and will never be displayed to any
+          search firm or user without your explicit consent. You represent that all profile
+          information you provide is accurate and belongs to you.
+        </p>
+
+        <h3>2.2 Visibility Settings</h3>
+        <p>
+          <strong>Discreet:</strong> Your profile is not visible to search firms unless you
+          explicitly express interest in a specific posting. <strong>Open:</strong> Your profile
+          is visible to all posting search firms (available to paid tier members only).
+        </p>
+
+        <h3>2.3 Personality Assessment Data</h3>
+        <p>
+          Big Five personality scores are entirely optional and self-reported. You control
+          whether to share this data. Fredheim makes no representations regarding accuracy
+          or completeness of self-reported personality data.
+        </p>
+
+        <h3>2.4 Membership Tiers</h3>
+        <table className="legal-table">
+          <thead>
+            <tr><th>Tier</th><th>Price</th><th>Access</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Free</td><td>$0</td><td>Browse all postings, set alerts, signal interest anonymously</td></tr>
+            <tr><td>Senior Professional</td><td>$99/year</td><td>Profile visible to search firms for Director-level searches</td></tr>
+            <tr><td>Executive</td><td>$199/year</td><td>Profile visible to all posting search firms; priority matching</td></tr>
+          </tbody>
+        </table>
+        <p>
+          Paid memberships are billed annually via Stripe. Fees are non-refundable except as
+          required by applicable law. You may cancel at any time; cancellation takes effect at
+          the end of the current billing period.
+        </p>
+
+        <h3>2.5 No Fees to Candidates</h3>
+        <p>
+          Executive Members are never charged placement fees, introduction fees, success fees,
+          or commissions of any kind. The Introduction Fee described below is the sole obligation
+          of the Search Firm.
+        </p>
+
+        <h2>3. Search Firm Terms</h2>
+
+        <h3>3.1 Posting Requirements</h3>
+        <p>
+          All postings must include a published total compensation range. Salary transparency
+          is mandatory and non-negotiable. Postings that misrepresent compensation, role scope,
+          or firm identity will be removed and the account may be suspended.
+        </p>
+
+        <h3>3.2 Subscription Plans</h3>
+        <table className="legal-table">
+          <thead>
+            <tr><th>Plan</th><th>Price</th><th>Postings</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Boutique</td><td>$400/month (billed annually)</td><td>3 active postings/month</td></tr>
+            <tr><td>Professional</td><td>$1,000/month (billed annually)</td><td>10 postings + featured placement + candidate data</td></tr>
+            <tr><td>Enterprise</td><td>$2,500/month (billed annually)</td><td>Unlimited postings + full profile access</td></tr>
+          </tbody>
+        </table>
+
+        <h3>3.3 Introduction Fee — Binding Obligation</h3>
+        <div className="legal-clause">
+          <strong>Introduction Fee.</strong> A Platform Introduction Fee is due from the Search Firm
+          to Fredheim Technologies LLC when: (a) an Executive Member first expressed interest in,
+          or was first connected to the Search Firm through, a Posting on the Platform; and (b) that
+          Executive Member is hired for the role described in the Posting, or a substantially similar
+          role at the same organization, within <strong>twelve (12) months</strong> of the date of
+          first documented contact on the Platform.
+        </div>
+        <table className="legal-table">
+          <thead>
+            <tr><th>Role Level</th><th>Introduction Fee</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Executive — C-Suite, VP, and equivalent</td><td><strong>$3,500 flat fee</strong></td></tr>
+            <tr><td>Senior Professional — Director level</td><td><strong>$1,500 flat fee</strong></td></tr>
+          </tbody>
+        </table>
+        <p>
+          The Introduction Fee is invoiced upon confirmation of placement and due within
+          30 days. Late payments accrue interest at 1.5% per month. The fee is owed regardless
+          of whether the hire resulted from the platform introduction alone or in combination
+          with other channels.
+        </p>
+
+        <h3>3.4 Candidate Confidentiality</h3>
+        <p>
+          Executive Member information accessed through the Platform may not be shared outside
+          the search engagement for which it was accessed, used to solicit candidates for other
+          roles without their consent, or stored in proprietary databases without the candidate's
+          knowledge and consent. Violation is grounds for immediate account termination.
+        </p>
+
+        <h3>3.5 Personality Data Prohibition</h3>
+        <div className="legal-highlight">
+          Search Firms expressly agree that Big Five personality data may not be used as a
+          primary screening criterion, disqualification basis, or cited as a reason for rejection.
+          Use of personality data in violation of applicable employment discrimination law is
+          the sole legal responsibility of the Search Firm.
+        </div>
+
+        <h2>4. Prohibited Conduct</h2>
+        <p>Users may not post false or misleading information, attempt to circumvent the platform
+        to avoid Introduction Fees, harvest candidate data for use outside the platform, share
+        access credentials with third parties, or use the platform to discriminate on any
+        protected basis.</p>
+
+        <h2>5. Disclaimers</h2>
+        <p className="legal-caps">
+          THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. FREDHEIM TECHNOLOGIES
+          LLC DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED OR ERROR-FREE. FREDHEIM
+          MAKES NO REPRESENTATIONS REGARDING THE ACCURACY OF POSTINGS, QUALIFICATIONS OF
+          CANDIDATES, OR THE OUTCOME OF ANY INTRODUCTION.
+        </p>
+
+        <h2>6. Limitation of Liability</h2>
+        <p className="legal-caps">
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, FREDHEIM TECHNOLOGIES LLC SHALL NOT BE LIABLE
+          FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES. FREDHEIM'S
+          TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID IN THE TWELVE MONTHS PRECEDING
+          THE CLAIM.
+        </p>
+
+        <h2>7. Governing Law</h2>
+        <p>
+          These Terms are governed by the laws of the State of Texas. Any dispute shall be
+          resolved by binding arbitration in Houston, Texas, under AAA rules. The prevailing
+          party is entitled to recover reasonable attorneys' fees.
+        </p>
+
+        <h2>8. Modifications</h2>
+        <p>
+          Fredheim reserves the right to modify these Terms at any time. Material changes will
+          be communicated via email. Continued use after the effective date constitutes acceptance.
+        </p>
+
+        <div className="legal-contact-box">
+          <h3>Contact</h3>
+          <p>Fredheim Technologies LLC</p>
+          <p>Houston, Texas</p>
+          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
+          <p><a href="https://desk.fredheimtech.com">desk.fredheimtech.com</a></p>
+        </div>
+
+        <p className="attorney-note">
+          These Terms have been prepared for publication and are pending final review by a
+          licensed Texas attorney. Last reviewed April 2026.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+// ── PRIVACY POLICY PAGE ──────────────────────────────────────────────────────
+function PrivacyPage() {
+  return (
+    <div className="legal-page">
+      <div className="legal-eyebrow">Legal</div>
+      <h1 className="legal-title">Privacy Policy</h1>
+      <div className="legal-meta">
+        Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
+        Fredheim Technologies LLC &nbsp;·&nbsp; Houston, Texas
+      </div>
+
+      <div className="legal-body">
+        <div className="legal-highlight">
+          We take privacy seriously. The platform is designed for confidential professional search —
+          your current employer is <strong>never disclosed</strong> without your explicit consent,
+          and you control when and whether your identity is shared with search firms.
+          <strong> We do not sell your personal information. We do not use advertising trackers.</strong>
+        </div>
+
+        <h2>1. Information We Collect</h2>
+
+        <h3>Executive Members</h3>
+        <ul>
+          <li>Name, email address, and location</li>
+          <li>Current job title (your employer is stored but never displayed publicly)</li>
+          <li>Industry, function, and compensation expectations</li>
+          <li>Career history — job titles, company names, years of tenure</li>
+          <li>Professional achievements (self-authored)</li>
+          <li>Big Five personality scores (optional, self-reported)</li>
+          <li>Geographic availability, board experience, languages</li>
+          <li>Visibility and alert preferences</li>
+        </ul>
+
+        <h3>Search Firms</h3>
+        <ul>
+          <li>Firm name, contact name, and email address</li>
+          <li>Role postings including title, description, compensation range, industry, location</li>
+          <li>Terms of Service agreement timestamp and IP address at time of agreement</li>
+        </ul>
+
+        <h3>Automatically Collected</h3>
+        <ul>
+          <li>IP address and general geographic location</li>
+          <li>Browser type and operating system</li>
+          <li>Pages viewed and actions taken</li>
+        </ul>
+        <p>
+          We use Vercel Web Analytics for aggregated, privacy-respecting traffic analysis.
+          We do not use advertising trackers or third-party analytics that track users across websites.
+        </p>
+
+        <h2>2. How Your Information Is Shared</h2>
+
+        <h3>With Search Firms — Executive Members</h3>
+        <table className="legal-table">
+          <thead>
+            <tr><th>Information</th><th>Shared When</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Interest signal</td><td>When you click "Register Confidential Interest"</td></tr>
+            <tr><td>Email address</td><td>When you express interest — that posting's firm only</td></tr>
+            <tr><td>Full profile</td><td>Only if visibility is Open (paid tiers) OR you explicitly approve</td></tr>
+            <tr><td><strong>Current employer name</strong></td><td><strong>Never — under any circumstances</strong></td></tr>
+            <tr><td>Big Five personality data</td><td>Only if you toggle "Share with recruiters" to ON</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Service Providers</h3>
+        <p>
+          We share data with: <strong>Supabase</strong> (database, US-based servers),
+          <strong> Vercel</strong> (hosting), <strong>Stripe</strong> (payments),
+          <strong> Zapier</strong> (email automation). All providers are contractually required
+          to handle your data securely and only for specified purposes.
+        </p>
+
+        <h3>We Never</h3>
+        <ul>
+          <li>Sell your personal information to third parties</li>
+          <li>Use your information for advertising purposes</li>
+          <li>Share your current employer with anyone</li>
+          <li>Share personality data without your explicit opt-in</li>
+        </ul>
+
+        <h2>3. Payment Information</h2>
+        <p>
+          Payment processing is handled entirely by Stripe, Inc. Fredheim does not store
+          credit card numbers or sensitive payment information. We retain only transaction
+          records for accounting purposes.
+        </p>
+
+        <h2>4. Data Security</h2>
+        <ul>
+          <li>All data transmitted is encrypted via HTTPS/TLS</li>
+          <li>Database access protected by Supabase Row Level Security (RLS)</li>
+          <li>Passwords hashed — never stored in plain text</li>
+          <li>Payment data processed by Stripe — never touches our servers</li>
+          <li>Production database access restricted to authorized personnel only</li>
+        </ul>
+
+        <h2>5. Your Rights</h2>
+        <table className="legal-table">
+          <thead>
+            <tr><th>Right</th><th>How to Exercise</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Access your data</td><td>Email desk@fredheimtech.com</td></tr>
+            <tr><td>Correct inaccurate data</td><td>Update in your profile settings or email us</td></tr>
+            <tr><td>Delete your account</td><td>Email desk@fredheimtech.com — honored within 30 days</td></tr>
+            <tr><td>Change visibility</td><td>Toggle in your profile settings anytime</td></tr>
+            <tr><td>Stop sharing Big Five data</td><td>Toggle off in your profile settings anytime</td></tr>
+            <tr><td>Unsubscribe from alerts</td><td>Reply to any alert email</td></tr>
+            <tr><td>Data portability</td><td>Request export via desk@fredheimtech.com</td></tr>
+          </tbody>
+        </table>
+
+        <h2>6. Cookies</h2>
+        <p>
+          We use only session cookies (to keep you logged in) and preference cookies
+          (to remember your filter settings). No advertising cookies. No cross-site tracking.
+        </p>
+
+        <h2>7. California & GDPR Rights</h2>
+        <p>
+          <strong>California (CCPA):</strong> We do not sell personal information. To exercise
+          California privacy rights, email desk@fredheimtech.com.
+        </p>
+        <p>
+          <strong>EEA/UK (GDPR):</strong> Our lawful basis for processing is contract performance
+          and legitimate interests. You have rights to access, rectify, erase, and port your data.
+          Contact desk@fredheimtech.com to exercise GDPR rights.
+        </p>
+
+        <h2>8. Data Retention</h2>
+        <p>
+          We retain your data as long as your account is active. You may request deletion at
+          any time. We retain transaction records and ToS agreement timestamps for up to seven
+          years for legal compliance even after account deletion.
+        </p>
+
+        <h2>9. Changes to This Policy</h2>
+        <p>
+          Material changes will be communicated via email at least 30 days before taking effect.
+          Continued use constitutes acceptance.
+        </p>
+
+        <div className="legal-contact-box">
+          <h3>Privacy Questions & Requests</h3>
+          <p>Fredheim Technologies LLC</p>
+          <p>Houston, Texas</p>
+          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
+          <p>We aim to respond to all privacy requests within 10 business days.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
@@ -2877,6 +3434,11 @@ function App() {
   function scrollTo(view, id) {
     setActiveView(view);
     setTimeout(() => document.getElementById(id)?.scrollIntoView({behavior:'smooth'}), 50);
+  }
+
+  function goToView(view) {
+    setActiveView(view);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function clearFilters() { setSearch(''); setIndustry('All Industries'); setFunc('All Functions'); setSalaryBand(0); }
@@ -2985,6 +3547,9 @@ function App() {
           <PricingPage setActiveView={setActiveView} openRecruiterModal={() => setRecruiterModal(true)} />
         )}
 
+        {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
+        {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
+
         <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms</div>
@@ -3034,7 +3599,7 @@ function App() {
           <div>
             <div className="footer-col-title">Company</div>
             <ul className="footer-links">
-              <li>About Fredheim</li><li>Why Salary Transparency</li><li>Privacy Policy</li><li>Terms of Service</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
+              <li>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
             </ul>
           </div>
         </div>
