@@ -10,6 +10,7 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 
 <style>
   :root {
@@ -933,7 +934,18 @@ const { useState, useEffect, useMemo } = React;
 const SUPABASE_URL  = 'https://bizbneqlzacvhekrbrgd.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
+// Stripe — test mode keys (switch to live keys when ready to go live)
+const STRIPE_PK    = 'pk_test_51TP4zPBxe9QHKUKfXUmzEiEoiOLZ9LQcxsqn747kcc9i3KOMKbFIiWuVMX2cCAFuYebbzJNpWMp3ygYysr387nFp00VuYwBuxC';
+const ACTIVE_PRICE = 'price_1TP55UBxe9QHKUKf9wVHAV6W';
+
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// Stripe client
+let stripeClient = null;
+function getStripe() {
+  if (!stripeClient) stripeClient = Stripe(STRIPE_PK);
+  return stripeClient;
+}
 
 // ── CONSTANTS ───────────────────────────────────────────────────────────────
 const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics'];
@@ -1274,7 +1286,36 @@ function ProfileForm({ showToast }) {
   async function handleSubmit() {
     if (!form.first_name || !form.email || !form.current_title) { showToast('Please complete name, email, and current title.'); return; }
     setLoading(true);
-    try { await sb.from('fed_profiles').upsert({...form, salary_min: form.salary_min ? parseInt(form.salary_min) : null, visibility, tier }, { onConflict:'email' }); } catch(e) {}
+
+    // Save profile to Supabase first
+    try {
+      await sb.from('fed_profiles').upsert({
+        ...form,
+        salary_min: form.salary_min ? parseInt(form.salary_min) : null,
+        visibility,
+        tier
+      }, { onConflict: 'email' });
+    } catch(e) { console.log('Profile save:', e); }
+
+    // Active tier — redirect to Stripe Checkout
+    if (tier === 'active') {
+      try {
+        const s = getStripe();
+        const { error } = await s.redirectToCheckout({
+          lineItems: [{ price: ACTIVE_PRICE, quantity: 1 }],
+          mode: 'subscription',
+          successUrl: window.location.origin + window.location.pathname + '?upgraded=1&email=' + encodeURIComponent(form.email),
+          cancelUrl:  window.location.origin + window.location.pathname + '?cancelled=1',
+          customerEmail: form.email,
+        });
+        if (error) { showToast('Payment setup error — profile saved. Contact us to activate.'); }
+      } catch(e) {
+        showToast('Payment redirect failed — profile saved. Contact us to upgrade.');
+      }
+      setLoading(false);
+      return;
+    }
+
     setSubmitted(true);
     setLoading(false);
   }
