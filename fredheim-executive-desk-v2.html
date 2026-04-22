@@ -2718,7 +2718,7 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── NAV ──────────────────────────────────────────────────────────────────────
-function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, onSignIn }) {
+function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userType, onSignIn }) {
   return (
     <nav className="nav">
       <div className="nav-brand" onClick={() => setActiveView('jobs')}>
@@ -2732,15 +2732,17 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, onSig
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
         <div className="nav-divider" />
-        {authUser
-          ? <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => setActiveView('recruiter-dash')}>Firm Dashboard</button>
-          : <button className="nav-link" onClick={() => setActiveView('recruiter-signin')}>Recruiter Sign In</button>
-        }
-        {authUser ? (
-          <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => setActiveView('myprofile')}>My Profile</button>
-        ) : (
-          <button className="nav-link" onClick={onSignIn}>Sign In</button>
+        {authUser && userType === 'recruiter' && (
+          <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => setActiveView('recruiter-dash')}>Firm Dashboard</button>
         )}
+        {!authUser && (
+          <button className="nav-link" onClick={() => setActiveView('recruiter-signin')}>Recruiter Sign In</button>
+        )}
+        {authUser && userType !== 'recruiter' ? (
+          <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => setActiveView('myprofile')}>My Profile</button>
+        ) : !authUser ? (
+          <button className="nav-link" onClick={onSignIn}>Sign In</button>
+        ) : null}
         <button className="nav-cta" onClick={openRecruiterModal}>Post a Search</button>
       </div>
     </nav>
@@ -4868,7 +4870,7 @@ function SignInPage({ onBack }) {
 }
 
 // ── MY PROFILE DASHBOARD ──────────────────────────────────────────────────────
-function MyProfilePage({ user, onSignOut, showToast, onCreateProfile }) {
+function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade }) {
   const [profile, setProfile]       = useState(null);
   const [interests, setInterests]   = useState([]);
   const [jobs, setJobs]             = useState([]);
@@ -5001,7 +5003,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile }) {
           </div>
           {profile.tier === 'free' && (
             <button className="btn-primary" style={{fontSize:'0.75rem',padding:'0.5rem 1rem'}}
-              onClick={onCreateProfile || onSignOut}>
+              onClick={onUpgrade}>
               Upgrade
             </button>
           )}
@@ -5561,6 +5563,7 @@ function App() {
   // Auth state
   const [authUser, setAuthUser]       = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [userType, setUserType]       = useState(null); // 'executive' | 'recruiter' | null
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -5601,20 +5604,21 @@ function App() {
   // Supabase auth session listener
   useEffect(() => {
     // Check for existing session
-    sb.auth.getSession().then(({ data: { session } }) => {
+    sb.auth.getSession().then(async ({ data: { session } }) => {
       setAuthUser(session?.user ?? null);
       setAuthLoading(false);
-      // Only redirect if coming back from a magic link (URL has view param)
-      const params = new URLSearchParams(window.location.search);
-      const view = params.get('view');
-      if (session?.user && view === 'myprofile') {
-        setActiveView('myprofile');
-        // Clean the URL after handling
-        window.history.replaceState({}, '', window.location.pathname);
-      } else if (session?.user && view === 'recruiter') {
-        setActiveView('recruiter-dash');
-        // Clean the URL after handling
-        window.history.replaceState({}, '', window.location.pathname);
+      if (session?.user) {
+        const type = await detectUserType(session.user.email);
+        // Only redirect if coming back from a magic link (URL has view param)
+        const params = new URLSearchParams(window.location.search);
+        const view = params.get('view');
+        if (view === 'myprofile') {
+          setActiveView('myprofile');
+          window.history.replaceState({}, '', window.location.pathname);
+        } else if (view === 'recruiter') {
+          setActiveView('recruiter-dash');
+          window.history.replaceState({}, '', window.location.pathname);
+        }
       }
     });
 
@@ -5623,6 +5627,7 @@ function App() {
       setAuthUser(session?.user ?? null);
       // Only auto-navigate on actual sign-in event, not on page load session restore
       if (event === 'SIGNED_IN' && session?.user) {
+        detectUserType(session.user.email);
         const params = new URLSearchParams(window.location.search);
         if (params.get('view') === 'recruiter') {
           setActiveView('recruiter-dash');
@@ -5654,6 +5659,33 @@ function App() {
       setActiveView(view);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function detectUserType(email) {
+    try {
+      // Check if this email has an executive profile
+      const { data: profile } = await sb
+        .from('fed_profiles')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .maybeSingle();
+      if (profile) { setUserType('executive'); return 'executive'; }
+
+      // Check if this email has recruiter submissions
+      const { data: subs } = await sb
+        .from('fed_recruiter_submissions')
+        .select('id')
+        .eq('email', email.toLowerCase())
+        .limit(1);
+      if (subs && subs.length > 0) { setUserType('recruiter'); return 'recruiter'; }
+
+      // Unknown — default to executive (they can always switch)
+      setUserType('executive');
+      return 'executive';
+    } catch(e) {
+      setUserType('executive');
+      return 'executive';
+    }
   }
 
   function clearFilters() { setSearch(''); setIndustry('All Industries'); setFunc('All Functions'); setSalaryBand(0); }
@@ -5709,6 +5741,7 @@ function App() {
           setActiveView={setActiveView}
           openRecruiterModal={() => setRecruiterModal(true)}
           authUser={authUser}
+          userType={userType}
           onSignIn={() => setActiveView('signin')}
         />
 
@@ -5822,9 +5855,8 @@ function App() {
           <MyProfilePage
             user={authUser}
             showToast={showToast}
-            onCreateProfile={() => {
-              goToView('profile');
-            }}
+            onCreateProfile={() => goToView('profile')}
+            onUpgrade={() => goToView('pricing')}
             onSignOut={async () => {
               await sb.auth.signOut();
               setAuthUser(null);
