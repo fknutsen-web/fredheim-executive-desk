@@ -4666,7 +4666,7 @@ async function sendMagicLink(email) {
   const { error } = await sb.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin + window.location.pathname + '?view=myprofile',
+      emailRedirectTo: 'https://desk.fredheimtech.com?view=myprofile',
     }
   });
   return error;
