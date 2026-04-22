@@ -2146,6 +2146,398 @@
     .admin-stats { grid-template-columns: 1fr 1fr; }
   }
 
+
+  /* ── AUTH & PROFILE DASHBOARD ── */
+
+  /* Magic link login */
+  .auth-page {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+  }
+
+  .auth-box {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--ink);
+    padding: 3rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 40px rgba(15,28,46,0.06);
+  }
+
+  .auth-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .auth-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .auth-desc {
+    color: var(--ink-4);
+    font-size: 0.85rem;
+    line-height: 1.65;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .auth-sent-box {
+    background: var(--green-bg);
+    border: 1px solid rgba(26,122,74,0.2);
+    border-left: 3px solid var(--green);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .auth-sent-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-sent-desc {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    color: var(--ink-4);
+    font-size: 0.75rem;
+  }
+  .auth-divider::before, .auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* My Profile Dashboard */
+  .my-profile-page { padding: 2rem 0 4rem; }
+
+  .my-profile-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid var(--ink);
+    gap: 1rem;
+  }
+
+  .my-profile-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .my-profile-title-sub {
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+  }
+
+  .my-profile-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Profile sections */
+  .profile-section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .profile-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    padding: 1.5rem;
+  }
+
+  .profile-card.full-width {
+    grid-column: 1 / -1;
+  }
+
+  .profile-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule-lt);
+  }
+
+  .profile-card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+  }
+
+  .profile-edit-btn {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-4);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.625rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .profile-edit-btn:hover { border-color: var(--ink-3); color: var(--ink); }
+  .profile-edit-btn.save { border-color: var(--green); color: var(--green); }
+  .profile-edit-btn.save:hover { background: var(--green); color: var(--white); }
+
+  .profile-field {
+    margin-bottom: 1rem;
+  }
+
+  .profile-field:last-child { margin-bottom: 0; }
+
+  .profile-field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 0.25rem;
+  }
+
+  .profile-field-value {
+    font-size: 0.9rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .profile-field-empty {
+    font-size: 0.85rem;
+    color: var(--ink-4);
+    font-style: italic;
+  }
+
+  /* Visibility toggle in profile */
+  .profile-visibility-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--rule-lt);
+  }
+  .profile-visibility-row:last-child { border-bottom: none; }
+
+  .profile-visibility-label {
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+
+  .profile-visibility-desc {
+    font-size: 0.75rem;
+    color: var(--ink-4);
+    margin-top: 0.1rem;
+    line-height: 1.4;
+  }
+
+  /* Tier badge in profile */
+  .tier-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    margin-bottom: 1rem;
+  }
+
+  .tier-display-badge {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .tier-display-badge.gold { color: var(--gold); }
+  .tier-display-badge.green { color: var(--green); }
+
+  .tier-display-info { flex: 1; }
+  .tier-display-name { font-size: 0.85rem; font-weight: 600; color: var(--ink); }
+  .tier-display-expiry { font-size: 0.75rem; color: var(--ink-4); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; }
+
+  /* Interest history */
+  .interest-list { display: flex; flex-direction: column; gap: 1px; background: var(--rule-lt); }
+
+  .interest-item {
+    background: var(--white);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .interest-item-title { font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+  .interest-item-firm  { font-size: 0.75rem; color: var(--ink-4); }
+  .interest-item-date  { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--ink-4); white-space: nowrap; }
+
+  /* Big Five display in profile */
+  .big-five-profile-row {
+    margin-bottom: 0.875rem;
+  }
+  .big-five-profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.25rem;
+  }
+  .big-five-profile-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .big-five-profile-score {
+    font-size: 0.82rem;
+    color: var(--gold);
+    font-weight: 600;
+  }
+  .big-five-profile-bar {
+    height: 4px;
+    background: var(--rule-lt);
+    overflow: hidden;
+  }
+  .big-five-profile-fill {
+    height: 100%;
+    background: var(--ink);
+    transition: width 0.5s ease;
+  }
+
+  @media (max-width: 768px) {
+    .profile-section-grid { grid-template-columns: 1fr; }
+    .my-profile-header { flex-direction: column; }
+  }
+
+
+  /* ── INDUSTRY MULTISELECT ── */
+  .industry-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    padding: 0.625rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    min-height: 44px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .industry-chips:focus-within { border-color: var(--ink-3); }
+
+  .industry-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    cursor: default;
+  }
+
+  .industry-chip-remove {
+    background: none;
+    border: none;
+    color: rgba(250,250,248,0.6);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.15s;
+  }
+  .industry-chip-remove:hover { color: var(--white); }
+
+  .industry-chip.placeholder {
+    background: none;
+    color: var(--ink-4);
+    font-size: 0.82rem;
+    font-family: 'Figtree', sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .industry-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-top: none;
+    z-index: 50;
+    box-shadow: 0 4px 16px rgba(15,28,46,0.08);
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .industry-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    transition: background 0.1s;
+  }
+  .industry-option:hover { background: var(--paper); }
+  .industry-option.selected { color: var(--ink); background: var(--paper-2); }
+
+  .industry-option-check {
+    width: 16px; height: 16px;
+    border: 1.5px solid var(--rule);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    transition: all 0.15s;
+  }
+  .industry-option.selected .industry-option-check {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--white);
+  }
+
+  .industry-select-wrap { position: relative; }
+
 </style>
 </head>
 <body>
@@ -2173,7 +2565,7 @@ function getStripe() {
 }
 
 // ── CONSTANTS ───────────────────────────────────────────────────────────────
-const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics'];
+const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Cruise'];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
 const SALARY_BANDS = [
   { label: 'Any Range', min: 0 },
@@ -2214,22 +2606,26 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── NAV ──────────────────────────────────────────────────────────────────────
-function NavBar({ activeView, setActiveView, openRecruiterModal }) {
+function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, onSignIn }) {
   return (
     <nav className="nav">
       <div className="nav-brand" onClick={() => setActiveView('jobs')}>
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
-          <span className="nav-sub">Maritime · Energy · Industrial Logistics</span>
+          <span className="nav-sub">Maritime · Energy · Logistics · Offshore · Cruise</span>
         </div>
       </div>
       <div className="nav-links">
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
-        <button className={`nav-link ${activeView==='profile'?'active':''}`} onClick={() => setActiveView('profile')}>Executive Profile</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
         <div className="nav-divider" />
         <button className="nav-link" onClick={openRecruiterModal}>For Recruiters</button>
+        {authUser ? (
+          <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => setActiveView('myprofile')}>My Profile</button>
+        ) : (
+          <button className="nav-link" onClick={onSignIn}>Sign In</button>
+        )}
         <button className="nav-cta" onClick={openRecruiterModal}>Post a Search</button>
       </div>
     </nav>
@@ -2582,7 +2978,12 @@ function RecruiterModal({ onClose, showToast }) {
                       <label className="form-label">Industry</label>
                       <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
                         <option value="">Select</option>
-                        <option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
+                        <option>Maritime</option>
+                        <option>Energy</option>
+                        <option>Industrial Logistics</option>
+                        <option>Port &amp; Terminal</option>
+                        <option>Offshore</option>
+                        <option>Cruise</option>
                       </select>
                     </div>
                     <div className="form-group">
@@ -2813,9 +3214,11 @@ function ProfileForm({ showToast }) {
           <div className="form-group"><label className="form-label">Current Company (confidential — never displayed)</label><input className="form-input" placeholder="Your employer" value={form.current_company} onChange={e=>set('current_company',e.target.value)} /></div>
           <div className="form-row">
             <div className="form-group"><label className="form-label">Industry</label>
-              <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
-                <option value="">Select</option><option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
-              </select>
+              <IndustryMultiSelect
+                value={Array.isArray(form.industry) ? form.industry : (form.industry ? [form.industry] : [])}
+                onChange={v => set('industry', v)}
+                placeholder="Select industries…"
+              />
             </div>
             <div className="form-group"><label className="form-label">Function</label>
               <select className="form-select" value={form.function} onChange={e=>set('function',e.target.value)}>
@@ -3041,7 +3444,7 @@ function ProfileForm({ showToast }) {
           </div>
 
           <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'1rem 1.25rem',marginBottom:'1rem',fontSize:'0.78rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
-            <strong style={{color:'var(--ink)'}}>Profile summary:</strong> {form.current_title || 'Executive'} · {form.industry || 'Maritime/Energy/Logistics'} · {form.location || 'Location TBD'} ·{' '}
+            <strong style={{color:'var(--ink)'}}>Profile summary:</strong> {form.current_title || 'Executive'} · {Array.isArray(form.industry) ? form.industry.join(', ') : (form.industry || 'Select industry')} · {form.location || 'Location TBD'} ·{' '}
             {career.filter(e=>e.title).length} career roles · {achievements.filter(a=>a).length} achievements ·{' '}
             {shareBigFive ? 'Big Five shared' : 'Big Five private'} ·{' '}
             {tier === 'free' ? 'Free tier' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
@@ -3331,7 +3734,7 @@ function PricingPage({ setActiveView, openRecruiterModal }) {
             </div>
             <div className="faq-item">
               <div className="faq-q">What industries does the platform cover?</div>
-              <div className="faq-a">Maritime, energy, and industrial logistics exclusively. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
+              <div className="faq-a">Maritime, energy, industrial logistics, port & terminal, offshore, and cruise. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
             </div>
           </>
         )}
@@ -4196,12 +4599,539 @@ function AdminLogin({ onLogin }) {
   );
 }
 
+
+
+// ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
+const ALL_INDUSTRY_OPTIONS = [
+  'Maritime', 'Energy', 'Industrial Logistics',
+  'Port & Terminal', 'Offshore', 'Cruise'
+];
+
+function IndustryMultiSelect({ value, onChange, placeholder }) {
+  const [open, setOpen] = React.useState(false);
+  const ref = React.useRef(null);
+
+  // value is array of strings
+  const selected = Array.isArray(value) ? value : (value ? [value] : []);
+
+  function toggle(ind) {
+    if (selected.includes(ind)) {
+      onChange(selected.filter(i => i !== ind));
+    } else {
+      onChange([...selected, ind]);
+    }
+  }
+
+  // Close on outside click
+  React.useEffect(() => {
+    function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+
+  return (
+    <div className="industry-select-wrap" ref={ref}>
+      <div className="industry-chips" onClick={() => setOpen(o => !o)}>
+        {selected.length === 0 ? (
+          <span className="industry-chip placeholder">{placeholder || 'Select industries…'}</span>
+        ) : (
+          selected.map(ind => (
+            <span key={ind} className="industry-chip">
+              {ind}
+              <button className="industry-chip-remove" onClick={e => { e.stopPropagation(); toggle(ind); }}>✕</button>
+            </span>
+          ))
+        )}
+      </div>
+      {open && (
+        <div className="industry-dropdown">
+          {ALL_INDUSTRY_OPTIONS.map(ind => (
+            <div
+              key={ind}
+              className={`industry-option ${selected.includes(ind) ? 'selected' : ''}`}
+              onClick={() => toggle(ind)}
+            >
+              <div className="industry-option-check">{selected.includes(ind) ? '✓' : ''}</div>
+              {ind}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── AUTH HELPERS ──────────────────────────────────────────────────────────────
+async function sendMagicLink(email) {
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: {
+      emailRedirectTo: window.location.origin + window.location.pathname + '?view=myprofile',
+    }
+  });
+  return error;
+}
+
+// ── SIGN IN PAGE ──────────────────────────────────────────────────────────────
+function SignInPage({ onBack }) {
+  const [email, setEmail]     = useState('');
+  const [sent, setSent]       = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+
+  async function handleSend() {
+    if (!email || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
+    setLoading(true);
+    setError('');
+    const err = await sendMagicLink(email);
+    if (err) {
+      setError('Could not send link. Please try again or email desk@fredheimtech.com.');
+    } else {
+      setSent(true);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-box">
+        <div className="auth-eyebrow">Executive Access</div>
+        <h2 className="auth-title">Access Your Profile</h2>
+        <p className="auth-desc">
+          Enter your email address and we'll send you a secure sign-in link.
+          No password required.
+        </p>
+
+        {sent ? (
+          <div className="auth-sent-box">
+            <div className="auth-sent-title">Check Your Inbox</div>
+            <div className="auth-sent-desc">
+              A sign-in link has been sent to <strong>{email}</strong>.
+              Click the link in your email to access your profile.
+              The link expires in 1 hour.
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="form-group" style={{marginBottom:'1rem'}}>
+              <label className="form-label">Email Address</label>
+              <input
+                className="form-input"
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                autoFocus
+              />
+            </div>
+            {error && (
+              <div style={{color:'var(--red)',fontSize:'0.78rem',marginBottom:'0.75rem',lineHeight:'1.5'}}>{error}</div>
+            )}
+            <button className="submit-btn" onClick={handleSend} disabled={loading}>
+              {loading ? 'Sending…' : 'Send Sign-In Link'}
+            </button>
+            <p className="form-note" style={{marginTop:'1rem'}}>
+              Use the same email you registered with.
+              Don't have a profile yet?{' '}
+              <span style={{color:'var(--gold)',cursor:'pointer',textDecoration:'underline'}} onClick={onBack}>
+                Create one here.
+              </span>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── MY PROFILE DASHBOARD ──────────────────────────────────────────────────────
+function MyProfilePage({ user, onSignOut, showToast }) {
+  const [profile, setProfile]       = useState(null);
+  const [interests, setInterests]   = useState([]);
+  const [jobs, setJobs]             = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [editing, setEditing]       = useState(null); // which card is being edited
+  const [editData, setEditData]     = useState({});
+
+  useEffect(() => { loadProfile(); }, [user]);
+
+  async function loadProfile() {
+    setLoading(true);
+    try {
+      const email = user.email;
+      const [pRes, iRes, jRes] = await Promise.all([
+        sb.from('fed_profiles').select('*').eq('email', email).single(),
+        sb.from('fed_interests').select('*').eq('anon_email', email).order('created_at', {ascending:false}),
+        sb.from('fed_jobs').select('id,title,firm_name,industry,salary_display,created_at').eq('status','active'),
+      ]);
+      setProfile(pRes.data);
+      setInterests(iRes.data || []);
+      setJobs(jRes.data || []);
+    } catch(e) {
+      showToast('Error loading profile. Try refreshing.');
+    }
+    setLoading(false);
+  }
+
+  async function saveField(fields) {
+    try {
+      const { error } = await sb.from('fed_profiles').update(fields).eq('email', user.email);
+      if (error) throw error;
+      setProfile(p => ({...p, ...fields}));
+      setEditing(null);
+      showToast('✓ Profile updated.');
+    } catch(e) {
+      showToast('Save failed. Try again.');
+    }
+  }
+
+  function fmt(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  function tierLabel(tier) {
+    if (tier === 'active') return 'Executive';
+    if (tier === 'active_senior') return 'Senior Professional';
+    return 'Free';
+  }
+
+  function tierColor(tier) {
+    if (tier === 'active') return 'gold';
+    if (tier === 'active_senior') return 'green';
+    return '';
+  }
+
+  const bigFiveKeys = ['openness','conscientiousness','extraversion','agreeableness','emotional_stability'];
+  const bigFiveNames = {
+    openness: 'Openness',
+    conscientiousness: 'Conscientiousness',
+    extraversion: 'Extraversion',
+    agreeableness: 'Agreeableness',
+    emotional_stability: 'Neuroticism'
+  };
+
+  const parsedBigFive = profile?.big_five
+    ? (typeof profile.big_five === 'string' ? JSON.parse(profile.big_five) : profile.big_five)
+    : null;
+
+  const parsedCareer = profile?.career_timeline
+    ? (typeof profile.career_timeline === 'string' ? JSON.parse(profile.career_timeline) : profile.career_timeline)
+    : [];
+
+  const parsedAchievements = profile?.achievements
+    ? (typeof profile.achievements === 'string' ? JSON.parse(profile.achievements) : profile.achievements)
+    : [];
+
+  if (loading) return (
+    <div style={{textAlign:'center',padding:'4rem',color:'var(--ink-4)'}}>
+      <span className="spinner" />Loading your profile…
+    </div>
+  );
+
+  if (!profile) return (
+    <div style={{textAlign:'center',padding:'4rem'}}>
+      <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
+        No profile found for {user.email}
+      </div>
+      <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
+        This email doesn't have a profile yet. Create one to get started.
+      </p>
+      <button className="btn-primary" onClick={onSignOut}>Create a Profile</button>
+    </div>
+  );
+
+  return (
+    <div className="my-profile-page">
+      <div className="my-profile-header">
+        <div>
+          <div className="my-profile-name">{profile.first_name} {profile.last_name}</div>
+          <div className="my-profile-title-sub">{profile.current_title}</div>
+        </div>
+        <div className="my-profile-actions">
+          <button className="admin-action-btn" onClick={loadProfile}>↻ Refresh</button>
+          <button className="admin-action-btn danger" onClick={onSignOut}>Sign Out</button>
+        </div>
+      </div>
+
+      {/* Tier & Subscription */}
+      <div className="profile-card" style={{marginBottom:'1.5rem'}}>
+        <div className="profile-card-header">
+          <div className="profile-card-title">Membership</div>
+        </div>
+        <div className="tier-display">
+          <div className={`tier-display-badge ${tierColor(profile.tier)}`}>
+            {tierLabel(profile.tier)}
+          </div>
+          <div className="tier-display-info">
+            <div className="tier-display-name">
+              {profile.tier === 'free'
+                ? 'Free Access — browse all searches, signal interest confidentially'
+                : profile.tier === 'active_senior'
+                ? 'Senior Professional — $99/yr — visible to Director-level search firms'
+                : 'Executive — $199/yr — visible to all posting search firms, priority matching'
+              }
+            </div>
+            {profile.tier_expires && (
+              <div className="tier-display-expiry">Renews {fmt(profile.tier_expires)}</div>
+            )}
+          </div>
+          {profile.tier === 'free' && (
+            <button className="btn-primary" style={{fontSize:'0.75rem',padding:'0.5rem 1rem'}}
+              onClick={() => window.location.href = window.location.pathname + '?view=profile'}>
+              Upgrade
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="profile-section-grid">
+        {/* Basic Info */}
+        <div className="profile-card">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Basic Information</div>
+            {editing === 'basic' ? (
+              <button className="profile-edit-btn save" onClick={() => saveField(editData)}>Save</button>
+            ) : (
+              <button className="profile-edit-btn" onClick={() => { setEditing('basic'); setEditData({
+                first_name: profile.first_name,
+                last_name: profile.last_name,
+                current_title: profile.current_title,
+                location: profile.location,
+                languages: profile.languages,
+              }); }}>Edit</button>
+            )}
+          </div>
+          {editing === 'basic' ? (
+            <div className="form" style={{gap:'0.625rem'}}>
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">First Name</label><input className="form-input" value={editData.first_name||''} onChange={e=>setEditData(p=>({...p,first_name:e.target.value}))} /></div>
+                <div className="form-group"><label className="form-label">Last Name</label><input className="form-input" value={editData.last_name||''} onChange={e=>setEditData(p=>({...p,last_name:e.target.value}))} /></div>
+              </div>
+              <div className="form-group"><label className="form-label">Current Title</label><input className="form-input" value={editData.current_title||''} onChange={e=>setEditData(p=>({...p,current_title:e.target.value}))} /></div>
+              <div className="form-group"><label className="form-label">Location</label><input className="form-input" value={editData.location||''} onChange={e=>setEditData(p=>({...p,location:e.target.value}))} /></div>
+              <div className="form-group"><label className="form-label">Languages</label><input className="form-input" value={editData.languages||''} onChange={e=>setEditData(p=>({...p,languages:e.target.value}))} /></div>
+              <button className="filter-clear" onClick={() => setEditing(null)}>Cancel</button>
+            </div>
+          ) : (
+            <>
+              <div className="profile-field"><div className="profile-field-label">Name</div><div className="profile-field-value">{profile.first_name} {profile.last_name}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Title</div><div className="profile-field-value">{profile.current_title || <span className="profile-field-empty">Not set</span>}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Location</div><div className="profile-field-value">{profile.location || <span className="profile-field-empty">Not set</span>}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Email</div><div className="profile-field-value" style={{color:'var(--ink-3)'}}>{profile.email}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Languages</div><div className="profile-field-value">{profile.languages || <span className="profile-field-empty">Not set</span>}</div></div>
+            </>
+          )}
+        </div>
+
+        {/* Professional */}
+        <div className="profile-card">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Professional Focus</div>
+            {editing === 'professional' ? (
+              <button className="profile-edit-btn save" onClick={() => saveField(editData)}>Save</button>
+            ) : (
+              <button className="profile-edit-btn" onClick={() => { setEditing('professional'); setEditData({
+                industry: profile.industry,
+                function: profile.function,
+                salary_min: profile.salary_min,
+                board_experience: profile.board_experience,
+              }); }}>Edit</button>
+            )}
+          </div>
+          {editing === 'professional' ? (
+            <div className="form" style={{gap:'0.625rem'}}>
+              <div className="form-group">
+                <label className="form-label">Industry Focus (select all that apply)</label>
+                <IndustryMultiSelect
+                  value={Array.isArray(editData.industry) ? editData.industry : (editData.industry ? [editData.industry] : [])}
+                  onChange={v => setEditData(p=>({...p, industry: v}))}
+                />
+              </div>
+              <div className="form-group"><label className="form-label">Function</label>
+                <select className="form-select" value={editData.function||''} onChange={e=>setEditData(p=>({...p,function:e.target.value}))}>
+                  <option value="">Select</option><option>Commercial</option><option>Operations</option><option>Chartering</option><option>Business Development</option><option>Finance</option><option>General Management</option>
+                </select>
+              </div>
+              <div className="form-group"><label className="form-label">Compensation Floor</label>
+                <select className="form-select" value={editData.salary_min||''} onChange={e=>setEditData(p=>({...p,salary_min:parseInt(e.target.value)||null}))}>
+                  <option value="">Select</option><option value="100000">$100K+</option><option value="150000">$150K+</option><option value="200000">$200K+</option><option value="300000">$300K+</option><option value="400000">$400K+</option><option value="500000">$500K+</option>
+                </select>
+              </div>
+              <div className="form-group"><label className="form-label">Board Experience</label>
+                <div className="visibility-toggle">
+                  <button className={`toggle-opt ${editData.board_experience==='yes'?'active':''}`} onClick={()=>setEditData(p=>({...p,board_experience:'yes'}))}>Yes</button>
+                  <button className={`toggle-opt ${editData.board_experience==='no'?'active':''}`} onClick={()=>setEditData(p=>({...p,board_experience:'no'}))}>No</button>
+                </div>
+              </div>
+              <button className="filter-clear" onClick={() => setEditing(null)}>Cancel</button>
+            </div>
+          ) : (
+            <>
+              <div className="profile-field">
+                <div className="profile-field-label">Industry</div>
+                <div className="profile-field-value">
+                  {Array.isArray(profile.industry)
+                    ? profile.industry.join(' · ')
+                    : profile.industry || <span className="profile-field-empty">Not set</span>
+                  }
+                </div>
+              </div>
+              <div className="profile-field"><div className="profile-field-label">Function</div><div className="profile-field-value">{profile.function || <span className="profile-field-empty">Not set</span>}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Compensation Floor</div><div className="profile-field-value">{profile.salary_min ? `$${(profile.salary_min/1000).toFixed(0)}K+` : <span className="profile-field-empty">Not set</span>}</div></div>
+              <div className="profile-field"><div className="profile-field-label">Board Experience</div><div className="profile-field-value">{profile.board_experience || <span className="profile-field-empty">Not set</span>}</div></div>
+            </>
+          )}
+        </div>
+
+        {/* Visibility & Preferences */}
+        <div className="profile-card">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Visibility & Preferences</div>
+          </div>
+          <div className="profile-visibility-row">
+            <div>
+              <div className="profile-visibility-label">Profile Visibility</div>
+              <div className="profile-visibility-desc">
+                {profile.visibility === 'open'
+                  ? 'Open — posting search firms can view your profile'
+                  : 'Discreet — only visible when you express interest'
+                }
+              </div>
+            </div>
+            <div className={`toggle-switch ${profile.visibility==='open'?'on':''}`}
+              style={{cursor:'pointer'}}
+              onClick={() => saveField({visibility: profile.visibility==='open'?'discreet':'open'})}
+            />
+          </div>
+          <div className="profile-visibility-row">
+            <div>
+              <div className="profile-visibility-label">Big Five Personality</div>
+              <div className="profile-visibility-desc">
+                {profile.big_five_shared
+                  ? 'Sharing with recruiters'
+                  : 'Private — not shared with recruiters'
+                }
+              </div>
+            </div>
+            <div className={`toggle-switch ${profile.big_five_shared?'on':''}`}
+              style={{cursor:'pointer'}}
+              onClick={() => saveField({big_five_shared: !profile.big_five_shared})}
+            />
+          </div>
+        </div>
+
+        {/* Big Five */}
+        <div className="profile-card">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Big Five Personality</div>
+            <span style={{fontSize:'0.7rem',color:profile.big_five_shared?'var(--green)':'var(--ink-4)',fontFamily:"'DM Mono',monospace",letterSpacing:'0.08em',textTransform:'uppercase'}}>
+              {profile.big_five_shared ? 'Shared' : 'Private'}
+            </span>
+          </div>
+          {parsedBigFive ? (
+            <>
+              {bigFiveKeys.map(k => (
+                <div key={k} className="big-five-profile-row">
+                  <div className="big-five-profile-header">
+                    <div className="big-five-profile-name">{bigFiveNames[k]}</div>
+                    <div className="big-five-profile-score">{parsedBigFive[k]}th percentile</div>
+                  </div>
+                  <div className="big-five-profile-bar">
+                    <div className="big-five-profile-fill" style={{width:`${parsedBigFive[k]}%`}} />
+                  </div>
+                </div>
+              ))}
+              <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.5'}}>
+                To update scores, email <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a> with your new Understand Myself results.
+              </p>
+            </>
+          ) : (
+            <div className="profile-field-empty" style={{fontSize:'0.85rem',padding:'0.5rem 0'}}>
+              No personality data added yet.{' '}
+              <a href="https://understandmyself.com" target="_blank" rel="noopener noreferrer" style={{color:'var(--gold)'}}>
+                Take the assessment →
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* Career Timeline */}
+        {parsedCareer.length > 0 && (
+          <div className="profile-card full-width">
+            <div className="profile-card-header">
+              <div className="profile-card-title">Career Timeline</div>
+            </div>
+            {parsedCareer.filter(e=>e.title||e.company).map((e,i) => (
+              <div key={i} style={{display:'flex',gap:'1.5rem',padding:'0.75rem 0',borderBottom:'1px solid var(--rule-lt)'}}>
+                <div style={{minWidth:'80px',fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--ink-4)',letterSpacing:'0.06em'}}>
+                  {e.years_from}{e.years_from&&'–'}{e.current?'Present':e.years_to}
+                </div>
+                <div>
+                  <div style={{fontWeight:600,color:'var(--ink)',fontSize:'0.875rem'}}>{e.title}</div>
+                  <div style={{color:'var(--ink-3)',fontSize:'0.82rem'}}>{e.company}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Achievements */}
+        {parsedAchievements.filter(a=>a).length > 0 && (
+          <div className="profile-card full-width">
+            <div className="profile-card-header">
+              <div className="profile-card-title">Key Achievements</div>
+            </div>
+            {parsedAchievements.filter(a=>a).map((a,i) => (
+              <div key={i} style={{padding:'0.625rem 0',borderBottom:'1px solid var(--rule-lt)',fontSize:'0.875rem',color:'var(--ink-3)',paddingLeft:'1.25rem',position:'relative'}}>
+                <span style={{position:'absolute',left:0,color:'var(--gold)'}}>—</span>
+                {a}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Interest History */}
+        <div className="profile-card full-width">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Searches You've Expressed Interest In</div>
+            <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{interests.length} TOTAL</span>
+          </div>
+          {interests.length === 0 ? (
+            <div className="profile-field-empty">No interest signals yet. Browse opportunities and click "Register Confidential Interest" on any search.</div>
+          ) : (
+            <div className="interest-list">
+              {interests.map(i => {
+                const job = jobs.find(j => j.id === i.job_id);
+                return (
+                  <div key={i.id} className="interest-item">
+                    <div>
+                      <div className="interest-item-title">{job?.title || 'Search no longer active'}</div>
+                      <div className="interest-item-firm">{job?.firm_name || '—'} · {job?.industry || '—'} · {job?.salary_display || '—'}</div>
+                    </div>
+                    <div className="interest-item-date">{fmt(i.created_at)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
   const [pricingAudience, setPricingAudience] = useState('recruiters');
   const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
   const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
+
+  // Auth state
+  const [authUser, setAuthUser]       = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -4237,6 +5167,29 @@ function App() {
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  // Supabase auth session listener
+  useEffect(() => {
+    // Check for existing session
+    sb.auth.getSession().then(({ data: { session } }) => {
+      setAuthUser(session?.user ?? null);
+      setAuthLoading(false);
+      // If redirected back from magic link, go to profile
+      if (session?.user && window.location.search.includes('view=myprofile')) {
+        setActiveView('myprofile');
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
+      setAuthUser(session?.user ?? null);
+      if (session?.user) {
+        setActiveView('myprofile');
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   function scrollTo(view, id) {
@@ -4297,7 +5250,13 @@ function App() {
     <>
       {showBanner && <DemoBanner onDismiss={() => setShowBanner(false)} />}
 
-      <NavBar activeView={activeView} setActiveView={setActiveView} openRecruiterModal={() => setRecruiterModal(true)} />
+      <NavBar
+          activeView={activeView}
+          setActiveView={setActiveView}
+          openRecruiterModal={() => setRecruiterModal(true)}
+          authUser={authUser}
+          onSignIn={() => setActiveView('signin')}
+        />
 
       <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} />
 
@@ -4365,6 +5324,15 @@ function App() {
                 You control when — and if — your identity is shared with a search firm.
                 Basic access is always free.
               </p>
+              <p style={{fontSize:'0.82rem',color:'rgba(250,250,248,0.5)',marginBottom:'1.5rem'}}>
+                Already have a profile?{' '}
+                <span
+                  style={{color:'var(--gold-lt)',cursor:'pointer',textDecoration:'underline'}}
+                  onClick={() => setActiveView('signin')}
+                >
+                  Sign in here →
+                </span>
+              </p>
               <ul className="feature-list">
                 <li>Confidential by default — your employer never appears</li>
                 <li>Set a salary floor — only see searches that match</li>
@@ -4372,7 +5340,7 @@ function App() {
                 <li>Email alerts when a matching search is posted</li>
                 <li>Senior Professional ($99/yr) — Director level, recruiters can find you</li>
                 <li>Executive ($199/yr) — C-Suite/VP, priority matching</li>
-                <li>Maritime · Energy · Industrial Logistics only</li>
+                <li>Maritime · Energy · Logistics · Offshore · Cruise only</li>
               </ul>
             </div>
             <div className="profile-right">
@@ -4387,6 +5355,32 @@ function App() {
 
         {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
+
+        {activeView === 'signin' && (
+          <div className="main">
+            <SignInPage onBack={() => setActiveView('profile')} />
+          </div>
+        )}
+
+        {activeView === 'myprofile' && authUser && (
+          <div className="main">
+            <MyProfilePage
+              user={authUser}
+              showToast={showToast}
+              onSignOut={async () => {
+                await sb.auth.signOut();
+                setAuthUser(null);
+                setActiveView('jobs');
+              }}
+            />
+          </div>
+        )}
+
+        {activeView === 'myprofile' && !authUser && (
+          <div className="main">
+            <SignInPage onBack={() => setActiveView('profile')} />
+          </div>
+        )}
 
         <div className="recruiter-cta">
           <div>
@@ -4431,7 +5425,7 @@ function App() {
           <div>
             <div className="footer-col-title">Verticals</div>
             <ul className="footer-links">
-              <li>Maritime</li><li>Energy</li><li>Industrial Logistics</li><li>Port &amp; Terminal</li><li>Offshore</li>
+              <li>Maritime</li><li>Energy</li><li>Industrial Logistics</li><li>Port &amp; Terminal</li><li>Offshore</li><li>Cruise</li>
             </ul>
           </div>
           <div>
@@ -4443,7 +5437,7 @@ function App() {
         </div>
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
-          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Industrial Logistics</div>
+          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Logistics · Offshore · Cruise</div>
         </div>
       </footer>
 
