@@ -2127,7 +2127,7 @@ function RecruiterModal({ onClose, showToast }) {
                 <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
                   {loading ? 'Submitting…' : 'Submit Search for Review'}
                 </button>
-                <div className="interest-note">Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.</div>
+                <div className="interest-note">Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.<br/>Questions? <a href='mailto:desk@fredheimtech.com' style={{color:'var(--gold)'}}>desk@fredheimtech.com</a></div>
               </>
             )}
           </>
@@ -2253,9 +2253,9 @@ function ProfileForm({ showToast }) {
           cancelUrl:  window.location.origin + window.location.pathname + '?cancelled=1',
           customerEmail: form.email,
         });
-        if (error) showToast('Payment error — profile saved. Contact us to activate.');
+        if (error) showToast('Payment error — profile saved. Email desk@fredheimtech.com to activate.');
       } catch(e) {
-        showToast('Payment redirect failed — profile saved. Contact us to upgrade.');
+        showToast('Payment redirect failed — profile saved. Email desk@fredheimtech.com to upgrade.');
       }
       setLoading(false);
       return;
@@ -3009,6 +3009,11 @@ function App() {
               The curated executive opportunity platform for maritime, energy,
               and industrial logistics. Built with and for the professionals who move global trade.
             </p>
+            <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
+              <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
+                desk@fredheimtech.com
+              </a>
+            </p>
           </div>
           <div>
             <div className="footer-col-title">Platform</div>
@@ -3028,12 +3033,12 @@ function App() {
           <div>
             <div className="footer-col-title">Company</div>
             <ul className="footer-links">
-              <li>About Fredheim</li><li>Why Salary Transparency</li><li>Privacy Policy</li><li>Terms of Service</li><li>Contact</li>
+              <li>About Fredheim</li><li>Why Salary Transparency</li><li>Privacy Policy</li><li>Terms of Service</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com</div>
+          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
           <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Industrial Logistics</div>
         </div>
       </footer>
