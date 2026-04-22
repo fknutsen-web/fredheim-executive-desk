@@ -1404,6 +1404,277 @@
   }
   .placement-confirm-btn:hover { background: #156638; }
 
+
+  /* ── MULTI-STEP PROFILE FORM ── */
+  .step-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  .step-num {
+    width: 24px; height: 24px;
+    border: 1.5px solid var(--rule);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: var(--ink-4);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .step-num.active { border-color: var(--ink); background: var(--ink); color: var(--white); }
+  .step-num.done { border-color: var(--green); background: var(--green); color: var(--white); }
+  .step-num.done::after { content: '✓'; }
+
+  .step-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    transition: color 0.2s;
+  }
+  .step-label.active { color: var(--ink); }
+
+  .step-line {
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+    margin: 0 0.5rem;
+  }
+
+  .step-nav {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .step-back {
+    background: none;
+    border: 1.5px solid var(--rule);
+    color: var(--ink-3);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.875rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .step-back:hover { border-color: var(--ink-3); color: var(--ink); }
+
+  .step-next {
+    flex: 1;
+    background: var(--ink);
+    border: none;
+    color: var(--white);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .step-next:hover { background: var(--ink-2); }
+
+  /* ── CAREER TIMELINE ── */
+  .career-entry {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+  }
+
+  .career-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .career-entry-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .career-remove {
+    background: none;
+    border: none;
+    color: var(--ink-4);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+  .career-remove:hover { color: var(--red); }
+
+  .add-entry-btn {
+    width: 100%;
+    background: none;
+    border: 1.5px dashed var(--rule);
+    color: var(--ink-4);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+  .add-entry-btn:hover { border-color: var(--ink-3); color: var(--ink); background: var(--paper-2); }
+
+  /* ── BIG FIVE ── */
+  .big-five-intro {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-rule);
+    border-left: 3px solid var(--gold);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.65;
+  }
+
+  .big-five-intro a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .big-five-intro a:hover { text-decoration: underline; }
+
+  .trait-row {
+    margin-bottom: 1.25rem;
+  }
+
+  .trait-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.375rem;
+  }
+
+  .trait-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 500;
+  }
+
+  .trait-score-display {
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .trait-desc {
+    font-size: 0.75rem;
+    color: var(--ink-4);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+
+  .trait-slider {
+    width: 100%;
+    appearance: none;
+    height: 3px;
+    background: var(--rule);
+    outline: none;
+    cursor: pointer;
+    border-radius: 0;
+  }
+  .trait-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 16px; height: 16px;
+    background: var(--ink);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+    box-shadow: 0 1px 4px rgba(15,28,46,0.2);
+  }
+  .trait-slider::-moz-range-thumb {
+    width: 16px; height: 16px;
+    background: var(--ink);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--white);
+  }
+
+  .trait-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+  }
+  .trait-label-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+    color: var(--ink-4);
+  }
+
+  .big-five-share-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    margin-bottom: 1rem;
+    cursor: pointer;
+  }
+
+  .toggle-switch {
+    width: 36px; height: 20px;
+    background: var(--rule);
+    border-radius: 10px;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .toggle-switch.on { background: var(--green); }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: var(--white);
+    border-radius: 50%;
+    top: 3px; left: 3px;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-switch.on::after { transform: translateX(16px); }
+
+  .toggle-label {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .toggle-label strong { color: var(--ink); }
+
+  /* Profile display in recruiter view */
+  .big-five-display { margin-top: 1rem; }
+  .big-five-bar-row { margin-bottom: 0.625rem; }
+  .big-five-bar-header { display: flex; justify-content: space-between; margin-bottom: 0.25rem; }
+  .big-five-bar-name { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .big-five-bar-val { font-size: 0.72rem; color: var(--gold); font-weight: 500; }
+  .big-five-bar-track { height: 4px; background: var(--rule-lt); border-radius: 0; overflow: hidden; }
+  .big-five-bar-fill { height: 100%; background: var(--ink); border-radius: 0; transition: width 0.4s ease; }
+
 </style>
 </head>
 <body>
@@ -1868,29 +2139,111 @@ function RecruiterModal({ onClose, showToast }) {
 
 // ── PROFILE FORM ──────────────────────────────────────────────────────────────
 function ProfileForm({ showToast }) {
+  const [step, setStep]           = useState(1); // 1=Basics 2=Career 3=Personality 4=Preferences
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
   const [tier, setTier]           = useState('free');
   const [visibility, setVisibility] = useState('discreet');
-  const [form, setForm] = useState({ first_name:'', last_name:'', email:'', current_title:'', current_company:'', industry:'', function:'', location:'', salary_min:'' });
+
+  // Basic info
+  const [form, setForm] = useState({
+    first_name:'', last_name:'', email:'', current_title:'',
+    current_company:'', industry:'', function:'', location:'', salary_min:''
+  });
   function set(k,v) { setForm(p=>({...p,[k]:v})); }
 
-  async function handleSubmit() {
-    if (!form.first_name || !form.email || !form.current_title) { showToast('Please complete name, email, and current title.'); return; }
-    setLoading(true);
+  // Career timeline — up to 4 entries
+  const [career, setCareer] = useState([
+    { title:'', company:'', years_from:'', years_to:'', current: false }
+  ]);
+  function addCareer() {
+    if (career.length >= 4) return;
+    setCareer(p=>[...p, { title:'', company:'', years_from:'', years_to:'', current:false }]);
+  }
+  function removeCareer(i) { setCareer(p=>p.filter((_,idx)=>idx!==i)); }
+  function setCareerField(i,k,v) { setCareer(p=>p.map((e,idx)=>idx===i?{...e,[k]:v}:e)); }
 
-    // Save profile to Supabase first
+  // Achievements
+  const [achievements, setAchievements] = useState(['','','']);
+  function setAch(i,v) { setAchievements(p=>p.map((a,idx)=>idx===i?v:a)); }
+
+  // Big Five
+  const [shareBigFive, setShareBigFive] = useState(false);
+  const [bigFive, setBigFive] = useState({
+    openness: 50, conscientiousness: 50, extraversion: 50,
+    agreeableness: 50, emotional_stability: 50
+  });
+  function setBF(k,v) { setBigFive(p=>({...p,[k]:v})); }
+
+  const TRAITS = [
+    {
+      key: 'openness',
+      name: 'Openness to Experience',
+      desc: 'Curiosity, creativity, and comfort with new ideas and change.',
+      low: 'Conventional', high: 'Imaginative'
+    },
+    {
+      key: 'conscientiousness',
+      name: 'Conscientiousness',
+      desc: 'Organization, dependability, and goal-directed discipline.',
+      low: 'Flexible', high: 'Disciplined'
+    },
+    {
+      key: 'extraversion',
+      name: 'Extraversion',
+      desc: 'Sociability, assertiveness, and positive engagement with others.',
+      low: 'Reserved', high: 'Outgoing'
+    },
+    {
+      key: 'agreeableness',
+      name: 'Agreeableness',
+      desc: 'Cooperation, trust, and concern for social harmony.',
+      low: 'Competitive', high: 'Collaborative'
+    },
+    {
+      key: 'emotional_stability',
+      name: 'Emotional Stability',
+      desc: 'Calmness under pressure and resilience to stress.',
+      low: 'Reactive', high: 'Composed'
+    },
+  ];
+
+  function scoreLabel(v) {
+    if (v <= 20) return 'Very Low';
+    if (v <= 38) return 'Low';
+    if (v <= 62) return 'Moderate';
+    if (v <= 80) return 'High';
+    return 'Very High';
+  }
+
+  function validateStep() {
+    if (step === 1) {
+      if (!form.first_name || !form.email || !form.current_title) {
+        showToast('Please complete name, email, and current title.');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async function handleSubmit() {
+    setLoading(true);
+    const profileData = {
+      ...form,
+      salary_min: form.salary_min ? parseInt(form.salary_min) : null,
+      visibility,
+      tier,
+      career_timeline: JSON.stringify(career.filter(e=>e.title||e.company)),
+      achievements: JSON.stringify(achievements.filter(a=>a.trim())),
+      big_five: shareBigFive ? JSON.stringify(bigFive) : null,
+      big_five_shared: shareBigFive,
+    };
+
     try {
-      await sb.from('fed_profiles').upsert({
-        ...form,
-        salary_min: form.salary_min ? parseInt(form.salary_min) : null,
-        visibility,
-        tier
-      }, { onConflict: 'email' });
+      await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
     } catch(e) { console.log('Profile save:', e); }
 
-    // Active tier — redirect to Stripe Checkout
-    if (tier === 'active') {
+    if (tier === 'active' || tier === 'active_senior') {
       try {
         const s = getStripe();
         const { error } = await s.redirectToCheckout({
@@ -1900,7 +2253,7 @@ function ProfileForm({ showToast }) {
           cancelUrl:  window.location.origin + window.location.pathname + '?cancelled=1',
           customerEmail: form.email,
         });
-        if (error) { showToast('Payment setup error — profile saved. Contact us to activate.'); }
+        if (error) showToast('Payment error — profile saved. Contact us to activate.');
       } catch(e) {
         showToast('Payment redirect failed — profile saved. Contact us to upgrade.');
       }
@@ -1917,79 +2270,311 @@ function ProfileForm({ showToast }) {
       <div className="success-title">Profile Created</div>
       <div className="success-desc" style={{marginTop:'0.5rem'}}>
         Welcome to Fredheim Executive Desk.
-        {visibility === 'discreet' ? ' Your profile is confidential — you initiate all contact.' : ' Your profile is visible to posting search firms.'}
-        {' '}You\'ll receive alerts when matching searches are posted.
+        {visibility === 'discreet'
+          ? ' Your profile is confidential — you initiate all contact.'
+          : ' Your profile is visible to posting search firms.'
+        }
+        {' '}You'll receive alerts when matching searches are posted.
       </div>
     </div>
   );
+
+  const steps = ['Basics','Career','Personality','Preferences'];
 
   return (
     <div className="form">
-      <div className="form-group">
-        <label className="form-label">Member Tier</label>
-        <div className="tiers" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
-          <div className={`tier-card ${tier==='free'?'selected':''}`} onClick={()=>setTier('free')}>
-            <div className="tier-name">Free</div>
-            <div className="tier-price">$0</div>
-            <div className="tier-desc">Browse and signal interest. You control all contact.</div>
-          </div>
-          <div className={`tier-card ${tier==='active_senior'?'selected':''}`} onClick={()=>setTier('active_senior')}>
-            <div className="tier-name">Senior Professional</div>
-            <div className="tier-price">$99 <span style={{fontSize:'0.9rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
-            <div className="tier-desc">Director level. Recruiters can find and contact you.</div>
-          </div>
-          <div className={`tier-card ${tier==='active'?'selected':''}`} onClick={()=>setTier('active')}>
-            <div className="tier-name">Executive</div>
-            <div className="tier-price">$199 <span style={{fontSize:'0.9rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
-            <div className="tier-desc">C-Suite / VP. Priority matching. Recruiters can reach you.</div>
-          </div>
-        </div>
+      {/* Step indicator */}
+      <div className="step-indicator">
+        {steps.map((s,i) => (
+          <React.Fragment key={s}>
+            <div className="step-item">
+              <div className={`step-num ${step===i+1?'active':step>i+1?'done':''}`}>
+                {step > i+1 ? '' : i+1}
+              </div>
+              <div className={`step-label ${step===i+1?'active':''}`}>{s}</div>
+            </div>
+            {i < steps.length-1 && <div className="step-line" />}
+          </React.Fragment>
+        ))}
       </div>
 
-      <div className="form-row">
-        <div className="form-group"><label className="form-label">First Name *</label><input className="form-input" placeholder="First" value={form.first_name} onChange={e=>set('first_name',e.target.value)} /></div>
-        <div className="form-group"><label className="form-label">Last Name *</label><input className="form-input" placeholder="Last" value={form.last_name} onChange={e=>set('last_name',e.target.value)} /></div>
-      </div>
-      <div className="form-group"><label className="form-label">Current Title *</label><input className="form-input" placeholder="e.g. Chief Commercial Officer" value={form.current_title} onChange={e=>set('current_title',e.target.value)} /></div>
-      <div className="form-group"><label className="form-label">Current Company (confidential)</label><input className="form-input" placeholder="Never displayed publicly" value={form.current_company} onChange={e=>set('current_company',e.target.value)} /></div>
-      <div className="form-row">
-        <div className="form-group"><label className="form-label">Industry</label>
-          <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
-            <option value="">Select</option><option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
-          </select>
-        </div>
-        <div className="form-group"><label className="form-label">Function</label>
-          <select className="form-select" value={form.function} onChange={e=>set('function',e.target.value)}>
-            <option value="">Select</option><option>Commercial</option><option>Operations</option><option>Chartering</option><option>Business Development</option><option>Finance</option><option>General Management</option>
-          </select>
-        </div>
-      </div>
-      <div className="form-row">
-        <div className="form-group"><label className="form-label">Location</label><input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} /></div>
-        <div className="form-group"><label className="form-label">Compensation Floor</label>
-          <select className="form-select" value={form.salary_min} onChange={e=>set('salary_min',e.target.value)}>
-            <option value="">Select minimum</option><option value="150000">$150K+</option><option value="200000">$200K+</option><option value="300000">$300K+</option><option value="400000">$400K+</option><option value="500000">$500K+</option>
-          </select>
-        </div>
-      </div>
-      <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" placeholder="your@email.com" value={form.email} onChange={e=>set('email',e.target.value)} /></div>
-      <div className="form-group">
-        <label className="form-label">Visibility</label>
-        <div className="visibility-toggle">
-          <button className={`toggle-opt ${visibility==='discreet'?'active':''}`} onClick={()=>setVisibility('discreet')}>Discreet — I initiate</button>
-          <button className={`toggle-opt ${visibility==='open'?'active':''}`} onClick={()=>setVisibility('open')}>Open — Recruiters can reach me</button>
-        </div>
-      </div>
-      <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
-        {loading ? 'Creating…' : tier==='active' ? 'Create Executive Profile — $199/yr' : tier==='active_senior' ? 'Create Senior Profile — $99/yr' : 'Create Free Profile'}
-      </button>
-      <p className="form-note">
-        {tier==='free' ? 'Free access always. Upgrade anytime.' : tier==='active_senior' ? 'Senior Professional — $99/yr. Your employer is never disclosed.' : 'Executive tier — $199/yr. Your employer is never disclosed.'}
-      </p>
+      {/* ── STEP 1: BASICS ── */}
+      {step === 1 && (
+        <>
+          <div className="form-group">
+            <label className="form-label">Member Tier</label>
+            <div className="tiers" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+              <div className={`tier-card ${tier==='free'?'selected':''}`} onClick={()=>setTier('free')}>
+                <div className="tier-name">Free</div>
+                <div className="tier-price">$0</div>
+                <div className="tier-desc">Browse and signal interest. You control all contact.</div>
+              </div>
+              <div className={`tier-card ${tier==='active_senior'?'selected':''}`} onClick={()=>setTier('active_senior')}>
+                <div className="tier-name">Senior Professional</div>
+                <div className="tier-price">$99 <span style={{fontSize:'0.85rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
+                <div className="tier-desc">Director level. Recruiters can find and contact you.</div>
+              </div>
+              <div className={`tier-card ${tier==='active'?'selected':''}`} onClick={()=>setTier('active')}>
+                <div className="tier-name">Executive</div>
+                <div className="tier-price">$199 <span style={{fontSize:'0.85rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
+                <div className="tier-desc">C-Suite / VP. Priority matching. Recruiters can reach you.</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">First Name *</label><input className="form-input" placeholder="First" value={form.first_name} onChange={e=>set('first_name',e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">Last Name *</label><input className="form-input" placeholder="Last" value={form.last_name} onChange={e=>set('last_name',e.target.value)} /></div>
+          </div>
+          <div className="form-group"><label className="form-label">Current Title *</label><input className="form-input" placeholder="e.g. Chief Commercial Officer" value={form.current_title} onChange={e=>set('current_title',e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Current Company (confidential — never displayed)</label><input className="form-input" placeholder="Your employer" value={form.current_company} onChange={e=>set('current_company',e.target.value)} /></div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Industry</label>
+              <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
+                <option value="">Select</option><option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
+              </select>
+            </div>
+            <div className="form-group"><label className="form-label">Function</label>
+              <select className="form-select" value={form.function} onChange={e=>set('function',e.target.value)}>
+                <option value="">Select</option><option>Commercial</option><option>Operations</option><option>Chartering</option><option>Business Development</option><option>Finance</option><option>General Management</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group"><label className="form-label">Location</label><input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} /></div>
+            <div className="form-group"><label className="form-label">Compensation Floor</label>
+              <select className="form-select" value={form.salary_min} onChange={e=>set('salary_min',e.target.value)}>
+                <option value="">Select minimum</option>
+                <option value="100000">$100K+</option>
+                <option value="150000">$150K+</option>
+                <option value="200000">$200K+</option>
+                <option value="300000">$300K+</option>
+                <option value="400000">$400K+</option>
+                <option value="500000">$500K+</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" placeholder="your@email.com" value={form.email} onChange={e=>set('email',e.target.value)} /></div>
+
+          <div className="step-nav">
+            <button className="step-next" onClick={() => { if(validateStep()) setStep(2); }}>
+              Continue — Career History →
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 2: CAREER ── */}
+      {step === 2 && (
+        <>
+          <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Career Timeline</div>
+          <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1.25rem',lineHeight:'1.6'}}>
+            Add your last 3–4 roles. This replaces the need for a resume in most initial conversations.
+          </p>
+
+          {career.map((entry, i) => (
+            <div key={i} className="career-entry">
+              <div className="career-entry-header">
+                <div className="career-entry-title">Role {i+1}</div>
+                {career.length > 1 && (
+                  <button className="career-remove" onClick={() => removeCareer(i)}>✕</button>
+                )}
+              </div>
+              <div className="form-row" style={{marginBottom:'0.625rem'}}>
+                <div className="form-group"><label className="form-label">Title</label><input className="form-input" placeholder="e.g. Commercial Director" value={entry.title} onChange={e=>setCareerField(i,'title',e.target.value)} /></div>
+                <div className="form-group"><label className="form-label">Company</label><input className="form-input" placeholder="Company name" value={entry.company} onChange={e=>setCareerField(i,'company',e.target.value)} /></div>
+              </div>
+              <div className="form-row">
+                <div className="form-group"><label className="form-label">From (year)</label><input className="form-input" placeholder="2018" value={entry.years_from} onChange={e=>setCareerField(i,'years_from',e.target.value)} /></div>
+                <div className="form-group"><label className="form-label">To (year)</label><input className="form-input" placeholder={entry.current?'Present':'2023'} value={entry.current?'Present':entry.years_to} onChange={e=>setCareerField(i,'years_to',e.target.value)} disabled={entry.current} /></div>
+              </div>
+              <div className="big-five-share-toggle" style={{marginTop:'0.625rem'}} onClick={()=>setCareerField(i,'current',!entry.current)}>
+                <div className={`toggle-switch ${entry.current?'on':''}`} />
+                <div className="toggle-label">This is my current role</div>
+              </div>
+            </div>
+          ))}
+
+          {career.length < 4 && (
+            <button className="add-entry-btn" onClick={addCareer}>+ Add Another Role</button>
+          )}
+
+          <div style={{marginTop:'1.5rem'}}>
+            <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Key Achievements</div>
+            <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1rem',lineHeight:'1.6'}}>
+              3 bullet points. Specific, quantified where possible. This is what recruiters read first.
+            </p>
+            {achievements.map((a,i) => (
+              <div key={i} className="form-group" style={{marginBottom:'0.625rem'}}>
+                <label className="form-label">Achievement {i+1}</label>
+                <input className="form-input" placeholder={
+                  i===0 ? 'e.g. Led acquisition of Port Nickel — $30M, 387 acres, 5,720ft riverfront' :
+                  i===1 ? 'e.g. Built SESCO TransAmerica vessel operating entity from concept to execution' :
+                  'e.g. Negotiated 45,000 ST/yr fly ash contract at Wingate terminal'
+                } value={a} onChange={e=>setAch(i,e.target.value)} />
+              </div>
+            ))}
+          </div>
+
+          <div className="step-nav">
+            <button className="step-back" onClick={()=>setStep(1)}>← Back</button>
+            <button className="step-next" onClick={()=>setStep(3)}>Continue — Personality →</button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 3: PERSONALITY ── */}
+      {step === 3 && (
+        <>
+          <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Big Five Personality Profile</div>
+
+          <div className="big-five-intro">
+            This is <strong>optional</strong> and entirely your choice. The Big Five is the most
+            research-validated personality framework in existence — the same model used by
+            Heidrick & Struggles, Korn Ferry, and Spencer Stuart in senior-level searches.
+            Take the assessment at{' '}
+            <a href="https://understandmyself.com" target="_blank" rel="noopener noreferrer">
+              understandmyself.com
+            </a>{' '}
+            ($10), then enter your percentile scores below. You control whether recruiters see this.
+          </div>
+
+          <div className="big-five-share-toggle" onClick={()=>setShareBigFive(!shareBigFive)}>
+            <div className={`toggle-switch ${shareBigFive?'on':''}`} />
+            <div className="toggle-label">
+              <strong>{shareBigFive ? 'Sharing with recruiters' : 'Not sharing with recruiters'}</strong>
+              {' '}— {shareBigFive
+                ? 'Your scores will be visible to recruiting firms when your profile is viewed.'
+                : 'Your scores are private. Toggle on to share them with posting search firms.'
+              }
+            </div>
+          </div>
+
+          {TRAITS.map(t => (
+            <div key={t.key} className="trait-row">
+              <div className="trait-header">
+                <div className="trait-name">{t.name}</div>
+                <div className="trait-score-display">
+                  {scoreLabel(bigFive[t.key])} — {bigFive[t.key]}th percentile
+                </div>
+              </div>
+              <div className="trait-desc">{t.desc}</div>
+              <input
+                type="range"
+                className="trait-slider"
+                min="1" max="99"
+                value={bigFive[t.key]}
+                onChange={e=>setBF(t.key, parseInt(e.target.value))}
+              />
+              <div className="trait-labels">
+                <span className="trait-label-text">{t.low}</span>
+                <span className="trait-label-text">{t.high}</span>
+              </div>
+            </div>
+          ))}
+
+          <p style={{fontSize:'0.72rem',color:'var(--ink-4)',lineHeight:'1.6',marginTop:'0.5rem'}}>
+            Scores are self-reported. Fredheim Executive Desk prohibits use of personality data
+            as a screening or disqualification criterion. See our Terms of Service.
+          </p>
+
+          <div className="step-nav">
+            <button className="step-back" onClick={()=>setStep(2)}>← Back</button>
+            <button className="step-next" onClick={()=>setStep(4)}>Continue — Preferences →</button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 4: PREFERENCES ── */}
+      {step === 4 && (
+        <>
+          <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Search Preferences</div>
+
+          <div className="form-group">
+            <label className="form-label">Profile Visibility</label>
+            <div className="visibility-toggle">
+              <button className={`toggle-opt ${visibility==='discreet'?'active':''}`} onClick={()=>setVisibility('discreet')}>
+                Discreet — I initiate contact
+              </button>
+              <button className={`toggle-opt ${visibility==='open'?'active':''}`} onClick={()=>setVisibility('open')}>
+                Open — Recruiters can reach me
+              </button>
+            </div>
+            <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.375rem',lineHeight:'1.5'}}>
+              Discreet: only visible when you express interest in a specific search.
+              Open: visible to all posting search firms (Active and Executive tiers only).
+            </p>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Geographic Availability</label>
+            <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+              {['Open to relocation','North America','Europe','Middle East','Asia Pacific','Remote only'].map(geo=>{
+                const [geos,setGeos] = [form.geo_prefs ? JSON.parse(form.geo_prefs) : [], (v)=>set('geo_prefs',JSON.stringify(v))];
+                const selected = geos.includes(geo);
+                return (
+                  <button
+                    key={geo}
+                    onClick={()=>setGeos(selected?geos.filter(g=>g!==geo):[...geos,geo])}
+                    style={{
+                      background: selected ? 'var(--ink)' : 'var(--paper)',
+                      color: selected ? 'var(--white)' : 'var(--ink-3)',
+                      border: `1px solid ${selected ? 'var(--ink)' : 'var(--rule)'}`,
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: '0.62rem',
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase',
+                      padding: '0.4rem 0.75rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >{geo}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Board Experience</label>
+            <div className="visibility-toggle">
+              <button className={`toggle-opt ${form.board_experience==='yes'?'active':''}`} onClick={()=>set('board_experience','yes')}>Yes — Board Member or Advisor</button>
+              <button className={`toggle-opt ${form.board_experience==='no'?'active':''}`} onClick={()=>set('board_experience','no')}>No board experience</button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Languages (optional)</label>
+            <input className="form-input" placeholder="e.g. English (native), Norwegian, Arabic" value={form.languages||''} onChange={e=>set('languages',e.target.value)} />
+          </div>
+
+          <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'1rem 1.25rem',marginBottom:'1rem',fontSize:'0.78rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
+            <strong style={{color:'var(--ink)'}}>Profile summary:</strong> {form.current_title || 'Executive'} · {form.industry || 'Maritime/Energy/Logistics'} · {form.location || 'Location TBD'} ·{' '}
+            {career.filter(e=>e.title).length} career roles · {achievements.filter(a=>a).length} achievements ·{' '}
+            {shareBigFive ? 'Big Five shared' : 'Big Five private'} ·{' '}
+            {tier === 'free' ? 'Free tier' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
+          </div>
+
+          <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Creating Profile…'
+              : tier==='active' ? 'Create Executive Profile — $199/yr'
+              : tier==='active_senior' ? 'Create Senior Profile — $99/yr'
+              : 'Create Free Profile'}
+          </button>
+          <p className="form-note">
+            {tier==='free'
+              ? 'Free access always. Upgrade to Active anytime from your profile.'
+              : 'Billed annually. Cancel anytime. Your current employer is never disclosed to anyone.'
+            }
+          </p>
+
+          <div className="step-nav" style={{marginTop:'0'}}>
+            <button className="step-back" onClick={()=>setStep(3)}>← Back</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
-
 
 // ── PRICING PAGE ─────────────────────────────────────────────────────────────
 function PricingPage({ setActiveView, openRecruiterModal }) {
