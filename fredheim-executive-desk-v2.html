@@ -4861,7 +4861,7 @@ function SignInPage({ onBack }) {
 }
 
 // ── MY PROFILE DASHBOARD ──────────────────────────────────────────────────────
-function MyProfilePage({ user, onSignOut, showToast }) {
+function MyProfilePage({ user, onSignOut, showToast, onCreateProfile }) {
   const [profile, setProfile]       = useState(null);
   const [interests, setInterests]   = useState([]);
   const [jobs, setJobs]             = useState([]);
@@ -4953,7 +4953,7 @@ function MyProfilePage({ user, onSignOut, showToast }) {
       <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
         This email doesn't have a profile yet. Create one to get started.
       </p>
-      <button className="btn-primary" onClick={onSignOut}>Create a Profile</button>
+      <button className="btn-primary" onClick={onCreateProfile || onSignOut}>Create a Profile</button>
     </div>
   );
 
@@ -4994,7 +4994,7 @@ function MyProfilePage({ user, onSignOut, showToast }) {
           </div>
           {profile.tier === 'free' && (
             <button className="btn-primary" style={{fontSize:'0.75rem',padding:'0.5rem 1rem'}}
-              onClick={() => window.location.href = window.location.pathname + '?view=profile'}>
+              onClick={onCreateProfile || onSignOut}>
               Upgrade
             </button>
           )}
@@ -5685,7 +5685,7 @@ function App() {
         />
 
       {/* Hero and manifesto only on public views */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy'].includes(activeView) && (
         <>
           <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} />
           <div className="manifesto">
@@ -5794,6 +5794,9 @@ function App() {
           <MyProfilePage
             user={authUser}
             showToast={showToast}
+            onCreateProfile={() => {
+              goToView('profile');
+            }}
             onSignOut={async () => {
               await sb.auth.signOut();
               setAuthUser(null);
@@ -5827,7 +5830,7 @@ function App() {
           <RecruiterSignInPage onBack={() => setRecruiterModal(true)} />
         )}
 
-        {!['signin','myprofile','recruiter-signin','recruiter-dash'].includes(activeView) && <div className="recruiter-cta">
+        {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy'].includes(activeView) && <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms</div>
             <div className="recruiter-title">Reach the right executives.</div>
