@@ -922,6 +922,488 @@
     .tiers { grid-template-columns: 1fr; }
     .hero-stats { flex-direction: column; }
   }
+
+  /* ── PRICING PAGE ── */
+  .pricing-page { padding: 3rem 0; }
+
+  .pricing-hero {
+    text-align: center;
+    margin-bottom: 4rem;
+    padding-bottom: 3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .pricing-hero .hero-eyebrow { justify-content: center; margin-bottom: 1.25rem; }
+  .pricing-hero .hero-eyebrow::before { display: none; }
+
+  .pricing-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 4vw, 3.2rem);
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .pricing-hero-desc {
+    color: var(--ink-3);
+    font-size: 1rem;
+    line-height: 1.75;
+    max-width: 540px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+
+  /* Audience tabs */
+  .pricing-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 3rem;
+    border: 1.5px solid var(--ink);
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .pricing-tab {
+    background: none;
+    border: none;
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.75rem 2.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--ink-3);
+    border-right: 1.5px solid var(--ink);
+  }
+  .pricing-tab:last-child { border-right: none; }
+  .pricing-tab.active { background: var(--ink); color: var(--white); }
+  .pricing-tab:hover:not(.active) { background: var(--paper-2); color: var(--ink); }
+
+  /* Plan cards grid */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 3rem;
+  }
+
+  .plan-card {
+    background: var(--white);
+    padding: 2.5rem 2rem;
+    position: relative;
+    transition: background 0.15s;
+  }
+
+  .plan-card.recommended {
+    background: var(--ink);
+    color: var(--white);
+  }
+
+  .plan-card.recommended .plan-price { color: var(--white); }
+  .plan-card.recommended .plan-period { color: rgba(250,250,248,0.5); }
+  .plan-card.recommended .plan-desc { color: rgba(250,250,248,0.6); }
+  .plan-card.recommended .plan-feature { color: rgba(250,250,248,0.75); border-color: rgba(250,250,248,0.1); }
+  .plan-card.recommended .plan-feature::before { color: var(--gold-lt); }
+  .plan-card.recommended .plan-name { color: var(--gold-lt); }
+
+  .recommended-badge {
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--gold);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.875rem;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+
+  .plan-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .plan-price sup {
+    font-size: 1.5rem;
+    font-weight: 400;
+    vertical-align: super;
+    margin-right: 0.1rem;
+  }
+
+  .plan-period {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 1.25rem;
+  }
+
+  .plan-desc {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    line-height: 1.65;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--rule-lt);
+    font-weight: 300;
+  }
+
+  .plan-features {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+
+  .plan-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    padding: 0.625rem 0;
+    border-bottom: 1px solid var(--rule-lt);
+    line-height: 1.4;
+  }
+  .plan-feature:last-child { border-bottom: none; }
+  .plan-feature::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+    margin-top: 0.05rem;
+  }
+  .plan-feature.muted { opacity: 0.4; }
+  .plan-feature.muted::before { content: '—'; color: var(--ink-4); font-weight: 400; }
+
+  .plan-cta {
+    width: 100%;
+    padding: 0.875rem;
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid var(--ink);
+    background: none;
+    color: var(--ink);
+  }
+  .plan-cta:hover { background: var(--ink); color: var(--white); }
+  .plan-cta.primary { background: var(--gold); border-color: var(--gold); color: var(--white); }
+  .plan-cta.primary:hover { background: var(--gold-lt); border-color: var(--gold-lt); }
+
+  /* Introduction fee callout */
+  .intro-fee-box {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-rule);
+    border-left: 4px solid var(--gold);
+    padding: 2.5rem 3rem;
+    margin-bottom: 3rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .intro-fee-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .intro-fee-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .intro-fee-desc {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  .intro-fee-amount {
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .intro-fee-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 600;
+    color: var(--gold);
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .intro-fee-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-top: 0.375rem;
+  }
+
+  /* FAQ */
+  .faq-section { margin-bottom: 3rem; }
+
+  .faq-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--rule);
+    padding: 1.25rem 0;
+  }
+
+  .faq-q {
+    font-size: 0.925rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .faq-a {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  @media (max-width: 900px) {
+    .plans-grid { grid-template-columns: 1fr; }
+    .intro-fee-box { grid-template-columns: 1fr; }
+    .intro-fee-amount { text-align: left; }
+  }
+
+
+  /* ── SENIOR PROFESSIONAL TIER BADGE ── */
+  .tier-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.45rem;
+    border: 1px solid var(--rule);
+    color: var(--ink-4);
+    background: var(--paper-2);
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  .tier-badge.exec { border-color: var(--gold-rule); color: var(--gold); background: var(--gold-bg); }
+  .tier-badge.senior { border-color: rgba(26,122,74,0.25); color: var(--green); background: var(--green-bg); }
+
+  /* ── TOS MODAL ── */
+  .tos-overlay {
+    position: fixed; inset: 0;
+    background: rgba(15,28,46,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .tos-modal {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    max-width: 600px;
+    width: 100%;
+    padding: 2.5rem;
+    box-shadow: 0 20px 60px rgba(15,28,46,0.15);
+    animation: fadeUp 0.2s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .tos-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .tos-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+
+  .tos-body {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.75;
+    margin-bottom: 1.5rem;
+  }
+
+  .tos-clause {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--ink);
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  .tos-clause strong { font-style: normal; color: var(--ink); }
+
+  .tos-check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+  }
+
+  .tos-checkbox {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.1rem;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .tos-checkbox.checked { background: var(--ink); border-color: var(--ink); }
+  .tos-checkbox.checked::after { content: '✓'; color: var(--white); font-size: 0.7rem; font-weight: 700; }
+
+  .tos-check-label {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+
+  .tos-check-label strong { color: var(--ink); }
+
+  .tos-actions { display: flex; gap: 0.75rem; }
+
+  .tos-cancel {
+    flex: 1;
+    background: none;
+    border: 1.5px solid var(--rule);
+    color: var(--ink-3);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tos-cancel:hover { border-color: var(--ink-3); color: var(--ink); }
+
+  .tos-agree {
+    flex: 2;
+    background: var(--ink);
+    border: none;
+    color: var(--white);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tos-agree:hover:not(:disabled) { background: var(--ink-2); }
+  .tos-agree:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── PLACEMENT CONFIRMATION ── */
+  .placement-banner {
+    background: var(--green-bg);
+    border: 1px solid rgba(26,122,74,0.2);
+    border-left: 4px solid var(--green);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .placement-banner-text {
+    font-size: 0.875rem;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  .placement-banner-text strong { color: var(--green); }
+
+  .placement-confirm-btn {
+    background: var(--green);
+    color: var(--white);
+    border: none;
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.625rem 1.25rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .placement-confirm-btn:hover { background: #156638; }
+
 </style>
 </head>
 <body>
@@ -1002,6 +1484,7 @@ function NavBar({ activeView, setActiveView, openRecruiterModal }) {
       <div className="nav-links">
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
         <button className={`nav-link ${activeView==='profile'?'active':''}`} onClick={() => setActiveView('profile')}>Executive Profile</button>
+        <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
         <div className="nav-divider" />
         <button className="nav-link" onClick={openRecruiterModal}>For Recruiters</button>
         <button className="nav-cta" onClick={openRecruiterModal}>Post a Search</button>
@@ -1183,18 +1666,96 @@ function JobModal({ job, onClose, showToast }) {
   );
 }
 
+
+// ── ToS MODAL ─────────────────────────────────────────────────────────────────
+function TosModal({ onAgree, onCancel }) {
+  const [checked1, setChecked1] = useState(false);
+  const [checked2, setChecked2] = useState(false);
+  const canAgree = checked1 && checked2;
+
+  return (
+    <div className="tos-overlay">
+      <div className="tos-modal">
+        <div className="tos-eyebrow">Platform Terms — Search Firms</div>
+        <h2 className="tos-title">Introduction Fee Agreement</h2>
+        <div className="tos-body">
+          <p>Before posting a search, please review and agree to the Fredheim Executive Desk
+          platform terms regarding introduction fees. These terms protect both the platform
+          and the integrity of the executive community.</p>
+
+          <div className="tos-clause">
+            <strong>Introduction Fee.</strong> Any candidate who first expressed interest in a posted
+            role through Fredheim Executive Desk and is subsequently hired for that role — or a
+            substantially similar role at the same organization — within <strong>12 months</strong> of
+            first documented contact on the platform obligates the posting firm to pay a flat
+            platform introduction fee of <strong>$3,500 (Executive tier)</strong> or{' '}
+            <strong>$1,500 (Senior Professional tier)</strong>. This fee is invoiced to the search firm
+            upon placement confirmation and is due within 30 days of invoice.
+          </div>
+
+          <div className="tos-clause">
+            <strong>Salary Transparency.</strong> All postings must include a published total
+            compensation range. Postings without salary ranges will not be approved.
+            Misrepresentation of compensation ranges is grounds for immediate account suspension.
+          </div>
+
+          <div className="tos-clause">
+            <strong>Confidentiality.</strong> Executive profile information accessed through the
+            platform — including candidate identity, compensation expectations, and current
+            employer — may not be shared outside the search engagement for which it was accessed,
+            or used to solicit candidates for other roles without their express consent.
+          </div>
+        </div>
+
+        <div className="tos-check-row" onClick={() => setChecked1(!checked1)}>
+          <div className={`tos-checkbox ${checked1?'checked':''}`} />
+          <div className="tos-check-label">
+            I agree to pay the <strong>flat platform introduction fee ($3,500 Executive / $1,500 Senior Professional)</strong> for
+            any confirmed hire resulting from a Fredheim Executive Desk introduction within 12 months.
+          </div>
+        </div>
+
+        <div className="tos-check-row" onClick={() => setChecked2(!checked2)}>
+          <div className={`tos-checkbox ${checked2?'checked':''}`} />
+          <div className="tos-check-label">
+            I confirm that all postings submitted will include a <strong>published compensation range</strong> and
+            that candidate information will be used solely for the posted search engagement.
+          </div>
+        </div>
+
+        <div className="tos-actions">
+          <button className="tos-cancel" onClick={onCancel}>Cancel</button>
+          <button className="tos-agree" onClick={onAgree} disabled={!canAgree}>
+            I Agree — Continue to Post
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── RECRUITER MODAL ───────────────────────────────────────────────────────────
 function RecruiterModal({ onClose, showToast }) {
+  const [step, setStep]           = useState('tos'); // 'tos' | 'form'
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
-  const [form, setForm] = useState({ firm_name:'', contact_name:'', email:'', role_title:'', industry:'', location:'', salary_range:'', notes:'' });
+  const [form, setForm] = useState({
+    firm_name:'', contact_name:'', email:'', role_title:'',
+    industry:'', location:'', salary_range:'', role_level:'executive', notes:''
+  });
   function set(k,v) { setForm(p=>({...p,[k]:v})); }
 
   async function handleSubmit() {
     if (!form.firm_name || !form.email || !form.role_title) { showToast('Please complete firm name, email, and role title.'); return; }
     if (!form.salary_range) { showToast('Salary range is required — platform standard.'); return; }
     setLoading(true);
-    try { await sb.from('fed_recruiter_submissions').insert(form); } catch(e) {}
+    try {
+      await sb.from('fed_recruiter_submissions').insert({
+        ...form,
+        tos_agreed: true,
+        tos_agreed_at: new Date().toISOString(),
+      });
+    } catch(e) {}
     setSubmitted(true);
     setLoading(false);
   }
@@ -1203,70 +1764,101 @@ function RecruiterModal({ onClose, showToast }) {
     <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
       <div className="modal">
         <button className="modal-close" onClick={onClose}>✕</button>
-        <div className="modal-eyebrow">For Search Firms</div>
-        <h2 className="modal-title">Post a Search</h2>
-        <p style={{color:'var(--ink-3)',fontSize:'0.875rem',marginBottom:'0.875rem',lineHeight:'1.7'}}>
-          Reach qualified senior leaders in maritime, energy, and industrial logistics.
-          Salary transparency is required on every posting.
-        </p>
-        <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
-          ✦ Founding partner offer — first search posted free.
-        </div>
 
-        {submitted ? (
-          <div className="success-box">
-            <div className="success-title">Submission Received</div>
-            <div className="success-desc">We'll be in touch within 24 hours to confirm posting details. Founding partners get their first search at no charge.</div>
-          </div>
-        ) : (
+        {step === 'tos' && (
+          <TosModal
+            onAgree={() => setStep('form')}
+            onCancel={onClose}
+          />
+        )}
+
+        {step === 'form' && (
           <>
-            <hr className="modal-divider" />
-            <div className="modal-section-title">Your Firm</div>
-            <div className="form" style={{gap:'0.75rem',marginBottom:'1.5rem'}}>
-              <div className="form-group">
-                <label className="form-label">Search Firm *</label>
-                <input className="form-input" placeholder="Firm name" value={form.firm_name} onChange={e=>set('firm_name',e.target.value)} />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Contact Name</label>
-                  <input className="form-input" placeholder="Your name" value={form.contact_name} onChange={e=>set('contact_name',e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Email *</label>
-                  <input className="form-input" type="email" placeholder="you@firm.com" value={form.email} onChange={e=>set('email',e.target.value)} />
-                </div>
-              </div>
+            <div className="modal-eyebrow">For Search Firms</div>
+            <h2 className="modal-title">Post a Search</h2>
+            <p style={{color:'var(--ink-3)',fontSize:'0.875rem',marginBottom:'0.875rem',lineHeight:'1.7'}}>
+              Reach qualified senior leaders in maritime, energy, and industrial logistics.
+              Salary transparency is required on every posting.
+            </p>
+            <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
+              ✦ Founding partner offer — first search posted free. Introduction fee terms agreed ✓
             </div>
-            <div className="modal-section-title">The Role</div>
-            <div className="form" style={{gap:'0.75rem'}}>
-              <div className="form-group">
-                <label className="form-label">Role Title *</label>
-                <input className="form-input" placeholder="e.g. Chief Commercial Officer" value={form.role_title} onChange={e=>set('role_title',e.target.value)} />
+
+            {submitted ? (
+              <div className="success-box">
+                <div className="success-title">Submission Received</div>
+                <div className="success-desc">We'll be in touch within 24 hours to confirm posting details. Founding partners get their first search at no charge.</div>
               </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label className="form-label">Industry</label>
-                  <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
-                    <option value="">Select</option>
-                    <option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
-                  </select>
+            ) : (
+              <>
+                <hr className="modal-divider" />
+                <div className="modal-section-title">Your Firm</div>
+                <div className="form" style={{gap:'0.75rem',marginBottom:'1.5rem'}}>
+                  <div className="form-group">
+                    <label className="form-label">Search Firm *</label>
+                    <input className="form-input" placeholder="Firm name" value={form.firm_name} onChange={e=>set('firm_name',e.target.value)} />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Contact Name</label>
+                      <input className="form-input" placeholder="Your name" value={form.contact_name} onChange={e=>set('contact_name',e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Email *</label>
+                      <input className="form-input" type="email" placeholder="you@firm.com" value={form.email} onChange={e=>set('email',e.target.value)} />
+                    </div>
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Location</label>
-                  <input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} />
+                <div className="modal-section-title">The Role</div>
+                <div className="form" style={{gap:'0.75rem'}}>
+                  <div className="form-group">
+                    <label className="form-label">Role Title *</label>
+                    <input className="form-input" placeholder="e.g. Chief Commercial Officer" value={form.role_title} onChange={e=>set('role_title',e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Role Level *</label>
+                    <div className="visibility-toggle">
+                      <button
+                        className={`toggle-opt ${form.role_level==='executive'?'active':''}`}
+                        onClick={()=>set('role_level','executive')}
+                      >
+                        Executive — C-Suite / VP
+                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>Intro fee $3,500</span>
+                      </button>
+                      <button
+                        className={`toggle-opt ${form.role_level==='senior'?'active':''}`}
+                        onClick={()=>set('role_level','senior')}
+                      >
+                        Senior Professional — Director
+                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>Intro fee $1,500</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label className="form-label">Industry</label>
+                      <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
+                        <option value="">Select</option>
+                        <option>Maritime</option><option>Energy</option><option>Industrial Logistics</option>
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Location</label>
+                      <input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Compensation Range * (required)</label>
+                    <input className="form-input" placeholder="e.g. $300K – $400K total compensation" value={form.salary_range} onChange={e=>set('salary_range',e.target.value)} />
+                  </div>
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Compensation Range * (required)</label>
-                <input className="form-input" placeholder="e.g. $300K – $400K total compensation" value={form.salary_range} onChange={e=>set('salary_range',e.target.value)} />
-              </div>
-            </div>
-            <hr className="modal-divider" />
-            <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Submitting…' : 'Submit Search for Review'}
-            </button>
-            <div className="interest-note">Reviewed within 24 hours. Salary transparency is non-negotiable.</div>
+                <hr className="modal-divider" />
+                <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
+                  {loading ? 'Submitting…' : 'Submit Search for Review'}
+                </button>
+                <div className="interest-note">Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.</div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -1334,17 +1926,22 @@ function ProfileForm({ showToast }) {
   return (
     <div className="form">
       <div className="form-group">
-        <label className="form-label">Membership</label>
-        <div className="tiers">
+        <label className="form-label">Member Tier</label>
+        <div className="tiers" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
           <div className={`tier-card ${tier==='free'?'selected':''}`} onClick={()=>setTier('free')}>
-            <div className="tier-name">Free Access</div>
+            <div className="tier-name">Free</div>
             <div className="tier-price">$0</div>
-            <div className="tier-desc">Browse, set alerts, signal interest. You control all contact.</div>
+            <div className="tier-desc">Browse and signal interest. You control all contact.</div>
+          </div>
+          <div className={`tier-card ${tier==='active_senior'?'selected':''}`} onClick={()=>setTier('active_senior')}>
+            <div className="tier-name">Senior Professional</div>
+            <div className="tier-price">$99 <span style={{fontSize:'0.9rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
+            <div className="tier-desc">Director level. Recruiters can find and contact you.</div>
           </div>
           <div className={`tier-card ${tier==='active'?'selected':''}`} onClick={()=>setTier('active')}>
-            <div className="tier-name">Active</div>
-            <div className="tier-price">$99 <span style={{fontSize:'1rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
-            <div className="tier-desc">Recruiters can find and reach you directly.</div>
+            <div className="tier-name">Executive</div>
+            <div className="tier-price">$199 <span style={{fontSize:'0.9rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
+            <div className="tier-desc">C-Suite / VP. Priority matching. Recruiters can reach you.</div>
           </div>
         </div>
       </div>
@@ -1384,11 +1981,279 @@ function ProfileForm({ showToast }) {
         </div>
       </div>
       <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
-        {loading ? 'Creating…' : tier==='active' ? 'Create Active Profile — $99/yr' : 'Create Free Profile'}
+        {loading ? 'Creating…' : tier==='active' ? 'Create Executive Profile — $199/yr' : tier==='active_senior' ? 'Create Senior Profile — $99/yr' : 'Create Free Profile'}
       </button>
       <p className="form-note">
-        {tier==='free' ? 'Free access always. Upgrade to Active anytime.' : 'Billed annually. Cancel anytime. Your employer is never disclosed.'}
+        {tier==='free' ? 'Free access always. Upgrade anytime.' : tier==='active_senior' ? 'Senior Professional — $99/yr. Your employer is never disclosed.' : 'Executive tier — $199/yr. Your employer is never disclosed.'}
       </p>
+    </div>
+  );
+}
+
+
+// ── PRICING PAGE ─────────────────────────────────────────────────────────────
+function PricingPage({ setActiveView, openRecruiterModal }) {
+  const [audience, setAudience] = useState('recruiters');
+
+  const recruiterPlans = [
+    {
+      name: 'Boutique',
+      price: '400',
+      period: 'per month — billed annually',
+      desc: 'Ideal for independent search consultants and boutique firms running 1–3 active searches at a time.',
+      features: [
+        '3 active postings per month',
+        'Standard placement in search feed',
+        'Candidate interest signals (aggregate count)',
+        'Posting analytics — views and engagement',
+        'Email support',
+        'Salary transparency required on all posts',
+      ],
+      muted: [],
+      cta: 'Get Started',
+      ctaStyle: '',
+      recommended: false,
+    },
+    {
+      name: 'Professional',
+      price: '1,000',
+      period: 'per month — billed annually',
+      desc: 'For active search practices running multiple mandates. Includes candidate interest data and featured placement.',
+      features: [
+        '10 active postings per month',
+        'Featured placement — top of search feed',
+        'Full candidate interest data — who, when, compensation target',
+        'Open executive profile browsing',
+        'Priority posting review — 4-hour turnaround',
+        'Monthly performance report',
+        'Dedicated account contact',
+      ],
+      muted: [],
+      cta: 'Get Started',
+      ctaStyle: 'primary',
+      recommended: true,
+    },
+    {
+      name: 'Enterprise',
+      price: '2,500',
+      period: 'per month — billed annually',
+      desc: 'For global search firms running high-volume executive mandates across maritime, energy, and logistics.',
+      features: [
+        'Unlimited active postings',
+        'Premium featured placement + firm branding',
+        'Full candidate profile access — Open profiles',
+        'Introduction fee waiver on first 3 placements',
+        'Custom posting templates',
+        'Quarterly strategy review with Fredheim team',
+        'API access for ATS integration',
+      ],
+      muted: [],
+      cta: 'Contact Us',
+      ctaStyle: '',
+      recommended: false,
+    },
+  ];
+
+  const executivePlans = [
+    {
+      name: 'Free',
+      price: '0',
+      period: 'always free',
+      desc: 'Full access to browse every search on the platform. Signal interest confidentially. No payment required.',
+      features: [
+        'Browse all active searches',
+        'Filter by industry, function, and salary range',
+        'Confidential interest signaling — email only, not your identity',
+        'Email alerts for new matching searches',
+        'Set compensation floor — hide searches below your range',
+      ],
+      muted: [
+        'Recruiters cannot find or contact you',
+        'Profile not visible to search firms',
+      ],
+      cta: 'Create Free Profile',
+      ctaStyle: '',
+      recommended: false,
+    },
+    {
+      name: 'Senior Professional',
+      price: '99',
+      period: 'per year — Director level',
+      desc: 'For Director-level professionals in maritime, energy, and industrial logistics. Your profile becomes visible to posting search firms.',
+      features: [
+        'Everything in Free',
+        'Profile visible to posting search firms',
+        'Recruiters running Director-level searches can contact you',
+        'Compensation target visible to relevant firms only',
+        'Email alerts for Director and Senior Manager searches',
+        'No placement fee charged to you — ever',
+      ],
+      muted: [],
+      cta: 'Create Senior Profile',
+      ctaStyle: '',
+      recommended: false,
+    },
+    {
+      name: 'Executive',
+      price: '199',
+      period: 'per year — VP and above',
+      desc: 'For C-Suite and VP-level executives. Priority matching, full profile visibility, and direct recruiter access.',
+      features: [
+        'Everything in Senior Professional',
+        'Priority matching — profile surfaced first to relevant searches',
+        'Visible to all posting search firms — not just Director searches',
+        'Quarterly market compensation benchmarking',
+        'Concierge upgrade available — profile presented quarterly to firms',
+        'No placement fee charged to you — ever',
+      ],
+      muted: [],
+      cta: 'Create Executive Profile',
+      ctaStyle: 'primary',
+      recommended: true,
+    },
+  ];
+
+  const plans = audience === 'recruiters' ? recruiterPlans : executivePlans;
+
+  function handlePlanCta(plan) {
+    if (plan.cta === 'Contact Us' || plan.cta === 'Apply for Concierge' || plan.cta === 'Get Started') {
+      openRecruiterModal();
+    } else if (['Create Free Profile','Create Active Profile','Create Senior Profile','Create Executive Profile'].includes(plan.cta)) {
+      setActiveView('profile');
+    } else {
+      openRecruiterModal();
+    }
+  }
+
+  return (
+    <div className="pricing-page">
+      <div className="pricing-hero">
+        <div className="hero-eyebrow">
+          <div className="eyebrow-line" />
+          <span className="eyebrow-text">Transparent Pricing</span>
+        </div>
+        <h1 className="pricing-hero-title">
+          Simple pricing.<br />No placement fees. No surprises.
+        </h1>
+        <p className="pricing-hero-desc">
+          Fredheim Executive Desk charges flat platform fees — not commissions.
+          We make introductions. You own the relationship.
+        </p>
+      </div>
+
+      {/* Audience toggle */}
+      <div className="pricing-tabs">
+        <button className={`pricing-tab ${audience==='recruiters'?'active':''}`} onClick={()=>setAudience('recruiters')}>
+          For Search Firms
+        </button>
+        <button className={`pricing-tab ${audience==='executives'?'active':''}`} onClick={()=>setAudience('executives')}>
+          For Executives
+        </button>
+      </div>
+
+      {/* Plan cards */}
+      <div className="plans-grid">
+        {plans.map(plan => (
+          <div key={plan.name} className={`plan-card ${plan.recommended?'recommended':''}`}>
+            {plan.recommended && <div className="recommended-badge">Most Popular</div>}
+            <div className="plan-name">{plan.name}</div>
+            <div className="plan-price">
+              <sup>$</sup>{plan.price}
+            </div>
+            <div className="plan-period">{plan.period}</div>
+            <div className="plan-desc">{plan.desc}</div>
+            <ul className="plan-features">
+              {plan.features.map((f,i) => (
+                <li key={i} className="plan-feature">{f}</li>
+              ))}
+              {(plan.muted||[]).map((f,i) => (
+                <li key={'m'+i} className="plan-feature muted">{f}</li>
+              ))}
+            </ul>
+            <button
+              className={`plan-cta ${plan.ctaStyle}`}
+              onClick={() => handlePlanCta(plan)}
+            >
+              {plan.cta}
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Introduction fee callout */}
+      <div className="intro-fee-box">
+        <div>
+          <div className="intro-fee-eyebrow">Platform Introduction Fee</div>
+          <div className="intro-fee-title">When the introduction leads to a hire</div>
+          <p className="intro-fee-desc">
+            Fredheim Executive Desk charges a flat platform introduction fee when a hire is confirmed 
+            through the platform — regardless of compensation level. No percentage. No sliding scale. 
+            One flat fee, invoiced to the search firm upon placement confirmation. 
+            We make the introduction. You own the search.
+          </p>
+        </div>
+        <div className="intro-fee-amount">
+          <div className="intro-fee-num">$3,500</div>
+          <div className="intro-fee-label">Executive placement</div>
+          <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid var(--gold-rule)'}}>
+            <div className="intro-fee-num" style={{fontSize:'2rem'}}>$1,500</div>
+            <div className="intro-fee-label">Senior Professional placement</div>
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <div className="faq-section">
+        <div className="faq-title">Common Questions</div>
+
+        {audience === 'recruiters' ? (
+          <>
+            <div className="faq-item">
+              <div className="faq-q">Is salary transparency really required?</div>
+              <div className="faq-a">Yes, without exception. Every posting must include a published compensation range. This is the reason executives trust the platform — and why your searches attract higher-quality candidates than generalist job boards.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">What counts as a "confirmed placement" for the introduction fee?</div>
+              <div className="faq-a">A placement is confirmed when a candidate who first expressed interest via Fredheim Executive Desk accepts an offer for the posted role. The $3,500 introduction fee is invoiced to the search firm at that point. There is no introduction fee on postings where the hire came from outside the platform.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">Can I post roles that are already live on other job boards?</div>
+              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Executive Desk is not exclusive — it's a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">What is the founding partner offer?</div>
+              <div className="faq-a">The first search posted by any new firm is free — no subscription required. This gives you a chance to see real engagement data before committing to a plan. After the first posting, a subscription is required to continue.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">How quickly are postings reviewed and published?</div>
+              <div className="faq-a">Standard postings are reviewed within 24 hours. Professional plan subscribers receive 4-hour turnaround. Enterprise subscribers receive same-day publishing.</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="faq-item">
+              <div className="faq-q">Will my current employer ever know I'm on the platform?</div>
+              <div className="faq-a">No. Your current employer is never displayed — not on your profile, not in search results, not to any recruiter. The platform is designed from the ground up for confidential passive search.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">What's the difference between Free and Active?</div>
+              <div className="faq-a">Free members can browse every search and signal interest anonymously. Active members ($199/yr) have their profiles visible to posting search firms, enabling direct recruiter outreach when a relevant search opens.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">Who can access the Concierge tier?</div>
+              <div className="faq-a">Concierge is designed for VP-level and above executives conducting a structured, discreet search. Applications are reviewed individually to ensure fit with the platform's search firm network. Not all applications are accepted.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">Do I pay anything if I get placed through the platform?</div>
+              <div className="faq-a">No. The introduction fee is paid by the search firm, not the executive. There are no success fees, commissions, or hidden charges on the executive side — ever.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">What industries does the platform cover?</div>
+              <div className="faq-a">Maritime, energy, and industrial logistics exclusively. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -1396,6 +2261,7 @@ function ProfileForm({ showToast }) {
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
+  const [pricingAudience, setPricingAudience] = useState('recruiters');
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -1518,7 +2384,8 @@ function App() {
                 <li>Set a salary floor — only see searches that match</li>
                 <li>One-click interest without revealing your identity</li>
                 <li>Email alerts when a matching search is posted</li>
-                <li>Active ($99/yr) — recruiters can find and reach you</li>
+                <li>Senior Professional ($99/yr) — Director level, recruiters can find you</li>
+                <li>Executive ($199/yr) — C-Suite/VP, priority matching</li>
                 <li>Maritime · Energy · Industrial Logistics only</li>
               </ul>
             </div>
@@ -1526,6 +2393,10 @@ function App() {
               <ProfileForm showToast={showToast} />
             </div>
           </div>
+        )}
+
+        {activeView === 'pricing' && (
+          <PricingPage setActiveView={setActiveView} openRecruiterModal={() => setRecruiterModal(true)} />
         )}
 
         <div className="recruiter-cta">
@@ -1560,7 +2431,7 @@ function App() {
               <li onClick={()=>setActiveView('jobs')}>Browse Searches</li>
               <li onClick={()=>setActiveView('profile')}>Executive Profile</li>
               <li onClick={()=>setRecruiterModal(true)}>Post a Search</li>
-              <li>Pricing</li>
+              <li onClick={()=>setActiveView('pricing')}>Pricing</li>
             </ul>
           </div>
           <div>
