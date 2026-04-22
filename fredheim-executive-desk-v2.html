@@ -1689,7 +1689,8 @@ const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 // Stripe — test mode keys (switch to live keys when ready to go live)
 const STRIPE_PK    = 'pk_live_51TP4zEJ1BNVQzyrWpE1IlorMG3sd2Z955J8uS0MCtq0Y8OAhgYvMXdAXpVTEvHWnW4FWU9zBATlbEt7Z9SXSCNG800YQ7yY0uc';
-const ACTIVE_PRICE = 'price_1TP6CIJ1BNVQzyrWSXVQxNNh';
+const ACTIVE_PRICE         = 'price_1TP6CIJ1BNVQzyrWSXVQxNNh'; // Executive $199/yr
+const ACTIVE_PRICE_SENIOR  = 'price_1TP8C8J1BNVQzyrWtGy4vMiM'; // Senior Professional $99/yr
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
@@ -2247,7 +2248,7 @@ function ProfileForm({ showToast }) {
       try {
         const s = getStripe();
         const { error } = await s.redirectToCheckout({
-          lineItems: [{ price: ACTIVE_PRICE, quantity: 1 }],
+          lineItems: [{ price: tier === 'active_senior' ? ACTIVE_PRICE_SENIOR : ACTIVE_PRICE, quantity: 1 }],
           mode: 'subscription',
           successUrl: window.location.origin + window.location.pathname + '?upgraded=1&email=' + encodeURIComponent(form.email),
           cancelUrl:  window.location.origin + window.location.pathname + '?cancelled=1',
