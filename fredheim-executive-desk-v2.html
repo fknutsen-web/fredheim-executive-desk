@@ -3520,28 +3520,31 @@ function ProfileForm({ showToast }) {
           <div className="form-group">
             <label className="form-label">Geographic Availability</label>
             <div style={{display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
-              {['Open to relocation','North America','Europe','Middle East','Asia Pacific','Remote only'].map(geo=>{
-                const [geos,setGeos] = [form.geo_prefs ? JSON.parse(form.geo_prefs) : [], (v)=>set('geo_prefs',JSON.stringify(v))];
-                const selected = geos.includes(geo);
-                return (
-                  <button
-                    key={geo}
-                    onClick={()=>setGeos(selected?geos.filter(g=>g!==geo):[...geos,geo])}
-                    style={{
-                      background: selected ? 'var(--ink)' : 'var(--paper)',
-                      color: selected ? 'var(--white)' : 'var(--ink-3)',
-                      border: `1px solid ${selected ? 'var(--ink)' : 'var(--rule)'}`,
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: '0.62rem',
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      padding: '0.4rem 0.75rem',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                  >{geo}</button>
-                );
-              })}
+              {(() => {
+                const geos = form.geo_prefs ? JSON.parse(form.geo_prefs) : [];
+                const setGeos = (v) => set('geo_prefs', JSON.stringify(v));
+                return ['Open to relocation','North America','Europe','Middle East','Asia Pacific','Remote only'].map(geo => {
+                  const selected = geos.includes(geo);
+                  return (
+                    <button
+                      key={geo}
+                      onClick={() => setGeos(selected ? geos.filter(g=>g!==geo) : [...geos, geo])}
+                      style={{
+                        background: selected ? 'var(--ink)' : 'var(--paper)',
+                        color: selected ? 'var(--white)' : 'var(--ink-3)',
+                        border: `1px solid ${selected ? 'var(--ink)' : 'var(--rule)'}`,
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: '0.62rem',
+                        letterSpacing: '0.08em',
+                        textTransform: 'uppercase',
+                        padding: '0.4rem 0.75rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >{geo}</button>
+                  );
+                });
+              })()}
             </div>
           </div>
 
