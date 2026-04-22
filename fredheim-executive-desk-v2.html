@@ -2538,6 +2538,118 @@
 
   .industry-select-wrap { position: relative; }
 
+
+  /* ── RECRUITER DASHBOARD ── */
+  .recruiter-dash-page { padding: 2rem 0 4rem; }
+
+  .recruiter-dash-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid var(--ink);
+    gap: 1rem;
+  }
+
+  .recruiter-dash-firm {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .recruiter-dash-meta {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Full-page overlay for auth views */
+  .full-page-view {
+    min-height: 100vh;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .full-page-nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--rule);
+    padding: 0 3rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .full-page-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 3rem 4rem;
+    width: 100%;
+  }
+
+  /* Posting card in recruiter dashboard */
+  .posting-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    padding: 1.5rem;
+    margin-bottom: 1px;
+  }
+
+  .posting-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .posting-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .posting-card-meta {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    margin-top: 0.2rem;
+  }
+
+  .posting-card-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--rule-lt);
+  }
+
+  .posting-stat {
+    text-align: center;
+  }
+
+  .posting-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  .posting-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-top: 0.2rem;
+  }
+
 </style>
 </head>
 <body>
@@ -2620,7 +2732,10 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, onSig
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
         <div className="nav-divider" />
-        <button className="nav-link" onClick={openRecruiterModal}>For Recruiters</button>
+        {authUser
+          ? <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => setActiveView('recruiter-dash')}>Firm Dashboard</button>
+          : <button className="nav-link" onClick={() => setActiveView('recruiter-signin')}>Recruiter Sign In</button>
+        }
         {authUser ? (
           <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => setActiveView('myprofile')}>My Profile</button>
         ) : (
@@ -5122,6 +5237,309 @@ function MyProfilePage({ user, onSignOut, showToast }) {
   );
 }
 
+
+// ── RECRUITER SIGN IN PAGE ────────────────────────────────────────────────────
+function RecruiterSignInPage({ onBack }) {
+  const [email, setEmail]     = useState('');
+  const [sent, setSent]       = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState('');
+
+  async function handleSend() {
+    if (!email || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
+    setLoading(true);
+    setError('');
+    const { error: err } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: 'https://desk.fredheimtech.com?view=recruiter' }
+    });
+    if (err) {
+      setError('Could not send link. Please try again or email desk@fredheimtech.com.');
+    } else {
+      setSent(true);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-box">
+        <div className="auth-eyebrow">Search Firm Access</div>
+        <h2 className="auth-title">Recruiter Sign In</h2>
+        <p className="auth-desc">
+          Access your posting dashboard, view candidate interest data, and manage your searches.
+          Use the email address associated with your firm's account.
+        </p>
+
+        {sent ? (
+          <div className="auth-sent-box">
+            <div className="auth-sent-title">Check Your Inbox</div>
+            <div className="auth-sent-desc">
+              A sign-in link has been sent to <strong>{email}</strong>.
+              Click the link to access your recruiter dashboard.
+              The link expires in 1 hour.
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="form-group" style={{marginBottom:'1rem'}}>
+              <label className="form-label">Firm Email Address</label>
+              <input
+                className="form-input"
+                type="email"
+                placeholder="you@yourfirm.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSend()}
+                autoFocus
+              />
+            </div>
+            {error && <div style={{color:'var(--red)',fontSize:'0.78rem',marginBottom:'0.75rem'}}>{error}</div>}
+            <button className="submit-btn" onClick={handleSend} disabled={loading}>
+              {loading ? 'Sending…' : 'Send Sign-In Link'}
+            </button>
+            <p className="form-note" style={{marginTop:'1rem'}}>
+              Not yet a posting partner?{' '}
+              <span style={{color:'var(--gold)',cursor:'pointer',textDecoration:'underline'}} onClick={onBack}>
+                Submit your first search here.
+              </span>
+            </p>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── RECRUITER DASHBOARD ───────────────────────────────────────────────────────
+function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
+  const [submissions, setSubmissions] = useState([]);
+  const [jobs, setJobs]               = useState([]);
+  const [interests, setInterests]     = useState([]);
+  const [loading, setLoading]         = useState(true);
+
+  const userEmail = user.email;
+
+  useEffect(() => { loadData(); }, []);
+
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [sRes, jRes, iRes] = await Promise.all([
+        sb.from('fed_recruiter_submissions').select('*').eq('email', userEmail).order('created_at', {ascending:false}),
+        sb.from('fed_jobs').select('*').eq('firm_email', userEmail).order('created_at', {ascending:false}),
+        sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
+      ]);
+      setSubmissions(sRes.data || []);
+      setJobs(jRes.data || []);
+      setInterests(iRes.data || []);
+    } catch(e) {
+      showToast('Error loading data.');
+    }
+    setLoading(false);
+  }
+
+  function fmt(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  // Match interests to this firm's jobs
+  const myJobIds = jobs.map(j => j.id);
+  const myInterests = interests.filter(i => myJobIds.includes(i.job_id));
+
+  // Founding partner program status
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear  = now.getFullYear();
+  const programActive = currentYear === 2026 && currentMonth <= 11;
+
+  const thisMonthPostings = submissions.filter(s => {
+    const d = new Date(s.created_at);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+      && ['approved','posted'].includes(s.status);
+  }).length;
+
+  const slotAvailable = thisMonthPostings < 1;
+  const firmName = submissions[0]?.firm_name || userEmail;
+
+  if (loading) return (
+    <div style={{textAlign:'center',padding:'4rem',color:'var(--ink-4)'}}>
+      <span className="spinner"/>Loading your dashboard…
+    </div>
+  );
+
+  return (
+    <div className="recruiter-dash-page">
+      <div className="recruiter-dash-header">
+        <div>
+          <div className="recruiter-dash-firm">{firmName}</div>
+          <div className="recruiter-dash-meta">{userEmail} · Founding Partner 2026</div>
+        </div>
+        <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexShrink:0}}>
+          <button className="btn-primary" style={{fontSize:'0.78rem',padding:'0.5rem 1.25rem'}} onClick={openPostModal}>
+            Post a Search
+          </button>
+          <button className="admin-action-btn danger" onClick={onSignOut}>Sign Out</button>
+        </div>
+      </div>
+
+      {/* Founding Partner Status */}
+      {programActive && (
+        <div style={{
+          background: slotAvailable ? 'var(--green-bg)' : 'var(--gold-bg)',
+          border: `1px solid ${slotAvailable ? 'rgba(26,122,74,0.2)' : 'var(--gold-rule)'}`,
+          borderLeft: `3px solid ${slotAvailable ? 'var(--green)' : 'var(--gold)'}`,
+          padding:'1rem 1.5rem',
+          marginBottom:'1.5rem',
+          display:'flex',
+          justifyContent:'space-between',
+          alignItems:'center',
+          gap:'1rem',
+          flexWrap:'wrap'
+        }}>
+          <div>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color: slotAvailable ? 'var(--green)' : 'var(--gold)',marginBottom:'0.25rem'}}>
+              Founding Partner Program 2026
+            </div>
+            <div style={{fontSize:'0.875rem',color:'var(--ink-2)',fontWeight:500}}>
+              {slotAvailable
+                ? `Your monthly posting slot is available — post one search free this ${now.toLocaleString('default',{month:'long'})}.`
+                : `Monthly slot used for ${now.toLocaleString('default',{month:'long'})}. Next slot available ${new Date(currentYear, currentMonth+1, 1).toLocaleString('default',{month:'long', day:'numeric'})}.`
+              }
+            </div>
+            <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.25rem'}}>
+              {12 - currentMonth} month{12-currentMonth!==1?'s':''} remaining · Subscriptions open January 2027
+            </div>
+          </div>
+          {slotAvailable && (
+            <button className="btn-primary" style={{fontSize:'0.78rem',padding:'0.5rem 1.25rem',flexShrink:0}} onClick={openPostModal}>
+              Post Now — Free
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="admin-stats" style={{marginBottom:'2rem'}}>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{submissions.length}</div>
+          <div className="admin-stat-label">Total Submissions</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num green">{jobs.filter(j=>j.status==='active').length}</div>
+          <div className="admin-stat-label">Live Searches</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num gold">{myInterests.length}</div>
+          <div className="admin-stat-label">Interest Signals</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{jobs.reduce((s,j)=>s+(j.view_count||0),0)}</div>
+          <div className="admin-stat-label">Total Views</div>
+        </div>
+      </div>
+
+      {/* Live Searches */}
+      <div style={{marginBottom:'2rem'}}>
+        <div className="section-header">
+          <h2 className="section-title">Your Live Searches</h2>
+          <div className="section-count">{jobs.filter(j=>j.status==='active').length} active</div>
+        </div>
+
+        {jobs.filter(j=>j.status==='active').length === 0 ? (
+          <div className="admin-empty">
+            No live searches yet.
+            {submissions.some(s=>s.status==='pending')
+              ? ' You have a submission under review — we'll publish it within 24 hours.'
+              : ' Post your first search using the button above.'
+            }
+          </div>
+        ) : (
+          <div style={{display:'flex',flexDirection:'column',gap:'1px',background:'var(--rule)'}}>
+            {jobs.filter(j=>j.status==='active').map(job => {
+              const jobInterests = myInterests.filter(i => i.job_id === job.id);
+              return (
+                <div key={job.id} className="posting-card">
+                  <div className="posting-card-header">
+                    <div>
+                      <div className="posting-card-title">{job.title}</div>
+                      <div className="posting-card-meta">{job.location} · {job.industry} · {job.salary_display}</div>
+                    </div>
+                    <span className="admin-pill active">Live</span>
+                  </div>
+                  <div className="posting-card-stats">
+                    <div className="posting-stat">
+                      <div className="posting-stat-num">{job.view_count||0}</div>
+                      <div className="posting-stat-label">Views</div>
+                    </div>
+                    <div className="posting-stat">
+                      <div className="posting-stat-num gold" style={{color:'var(--gold)'}}>{jobInterests.length}</div>
+                      <div className="posting-stat-label">Interest Signals</div>
+                    </div>
+                    <div className="posting-stat">
+                      <div className="posting-stat-num">{fmt(job.created_at)}</div>
+                      <div className="posting-stat-label">Posted</div>
+                    </div>
+                  </div>
+                  {jobInterests.length > 0 && (
+                    <div style={{marginTop:'0.875rem',paddingTop:'0.875rem',borderTop:'1px solid var(--rule-lt)'}}>
+                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+                        Candidates who expressed interest
+                      </div>
+                      {jobInterests.map((interest,i) => (
+                        <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'0.375rem 0',borderBottom:'1px solid var(--rule-lt)',fontSize:'0.82rem'}}>
+                          <span style={{color:'var(--ink-2)'}}>{interest.anon_email || 'Anonymous'}</span>
+                          <span style={{color:'var(--ink-4)',fontFamily:"'DM Mono',monospace",fontSize:'0.65rem'}}>{fmt(interest.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Submission History */}
+      {submissions.length > 0 && (
+        <div>
+          <div className="section-header">
+            <h2 className="section-title">Submission History</h2>
+            <div className="section-count">{submissions.length} total</div>
+          </div>
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Role</th><th>Industry</th><th>Salary Range</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map(s => (
+                  <tr key={s.id}>
+                    <td>{fmt(s.created_at)}</td>
+                    <td><strong>{s.role_title}</strong><div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{s.location}</div></td>
+                    <td>{s.industry||'—'}</td>
+                    <td>{s.salary_range||'—'}</td>
+                    <td><span className={`admin-pill ${s.status||'pending'}`}>{s.status||'pending'}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <div style={{marginTop:'2rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
+        Questions about your account or a posting?{' '}
+        <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
@@ -5178,6 +5596,8 @@ function App() {
       // If redirected back from magic link, go to profile
       if (session?.user && window.location.search.includes('view=myprofile')) {
         setActiveView('myprofile');
+      } else if (session?.user && window.location.search.includes('view=recruiter')) {
+        setActiveView('recruiter-dash');
       }
     });
 
@@ -5185,7 +5605,13 @@ function App() {
     const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
       setAuthUser(session?.user ?? null);
       if (session?.user) {
-        setActiveView('myprofile');
+        // Only auto-navigate if on an auth view
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('view') === 'recruiter') {
+          setActiveView('recruiter-dash');
+        } else if (params.get('view') === 'myprofile') {
+          setActiveView('myprofile');
+        }
       }
     });
 
@@ -5258,16 +5684,20 @@ function App() {
           onSignIn={() => setActiveView('signin')}
         />
 
-      <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} />
-
-      <div className="manifesto">
-        <p className="manifesto-text">
-          Executive search has always been opaque by design.{' '}
-          <strong>Fredheim Executive Desk is built differently</strong> —
-          salary ranges published, search firms named, your identity protected until you choose to move.{' '}
-          <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
-        </p>
-      </div>
+      {/* Hero and manifesto only on public views */}
+      {!['signin','myprofile','recruiter-signin','recruiter-dash'].includes(activeView) && (
+        <>
+          <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} />
+          <div className="manifesto">
+            <p className="manifesto-text">
+              Executive search has always been opaque by design.{' '}
+              <strong>Fredheim Executive Desk is built differently</strong> —
+              salary ranges published, search firms named, your identity protected until you choose to move.{' '}
+              <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="main">
         <div id="jobs-anchor" />
@@ -5357,32 +5787,47 @@ function App() {
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
 
         {activeView === 'signin' && (
-          <div className="main">
-            <SignInPage onBack={() => setActiveView('profile')} />
-          </div>
+          <SignInPage onBack={() => setActiveView('profile')} />
         )}
 
         {activeView === 'myprofile' && authUser && (
-          <div className="main">
-            <MyProfilePage
-              user={authUser}
-              showToast={showToast}
-              onSignOut={async () => {
-                await sb.auth.signOut();
-                setAuthUser(null);
-                setActiveView('jobs');
-              }}
-            />
-          </div>
+          <MyProfilePage
+            user={authUser}
+            showToast={showToast}
+            onSignOut={async () => {
+              await sb.auth.signOut();
+              setAuthUser(null);
+              setActiveView('jobs');
+            }}
+          />
         )}
 
         {activeView === 'myprofile' && !authUser && (
-          <div className="main">
-            <SignInPage onBack={() => setActiveView('profile')} />
-          </div>
+          <SignInPage onBack={() => setActiveView('profile')} />
         )}
 
-        <div className="recruiter-cta">
+        {activeView === 'recruiter-signin' && (
+          <RecruiterSignInPage onBack={() => setRecruiterModal(true)} />
+        )}
+
+        {activeView === 'recruiter-dash' && authUser && (
+          <RecruiterDashboard
+            user={authUser}
+            showToast={showToast}
+            openPostModal={() => setRecruiterModal(true)}
+            onSignOut={async () => {
+              await sb.auth.signOut();
+              setAuthUser(null);
+              setActiveView('jobs');
+            }}
+          />
+        )}
+
+        {activeView === 'recruiter-dash' && !authUser && (
+          <RecruiterSignInPage onBack={() => setRecruiterModal(true)} />
+        )}
+
+        {!['signin','myprofile','recruiter-signin','recruiter-dash'].includes(activeView) && <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms</div>
             <div className="recruiter-title">Reach the right executives.</div>
@@ -5392,10 +5837,11 @@ function App() {
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
-          <button className="btn-primary" style={{flexShrink:0,whiteSpace:'nowrap'}} onClick={() => setRecruiterModal(true)}>
-            Post a Search
-          </button>
-        </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'0.625rem',flexShrink:0}}>
+            <button className="btn-primary" style={{whiteSpace:'nowrap'}} onClick={() => setRecruiterModal(true)}>Post a Search</button>
+            <button className="btn-outline" style={{whiteSpace:'nowrap',fontSize:'0.75rem',padding:'0.5rem 1.25rem'}} onClick={() => setActiveView('recruiter-signin')}>Firm Sign In</button>
+          </div>
+        </div>}
       </div>
 
       <footer className="footer">
