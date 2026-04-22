@@ -2674,9 +2674,10 @@ function ProfileForm({ showToast }) {
     },
     {
       key: 'emotional_stability',
-      name: 'Emotional Stability',
-      desc: 'Calmness under pressure and resilience to stress.',
-      low: 'Reactive', high: 'Composed'
+      name: 'Neuroticism',
+      desc: 'How you respond to stress and negative emotion. Lower scores mean calmer, more resilient. Enter your Neuroticism percentile exactly as shown on Understand Myself.',
+      low: 'Calm & Resilient', high: 'Stress-Reactive',
+      note: 'Low score = high emotional stability. Enter your exact Neuroticism percentile from Understand Myself.'
     },
   ];
 
@@ -2686,6 +2687,16 @@ function ProfileForm({ showToast }) {
     if (v <= 62) return 'Moderate';
     if (v <= 80) return 'High';
     return 'Very High';
+  }
+
+  function neuroticismLabel(v) {
+    // Neuroticism is inverse — low score = high stability
+    if (v <= 10) return 'Exceptionally Calm';
+    if (v <= 25) return 'Very Calm & Stable';
+    if (v <= 45) return 'Generally Calm';
+    if (v <= 60) return 'Moderate Reactivity';
+    if (v <= 80) return 'Stress-Prone';
+    return 'Highly Reactive';
   }
 
   function validateStep() {
@@ -2908,7 +2919,9 @@ function ProfileForm({ showToast }) {
             <a href="https://understandmyself.com" target="_blank" rel="noopener noreferrer">
               understandmyself.com
             </a>{' '}
-            ($10), then enter your percentile scores below. You control whether recruiters see this.
+            ($10), then enter your percentile scores exactly as shown. Note: Understand Myself
+            reports <strong>Neuroticism</strong> (not Emotional Stability) — enter that score directly.
+            A low Neuroticism score means high emotional stability. You control whether recruiters see this.
           </div>
 
           <div className="big-five-share-toggle" onClick={()=>setShareBigFive(!shareBigFive)}>
@@ -2927,10 +2940,18 @@ function ProfileForm({ showToast }) {
               <div className="trait-header">
                 <div className="trait-name">{t.name}</div>
                 <div className="trait-score-display">
-                  {scoreLabel(bigFive[t.key])} — {bigFive[t.key]}th percentile
+                  {t.key === 'emotional_stability'
+                    ? `${neuroticismLabel(bigFive[t.key])} — ${bigFive[t.key]}th percentile`
+                    : `${scoreLabel(bigFive[t.key])} — ${bigFive[t.key]}th percentile`
+                  }
                 </div>
               </div>
               <div className="trait-desc">{t.desc}</div>
+              {t.key === 'emotional_stability' && (
+                <div style={{fontSize:'0.72rem',color:'var(--gold)',marginBottom:'0.375rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>
+                  ↑ Lower percentile = calmer and more emotionally stable
+                </div>
+              )}
               <input
                 type="range"
                 className="trait-slider"
