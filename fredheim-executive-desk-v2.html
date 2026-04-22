@@ -1885,6 +1885,267 @@
     line-height: 1.6;
   }
 
+
+  /* ── ADMIN DASHBOARD ── */
+  .admin-login {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+  }
+
+  .admin-login-box {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--ink);
+    padding: 3rem;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 8px 40px rgba(15,28,46,0.08);
+  }
+
+  .admin-login-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.75rem;
+  }
+
+  .admin-login-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 1.5rem;
+  }
+
+  /* Admin layout */
+  .admin-page { padding: 2rem 0 4rem; }
+
+  .admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .admin-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .admin-logout {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-4);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .admin-logout:hover { border-color: var(--red); color: var(--red); }
+
+  /* Stats row */
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-bottom: 2rem;
+  }
+
+  .admin-stat {
+    background: var(--white);
+    padding: 1.5rem;
+    text-align: center;
+  }
+
+  .admin-stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 0.375rem;
+  }
+
+  .admin-stat-num.gold { color: var(--gold); }
+  .admin-stat-num.green { color: var(--green); }
+
+  .admin-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  /* Admin tabs */
+  .admin-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-4);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+    white-space: nowrap;
+  }
+  .admin-tab:hover { color: var(--ink); }
+  .admin-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .admin-tab .tab-count {
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0.1rem 0.4rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+
+  .admin-tab.active .tab-count {
+    background: var(--ink);
+    color: var(--white);
+    border-color: var(--ink);
+  }
+
+  /* Admin table */
+  .admin-table-wrap { overflow-x: auto; }
+
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+  }
+
+  .admin-table th {
+    background: var(--paper-2);
+    border-bottom: 2px solid var(--ink);
+    border-top: 1px solid var(--rule);
+    padding: 0.625rem 1rem;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .admin-table td {
+    border-bottom: 1px solid var(--rule-lt);
+    padding: 0.875rem 1rem;
+    color: var(--ink-3);
+    vertical-align: middle;
+  }
+
+  .admin-table tr:hover td { background: var(--paper); }
+
+  .admin-table td strong { color: var(--ink); font-weight: 600; }
+
+  .admin-pill {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0;
+  }
+
+  .admin-pill.free { background: var(--paper-2); color: var(--ink-4); border: 1px solid var(--rule); }
+  .admin-pill.active { background: var(--green-bg); color: var(--green); border: 1px solid rgba(26,122,74,0.25); }
+  .admin-pill.active_senior { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-rule); }
+  .admin-pill.pending { background: #fef9e7; color: #b7770d; border: 1px solid #f0d48a; }
+  .admin-pill.approved { background: var(--green-bg); color: var(--green); border: 1px solid rgba(26,122,74,0.25); }
+  .admin-pill.posted { background: rgba(15,28,46,0.08); color: var(--ink); border: 1px solid var(--rule); }
+  .admin-pill.discreet { background: var(--paper-2); color: var(--ink-4); border: 1px solid var(--rule); }
+  .admin-pill.open { background: rgba(26,122,74,0.08); color: var(--green); border: 1px solid rgba(26,122,74,0.2); }
+
+  .admin-action-btn {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.625rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .admin-action-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .admin-action-btn.approve { border-color: rgba(26,122,74,0.3); color: var(--green); }
+  .admin-action-btn.approve:hover { background: var(--green); color: var(--white); border-color: var(--green); }
+  .admin-action-btn.publish { border-color: var(--gold-rule); color: var(--gold); }
+  .admin-action-btn.publish:hover { background: var(--gold); color: var(--white); border-color: var(--gold); }
+  .admin-action-btn.danger { border-color: rgba(192,57,43,0.3); color: var(--red); }
+  .admin-action-btn.danger:hover { background: var(--red); color: var(--white); border-color: var(--red); }
+
+  .admin-empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--ink-4);
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+  }
+
+  .admin-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--ink-4);
+    font-size: 0.82rem;
+  }
+
+  .admin-refresh {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-4);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .admin-refresh:hover { border-color: var(--ink-3); color: var(--ink); }
+
+  @media (max-width: 1024px) {
+    .admin-stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 640px) {
+    .admin-stats { grid-template-columns: 1fr 1fr; }
+  }
+
 </style>
 </head>
 <body>
@@ -3401,10 +3662,393 @@ function PrivacyPage() {
   );
 }
 
+
+// ── ADMIN DASHBOARD ───────────────────────────────────────────────────────────
+const ADMIN_PASSWORD = 'FredheimDesk2026!'; // Change this after first login
+
+function AdminDashboard({ onLogout, showToast }) {
+  const [tab, setTab]           = useState('submissions');
+  const [loading, setLoading]   = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Data
+  const [submissions, setSubmissions] = useState([]);
+  const [profiles, setProfiles]       = useState([]);
+  const [jobs, setJobs]               = useState([]);
+  const [interests, setInterests]     = useState([]);
+
+  async function loadAll() {
+    setRefreshing(true);
+    try {
+      const [s, p, j, i] = await Promise.all([
+        sb.from('fed_recruiter_submissions').select('*').order('created_at', {ascending:false}),
+        sb.from('fed_profiles').select('*').order('created_at', {ascending:false}),
+        sb.from('fed_jobs').select('*').order('created_at', {ascending:false}),
+        sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
+      ]);
+      setSubmissions(s.data || []);
+      setProfiles(p.data || []);
+      setJobs(j.data || []);
+      setInterests(i.data || []);
+    } catch(e) {
+      showToast('Error loading data — check Supabase connection.');
+    }
+    setLoading(false);
+    setRefreshing(false);
+  }
+
+  useEffect(() => { loadAll(); }, []);
+
+  // Stats
+  const totalRevenue = profiles.filter(p => p.tier !== 'free').length *
+    profiles.reduce((sum, p) => sum + (p.tier === 'active' ? 199 : p.tier === 'active_senior' ? 99 : 0), 0) /
+    Math.max(profiles.filter(p => p.tier !== 'free').length, 1);
+
+  const paidProfiles  = profiles.filter(p => p.tier !== 'free').length;
+  const pendingSubs   = submissions.filter(s => s.status === 'pending').length;
+  const activeJobs    = jobs.filter(j => j.status === 'active').length;
+  const totalInterests = interests.length;
+
+  // Calculated ARR
+  const arr = profiles.reduce((sum, p) => {
+    if (p.tier === 'active') return sum + 199;
+    if (p.tier === 'active_senior') return sum + 99;
+    return sum;
+  }, 0);
+
+  async function updateSubmissionStatus(id, status) {
+    try {
+      await sb.from('fed_recruiter_submissions').update({ status }).eq('id', id);
+      setSubmissions(prev => prev.map(s => s.id === id ? {...s, status} : s));
+      showToast(`Submission ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated'}.`);
+    } catch(e) { showToast('Update failed.'); }
+  }
+
+  async function publishJob(submission) {
+    // Create a job posting from an approved submission
+    try {
+      const { error } = await sb.from('fed_jobs').insert({
+        title:           submission.role_title,
+        description:     `Search mandate managed by ${submission.firm_name}. Contact the firm for full details.`,
+        responsibilities: '[]',
+        requirements:    '[]',
+        company_display: 'Confidential',
+        firm_name:       submission.firm_name,
+        firm_code:       submission.firm_name.slice(0,2).toUpperCase(),
+        firm_contact:    submission.contact_name,
+        firm_email:      submission.email,
+        industry:        submission.industry || 'Maritime',
+        function:        'Commercial',
+        tags:            '[]',
+        location:        submission.location || 'To Be Confirmed',
+        type:            'Full-Time',
+        salary_min:      0,
+        salary_max:      999999,
+        salary_display:  submission.salary_range || 'Competitive',
+        role_level:      submission.role_level || 'executive',
+        status:          'active',
+        badge:           'new',
+        demo_post:       false,
+      });
+      if (error) throw error;
+      await updateSubmissionStatus(submission.id, 'posted');
+      showToast('✓ Job published to the board.');
+      loadAll();
+    } catch(e) {
+      showToast('Publish failed — check Supabase schema.');
+    }
+  }
+
+  function fmt(ts) {
+    if (!ts) return '—';
+    return new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'2-digit' });
+  }
+
+  if (loading) return <div className="admin-loading"><span className="spinner" />Loading admin data…</div>;
+
+  return (
+    <div className="admin-page">
+      <div className="admin-header">
+        <div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
+            Admin Control Room
+          </div>
+          <div className="admin-title">Fredheim Executive Desk</div>
+        </div>
+        <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+          <button className="admin-refresh" onClick={loadAll} disabled={refreshing}>
+            {refreshing ? '↻ Refreshing…' : '↻ Refresh'}
+          </button>
+          <button className="admin-logout" onClick={onLogout}>Sign Out</button>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div className="admin-stats">
+        <div className="admin-stat">
+          <div className="admin-stat-num gold">${arr.toLocaleString()}</div>
+          <div className="admin-stat-label">Annual Run Rate</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num green">{paidProfiles}</div>
+          <div className="admin-stat-label">Paid Members</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{profiles.length}</div>
+          <div className="admin-stat-label">Total Profiles</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{activeJobs}</div>
+          <div className="admin-stat-label">Active Searches</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{totalInterests}</div>
+          <div className="admin-stat-label">Interest Signals</div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="admin-tabs">
+        <button className={`admin-tab ${tab==='submissions'?'active':''}`} onClick={()=>setTab('submissions')}>
+          Recruiter Submissions <span className="tab-count">{pendingSubs} pending</span>
+        </button>
+        <button className={`admin-tab ${tab==='jobs'?'active':''}`} onClick={()=>setTab('jobs')}>
+          Job Board <span className="tab-count">{activeJobs} live</span>
+        </button>
+        <button className={`admin-tab ${tab==='profiles'?'active':''}`} onClick={()=>setTab('profiles')}>
+          Executive Profiles <span className="tab-count">{profiles.length}</span>
+        </button>
+        <button className={`admin-tab ${tab==='interests'?'active':''}`} onClick={()=>setTab('interests')}>
+          Interest Signals <span className="tab-count">{interests.length}</span>
+        </button>
+      </div>
+
+      {/* ── SUBMISSIONS TAB ── */}
+      {tab === 'submissions' && (
+        <div className="admin-table-wrap">
+          {submissions.length === 0 ? (
+            <div className="admin-empty">No recruiter submissions yet.</div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Firm</th><th>Contact</th><th>Role</th>
+                  <th>Level</th><th>Industry</th><th>Salary Range</th>
+                  <th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {submissions.map(s => (
+                  <tr key={s.id}>
+                    <td>{fmt(s.created_at)}</td>
+                    <td><strong>{s.firm_name}</strong></td>
+                    <td>
+                      <div>{s.contact_name || '—'}</div>
+                      <div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{s.email}</div>
+                    </td>
+                    <td><strong>{s.role_title}</strong><div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{s.location}</div></td>
+                    <td><span className={`admin-pill ${s.role_level||'executive'}`}>{s.role_level||'Executive'}</span></td>
+                    <td>{s.industry || '—'}</td>
+                    <td style={{whiteSpace:'nowrap'}}>{s.salary_range || '—'}</td>
+                    <td><span className={`admin-pill ${s.status||'pending'}`}>{s.status||'pending'}</span></td>
+                    <td>
+                      <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
+                        {s.status === 'pending' && <>
+                          <button className="admin-action-btn approve" onClick={()=>updateSubmissionStatus(s.id,'approved')}>Approve</button>
+                          <button className="admin-action-btn danger" onClick={()=>updateSubmissionStatus(s.id,'rejected')}>Reject</button>
+                        </>}
+                        {s.status === 'approved' && (
+                          <button className="admin-action-btn publish" onClick={()=>publishJob(s)}>Publish to Board</button>
+                        )}
+                        {s.status === 'posted' && <span style={{fontSize:'0.72rem',color:'var(--green)'}}>✓ Live</span>}
+                        <a href={`mailto:${s.email}`} style={{textDecoration:'none'}}>
+                          <button className="admin-action-btn">Email</button>
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── JOBS TAB ── */}
+      {tab === 'jobs' && (
+        <div className="admin-table-wrap">
+          {jobs.length === 0 ? (
+            <div className="admin-empty">No job postings yet.</div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Posted</th><th>Title</th><th>Firm</th><th>Industry</th>
+                  <th>Location</th><th>Salary</th><th>Views</th><th>Interests</th>
+                  <th>Status</th><th>Demo</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.map(j => (
+                  <tr key={j.id}>
+                    <td>{fmt(j.created_at)}</td>
+                    <td><strong>{j.title}</strong></td>
+                    <td>{j.firm_name}</td>
+                    <td>{j.industry}</td>
+                    <td>{j.location}</td>
+                    <td style={{whiteSpace:'nowrap'}}>{j.salary_display}</td>
+                    <td style={{textAlign:'center'}}>{j.view_count||0}</td>
+                    <td style={{textAlign:'center'}}>{j.interest_count||0}</td>
+                    <td><span className={`admin-pill ${j.status}`}>{j.status}</span></td>
+                    <td>{j.demo_post ? <span style={{color:'var(--gold)',fontSize:'0.72rem'}}>Demo</span> : '—'}</td>
+                    <td>
+                      <div style={{display:'flex',gap:'0.375rem'}}>
+                        {j.status === 'active' && (
+                          <button className="admin-action-btn danger" onClick={async()=>{
+                            await sb.from('fed_jobs').update({status:'expired'}).eq('id',j.id);
+                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'expired'}:x));
+                            showToast('Posting expired.');
+                          }}>Expire</button>
+                        )}
+                        {j.status === 'expired' && (
+                          <button className="admin-action-btn approve" onClick={async()=>{
+                            await sb.from('fed_jobs').update({status:'active'}).eq('id',j.id);
+                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'active'}:x));
+                            showToast('Posting reactivated.');
+                          }}>Reactivate</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── PROFILES TAB ── */}
+      {tab === 'profiles' && (
+        <div className="admin-table-wrap">
+          {profiles.length === 0 ? (
+            <div className="admin-empty">No executive profiles yet.</div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Joined</th><th>Name</th><th>Title</th><th>Industry</th>
+                  <th>Location</th><th>Salary Floor</th><th>Tier</th>
+                  <th>Visibility</th><th>Big Five</th><th>Expires</th>
+                </tr>
+              </thead>
+              <tbody>
+                {profiles.map(p => (
+                  <tr key={p.id}>
+                    <td>{fmt(p.created_at)}</td>
+                    <td><strong>{p.first_name} {p.last_name}</strong><div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{p.email}</div></td>
+                    <td>{p.current_title}</td>
+                    <td>{p.industry||'—'}</td>
+                    <td>{p.location||'—'}</td>
+                    <td>{p.salary_min ? `$${(p.salary_min/1000).toFixed(0)}K+` : '—'}</td>
+                    <td><span className={`admin-pill ${p.tier||'free'}`}>{p.tier||'free'}</span></td>
+                    <td><span className={`admin-pill ${p.visibility||'discreet'}`}>{p.visibility||'discreet'}</span></td>
+                    <td>{p.big_five_shared ? <span style={{color:'var(--green)',fontSize:'0.72rem'}}>Shared</span> : <span style={{color:'var(--ink-4)',fontSize:'0.72rem'}}>Private</span>}</td>
+                    <td>{fmt(p.tier_expires)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── INTERESTS TAB ── */}
+      {tab === 'interests' && (
+        <div className="admin-table-wrap">
+          {interests.length === 0 ? (
+            <div className="admin-empty">No interest signals yet.</div>
+          ) : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Email</th><th>Job ID</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {interests.map(i => {
+                  const job = jobs.find(j => j.id === i.job_id);
+                  return (
+                    <tr key={i.id}>
+                      <td>{fmt(i.created_at)}</td>
+                      <td><strong>{i.anon_email || '—'}</strong></td>
+                      <td>
+                        {job ? (
+                          <div>
+                            <strong>{job.title}</strong>
+                            <div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{job.firm_name}</div>
+                          </div>
+                        ) : <span style={{color:'var(--ink-4)',fontSize:'0.72rem'}}>{i.job_id?.slice(0,8)}…</span>}
+                      </td>
+                      <td><span className={`admin-pill ${i.status||'pending'}`}>{i.status||'pending'}</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminLogin({ onLogin }) {
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+
+  function handleLogin() {
+    if (password === ADMIN_PASSWORD) {
+      sessionStorage.setItem('fed_admin', 'true');
+      onLogin();
+    } else {
+      setError('Incorrect password.');
+      setTimeout(() => setError(''), 2000);
+    }
+  }
+
+  return (
+    <div className="admin-login">
+      <div className="admin-login-box">
+        <div className="admin-login-eyebrow">Admin Access</div>
+        <div className="admin-login-title">Control Room</div>
+        <div className="form-group" style={{marginBottom:'1rem'}}>
+          <label className="form-label">Password</label>
+          <input
+            className="form-input"
+            type="password"
+            placeholder="Enter admin password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleLogin()}
+            autoFocus
+          />
+        </div>
+        {error && <div style={{color:'var(--red)',fontSize:'0.78rem',marginBottom:'0.75rem'}}>{error}</div>}
+        <button className="submit-btn" onClick={handleLogin}>Access Control Room</button>
+        <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.75rem',textAlign:'center'}}>
+          Fredheim Technologies LLC — Internal Use Only
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
   const [pricingAudience, setPricingAudience] = useState('recruiters');
+  const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
+  const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -3431,6 +4075,17 @@ function App() {
     load();
   }, []);
 
+  // Admin keyboard shortcut: Ctrl + Shift + A
+  useEffect(() => {
+    function handleKey(e) {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        setShowAdmin(prev => !prev);
+      }
+    }
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   function scrollTo(view, id) {
     setActiveView(view);
     setTimeout(() => document.getElementById(id)?.scrollIntoView({behavior:'smooth'}), 50);
@@ -3454,6 +4109,36 @@ function App() {
       return true;
     });
   }, [jobs, search, industry, func, salaryBand]);
+
+  // Admin view
+  if (showAdmin) {
+    if (!adminAuthed) {
+      return (
+        <div style={{minHeight:'100vh',background:'var(--paper)'}}>
+          <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Executive Desk — Admin</div>
+            <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
+          </div>
+          <AdminLogin onLogin={() => setAdminAuthed(true)} />
+        </div>
+      );
+    }
+    return (
+      <div style={{minHeight:'100vh',background:'var(--paper)'}}>
+        <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Executive Desk — Admin</div>
+          <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
+        </div>
+        <div style={{maxWidth:'1280px',margin:'0 auto',padding:'2rem'}}>
+          <AdminDashboard
+            onLogout={() => { sessionStorage.removeItem('fed_admin'); setAdminAuthed(false); setShowAdmin(false); }}
+            showToast={showToast}
+          />
+        </div>
+        {toast && <div className="toast">{toast}</div>}
+      </div>
+    );
+  }
 
   return (
     <>
