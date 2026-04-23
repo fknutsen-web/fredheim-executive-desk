@@ -2650,6 +2650,565 @@
     margin-top: 0.2rem;
   }
 
+
+  /* ── VETTING SYSTEM ── */
+
+  /* Step 5 additions */
+  .vetting-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .vetting-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 0.875rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--rule-lt);
+  }
+
+  /* Tap options — large touch targets */
+  .tap-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .tap-option {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 0.75rem 1rem;
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .tap-option:hover { border-color: var(--ink-3); background: var(--white); }
+  .tap-option.selected { border-color: var(--ink); background: var(--white); }
+
+  .tap-radio {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--rule);
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .tap-option.selected .tap-radio {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+  .tap-option.selected .tap-radio::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--white);
+  }
+
+  .tap-option-text {
+    font-size: 0.875rem;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+  .tap-option.selected .tap-option-text { color: var(--ink); font-weight: 500; }
+
+  .tap-options-row {
+    display: flex;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+  }
+
+  .tap-chip {
+    padding: 0.625rem 1rem;
+    background: var(--paper);
+    border: 1.5px solid var(--rule);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .tap-chip:hover { border-color: var(--ink-3); }
+  .tap-chip.selected { border-color: var(--ink); background: var(--ink); color: var(--white); }
+
+  /* Orientation slider */
+  .orientation-slider-wrap {
+    padding: 0.5rem 0;
+  }
+
+  .orientation-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .orientation-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    max-width: 120px;
+    line-height: 1.4;
+  }
+
+  .orientation-label.right { text-align: right; }
+
+  .orientation-value {
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
+    font-weight: 500;
+    margin-top: 0.375rem;
+  }
+
+  /* Reference cards */
+  .ref-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.625rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .ref-num {
+    width: 24px; height: 24px;
+    background: var(--ink);
+    color: var(--white);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+  }
+
+  .ref-fields { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+  .ref-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+  /* Reference status badges */
+  .ref-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    flex-shrink: 0;
+  }
+  .ref-status.pending  { background: var(--paper-2); color: var(--ink-4); border: 1px solid var(--rule); }
+  .ref-status.sent     { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-rule); }
+  .ref-status.completed { background: var(--green-bg); color: var(--green); border: 1px solid rgba(26,122,74,0.2); }
+
+  /* Questionnaire page */
+  .questionnaire-page {
+    min-height: 100vh;
+    background: var(--paper);
+    padding: 3rem 1.5rem;
+  }
+
+  .questionnaire-inner {
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  .questionnaire-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .questionnaire-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .questionnaire-desc {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .q-block {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--rule-lt);
+  }
+  .q-block:last-of-type { border-bottom: none; }
+
+  .q-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.375rem;
+  }
+
+  .q-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+  }
+
+  .q-textarea {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font-family: 'Figtree', sans-serif;
+    font-size: 0.875rem;
+    padding: 0.875rem 1rem;
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+  .q-textarea:focus { border-color: var(--ink-3); }
+  .q-textarea::placeholder { color: var(--ink-4); }
+
+  /* Match score in admin */
+  .match-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .match-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--rule-lt);
+    overflow: hidden;
+  }
+
+  .match-bar-fill {
+    height: 100%;
+    background: var(--green);
+    transition: width 0.4s ease;
+  }
+
+  .match-score-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+    min-width: 40px;
+    text-align: right;
+  }
+
+  .vetting-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+  }
+  .vetting-badge.verified   { background: var(--green-bg); color: var(--green); border: 1px solid rgba(26,122,74,0.2); }
+  .vetting-badge.partial    { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-rule); }
+  .vetting-badge.unverified { background: var(--paper-2); color: var(--ink-4); border: 1px solid var(--rule); }
+
+  @media (max-width: 640px) {
+    .ref-row { grid-template-columns: 1fr; }
+    .tap-options-row { flex-direction: column; }
+  }
+
+
+  /* ── CONSULTANCY BOARD ── */
+
+  .consulting-board { padding: 2rem 0 4rem; }
+
+  .consulting-hero {
+    background: var(--ink);
+    color: var(--white);
+    padding: 3rem;
+    margin-bottom: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+  }
+
+  .consulting-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 0.75rem;
+  }
+
+  .consulting-hero-title em {
+    color: var(--gold-lt);
+    font-style: italic;
+  }
+
+  .consulting-hero-desc {
+    color: rgba(250,250,248,0.6);
+    font-size: 0.875rem;
+    line-height: 1.7;
+    font-weight: 300;
+    margin-bottom: 1.25rem;
+  }
+
+  .consulting-hero-stats {
+    background: rgba(250,250,248,0.06);
+    border: 1px solid rgba(250,250,248,0.12);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .consulting-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(250,250,248,0.08);
+  }
+  .consulting-stat:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .consulting-stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(250,250,248,0.4);
+  }
+
+  .consulting-stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--gold-lt);
+  }
+
+  /* Brief cards */
+  .brief-card {
+    background: var(--white);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    padding: 1.5rem;
+    margin-bottom: 1px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .brief-card:hover { border-color: var(--ink-3); box-shadow: 0 2px 12px rgba(15,28,46,0.06); }
+  .brief-card.featured { border-left-color: var(--ink); }
+
+  .brief-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 0.25rem;
+  }
+
+  .brief-card-company {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    margin-bottom: 0.75rem;
+  }
+
+  .brief-card-meta {
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+
+  .brief-meta-item {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  .brief-meta-item strong { color: var(--ink-3); }
+
+  .brief-tags { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+
+  .brief-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    background: var(--paper-2);
+    border: 1px solid var(--rule);
+    color: var(--ink-4);
+  }
+
+  .brief-rate {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .brief-rate-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 0.2rem;
+  }
+
+  .brief-rate-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+  }
+
+  .urgency-badge {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .urgency-badge.immediate { background: rgba(192,57,43,0.08); color: var(--red); border: 1px solid rgba(192,57,43,0.2); }
+  .urgency-badge.soon { background: var(--gold-bg); color: var(--gold); border: 1px solid var(--gold-rule); }
+  .urgency-badge.planning { background: var(--paper-2); color: var(--ink-4); border: 1px solid var(--rule); }
+
+  /* Consultant toggle in profile */
+  .consulting-toggle-card {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .consulting-toggle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  .consulting-toggle-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .consulting-toggle-desc {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    line-height: 1.55;
+  }
+
+  /* Brief detail modal */
+  .brief-detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,28,46,0.6);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  .brief-detail-modal {
+    background: var(--white);
+    max-width: 640px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(15,28,46,0.2);
+  }
+
+  .brief-detail-header {
+    background: var(--ink);
+    color: var(--white);
+    padding: 2rem;
+    position: sticky;
+    top: 0;
+  }
+
+  .brief-detail-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin-bottom: 0.375rem;
+  }
+
+  .brief-detail-company {
+    color: rgba(250,250,248,0.5);
+    font-size: 0.82rem;
+  }
+
+  .brief-detail-body { padding: 2rem; }
+
+  .brief-detail-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--rule-lt);
+  }
+  .brief-detail-section:last-child { border-bottom: none; }
+
+  .brief-detail-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-4);
+    margin-bottom: 0.375rem;
+  }
+
+  .brief-detail-value {
+    font-size: 0.9rem;
+    color: var(--ink-2);
+    line-height: 1.65;
+  }
+
+  /* Company brief submission */
+  .brief-cta {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    padding: 2rem;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .consulting-hero { grid-template-columns: 1fr; }
+    .brief-card { grid-template-columns: 1fr; }
+    .brief-rate { text-align: left; }
+    .brief-cta { flex-direction: column; }
+  }
+
 </style>
 </head>
 <body>
@@ -2677,7 +3236,7 @@ function getStripe() {
 }
 
 // ── CONSTANTS ───────────────────────────────────────────────────────────────
-const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Cruise'];
+const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
 const SALARY_BANDS = [
   { label: 'Any Range', min: 0 },
@@ -2725,11 +3284,12 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
-          <span className="nav-sub">Maritime · Energy · Logistics · Offshore · Cruise</span>
+          <span className="nav-sub">Maritime · Energy · Logistics · Offshore · Commodities</span>
         </div>
       </div>
       <div className="nav-links">
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
+        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => setActiveView('consulting')}>Consulting</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
         <div className="nav-divider" />
         {authUser && userType === 'recruiter' && (
@@ -2795,6 +3355,11 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
           <div className="stat-item">
             <div className="stat-num">100%</div>
             <div className="stat-label">Salary Transparency</div>
+          </div>
+          <div className="hero-stat" style={{cursor:'pointer',borderTop:'1px solid var(--rule)'}}
+            onClick={() => scrollToJobs()}>
+            <div className="stat-value" style={{color:'var(--gold)',fontSize:'0.9rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>Consulting →</div>
+            <div className="stat-label">Also Available</div>
           </div>
         </div>
       </div>
@@ -3001,7 +3566,8 @@ function RecruiterModal({ onClose, showToast }) {
   const [loading, setLoading]     = useState(false);
   const [form, setForm] = useState({
     firm_name:'', contact_name:'', email:'', role_title:'',
-    industry:'', location:'', salary_range:'', role_level:'executive', notes:''
+    industry:'', location:'', salary_range:'', role_level:'executive', notes:'',
+    role_orientation:'', background_preferred:'', client_interface:'', references_required:'preferred',
   });
   function set(k,v) { setForm(p=>({...p,[k]:v})); }
 
@@ -3104,7 +3670,8 @@ function RecruiterModal({ onClose, showToast }) {
                         <option>Industrial Logistics</option>
                         <option>Port &amp; Terminal</option>
                         <option>Offshore</option>
-                        <option>Cruise</option>
+                        <option>Bulk Commodities</option>
+                        <option>Trading &amp; Freight</option>
                       </select>
                     </div>
                     <div className="form-group">
@@ -3117,7 +3684,43 @@ function RecruiterModal({ onClose, showToast }) {
                     <input className="form-input" placeholder="e.g. $300K – $400K total compensation" value={form.salary_range} onChange={e=>set('salary_range',e.target.value)} />
                   </div>
                 </div>
-                <hr className="modal-divider" />
+                
+                <div className="modal-section-title" style={{marginTop:'0.5rem'}}>Candidate Preferences</div>
+                <div className="form" style={{gap:'0.625rem',marginBottom:'1rem'}}>
+                  <div className="form-group">
+                    <label className="form-label">Role Orientation</label>
+                    <div className="tap-options-row">
+                      {[{v:'operational',l:'Operational'},{v:'balanced',l:'Balanced'},{v:'strategic',l:'Strategic'}].map(o=>(
+                        <div key={o.v} className={`tap-chip ${form.role_orientation===o.v?'selected':''}`} onClick={()=>set('role_orientation',o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Background Preferred</label>
+                    <div className="tap-options-row">
+                      {[{v:'commercial',l:'Commercial'},{v:'operations',l:'Operations'},{v:'finance',l:'Finance'},{v:'open',l:'Open'}].map(o=>(
+                        <div key={o.v} className={`tap-chip ${form.background_preferred===o.v?'selected':''}`} onClick={()=>set('background_preferred',o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Client Interface</label>
+                    <div className="tap-options-row">
+                      {[{v:'must',l:'Must be client-facing'},{v:'mixed',l:'Mixed'},{v:'internal',l:'Primarily internal'}].map(o=>(
+                        <div key={o.v} className={`tap-chip ${form.client_interface===o.v?'selected':''}`} onClick={()=>set('client_interface',o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Verified References</label>
+                    <div className="tap-options-row">
+                      {[{v:'required',l:'Required'},{v:'preferred',l:'Preferred'},{v:'not_required',l:'Not required'}].map(o=>(
+                        <div key={o.v} className={`tap-chip ${form.references_required===o.v?'selected':''}`} onClick={()=>set('references_required',o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+<hr className="modal-divider" />
                 <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
                   {loading ? 'Submitting…' : 'Submit Search for Review'}
                 </button>
@@ -3168,6 +3771,30 @@ function ProfileForm({ showToast }) {
     agreeableness: 50, emotional_stability: 50
   });
   function setBF(k,v) { setBigFive(p=>({...p,[k]:v})); }
+
+  // Vetting state
+  const [vetting, setVetting] = useState({
+    availability_status: '',
+    notice_period: '',
+    relocation: '',
+    has_pl_responsibility: null,
+    has_client_contact: null,
+    largest_contract_signed: '',
+    orientation_score: 50,
+    background_track: '',
+    ownership_comfort: '',
+    travel_tolerance: '',
+    comp_structure: '',
+    market_presence: '',
+  });
+  function setV(k,v) { setVetting(p=>({...p,[k]:v})); }
+
+  // References state
+  const [refs, setRefs] = useState([
+    { name:'', email:'' },
+    { name:'', email:'' },
+  ]);
+  function setRef(i,k,v) { setRefs(p=>p.map((r,idx)=>idx===i?{...r,[k]:v}:r)); }
 
   const TRAITS = [
     {
@@ -3248,6 +3875,29 @@ function ProfileForm({ showToast }) {
       await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
     } catch(e) { console.log('Profile save:', e); }
 
+    // Save references and send questionnaire emails
+    const validRefs = refs.filter(r => r.name && r.email);
+    if (validRefs.length > 0) {
+      try {
+        for (const ref of validRefs) {
+          const { data: refData } = await sb.from('fed_references').insert({
+            profile_email: form.email,
+            ref_name: ref.name,
+            ref_email: ref.email,
+            status: 'pending',
+          }).select().single();
+
+          if (refData?.token) {
+            // Send questionnaire email via Supabase Edge Function or direct email
+            // For now: log the token — Zapier webhook handles email sending
+            console.log('Reference token created:', refData.token);
+            // The admin can see this and manually send if needed
+            // Full email automation requires a Zapier webhook on fed_references INSERT
+          }
+        }
+      } catch(e) { console.log('Reference save error:', e); }
+    }
+
     if (tier === 'active' || tier === 'active_senior') {
       try {
         const s = getStripe();
@@ -3284,7 +3934,7 @@ function ProfileForm({ showToast }) {
     </div>
   );
 
-  const steps = ['Basics','Career','Personality','Preferences'];
+  const steps = ['Basics','Career','Personality','Preferences','Vetting'];
 
   return (
     <div className="form">
@@ -3574,6 +4224,203 @@ function ProfileForm({ showToast }) {
             {tier === 'free' ? 'Free tier' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
           </div>
 
+          <div className="step-nav" style={{marginTop:'0'}}>
+            <button className="step-back" onClick={()=>setStep(3)}>← Back</button>
+            <button className="step-next" onClick={()=>setStep(5)}>Continue — Vetting & References →</button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 5: VETTING & REFERENCES ── */}
+      {step === 5 && (
+        <>
+          {/* Availability */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Availability</div>
+            <div className="form-group" style={{marginBottom:'0.875rem'}}>
+              <label className="form-label">Current Status</label>
+              <div className="tap-options">
+                {[
+                  {v:'employed_open', l:'Employed — open to the right opportunity'},
+                  {v:'actively_looking', l:'Actively looking'},
+                  {v:'available_now', l:'Available immediately'},
+                ].map(o => (
+                  <div key={o.v} className={`tap-option ${vetting.availability_status===o.v?'selected':''}`} onClick={()=>setV('availability_status',o.v)}>
+                    <div className="tap-radio" /><div className="tap-option-text">{o.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Notice Period</label>
+                <div className="tap-options-row">
+                  {[{v:'immediate',l:'Immediate'},{v:'30_days',l:'30 days'},{v:'60_days',l:'60 days'},{v:'90_plus',l:'90+ days'}].map(o=>(
+                    <div key={o.v} className={`tap-chip ${vetting.notice_period===o.v?'selected':''}`} onClick={()=>setV('notice_period',o.v)}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Relocation</label>
+                <div className="tap-options-row">
+                  {[{v:'open',l:'Open'},{v:'same_region',l:'Same region'},{v:'not_relocating',l:'Not relocating'}].map(o=>(
+                    <div key={o.v} className={`tap-chip ${vetting.relocation===o.v?'selected':''}`} onClick={()=>setV('relocation',o.v)}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Scope */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Scope of Accountability</div>
+            <div className="form-row" style={{marginBottom:'0.875rem'}}>
+              <div className="form-group">
+                <label className="form-label">P&L Responsibility</label>
+                <div className="tap-options-row">
+                  <div className={`tap-chip ${vetting.has_pl_responsibility===true?'selected':''}`} onClick={()=>setV('has_pl_responsibility',true)}>Yes</div>
+                  <div className={`tap-chip ${vetting.has_pl_responsibility===false?'selected':''}`} onClick={()=>setV('has_pl_responsibility',false)}>No</div>
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Direct Client Contact</label>
+                <div className="tap-options-row">
+                  <div className={`tap-chip ${vetting.has_client_contact===true?'selected':''}`} onClick={()=>setV('has_client_contact',true)}>Yes</div>
+                  <div className={`tap-chip ${vetting.has_client_contact===false?'selected':''}`} onClick={()=>setV('has_client_contact',false)}>No</div>
+                </div>
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Largest Contract Signed Independently</label>
+              <input className="form-input" placeholder="e.g. $5M, $50M, N/A" value={vetting.largest_contract_signed} onChange={e=>setV('largest_contract_signed',e.target.value)} />
+            </div>
+          </div>
+
+          {/* Orientation */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Role Orientation</div>
+            <div className="orientation-slider-wrap">
+              <div className="orientation-labels">
+                <div className="orientation-label">Operational<br/><span style={{color:'var(--ink-4)',fontSize:'0.55rem'}}>Day-to-day execution</span></div>
+                <div className="orientation-label right">Strategic<br/><span style={{color:'var(--ink-4)',fontSize:'0.55rem'}}>Growth, deals, board</span></div>
+              </div>
+              <input type="range" className="trait-slider" min="0" max="100" value={vetting.orientation_score}
+                onChange={e=>setV('orientation_score',parseInt(e.target.value))} />
+              <div className="orientation-value">
+                {vetting.orientation_score <= 25 ? 'Primarily Operational' :
+                 vetting.orientation_score <= 45 ? 'Operational with Strategic elements' :
+                 vetting.orientation_score <= 55 ? 'Balanced' :
+                 vetting.orientation_score <= 75 ? 'Strategic with Operational grounding' :
+                 'Primarily Strategic'}
+              </div>
+            </div>
+          </div>
+
+          {/* Background & Style */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Background & Working Style</div>
+            <div className="form-group" style={{marginBottom:'0.875rem'}}>
+              <label className="form-label">Primary Background</label>
+              <div className="tap-options-row">
+                {[
+                  {v:'commercial',l:'Commercial / Freight / Chartering'},
+                  {v:'operations',l:'Operations / Technical'},
+                  {v:'finance',l:'Finance / Legal'},
+                  {v:'general',l:'General Management'},
+                ].map(o=>(
+                  <div key={o.v} className={`tap-chip ${vetting.background_track===o.v?'selected':''}`} onClick={()=>setV('background_track',o.v)}>{o.l}</div>
+                ))}
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Ownership / Board Interface Comfort</label>
+              <div className="tap-options">
+                {[
+                  {v:'direct_ownership',l:'Comfortable reporting directly to ownership or board'},
+                  {v:'ceo_layer',l:'Work best with a CEO layer between me and ownership'},
+                  {v:'structured_corporate',l:'Prefer a structured corporate environment'},
+                ].map(o=>(
+                  <div key={o.v} className={`tap-option ${vetting.ownership_comfort===o.v?'selected':''}`} onClick={()=>setV('ownership_comfort',o.v)}>
+                    <div className="tap-radio" /><div className="tap-option-text">{o.l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Travel & Compensation */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Travel & Compensation Preference</div>
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label">Travel Tolerance</label>
+                <div className="tap-options-row">
+                  {[{v:'minimal',l:'Minimal'},{v:'25pct',l:'Up to 25%'},{v:'50pct',l:'Up to 50%'},{v:'no_limit',l:'No limit'}].map(o=>(
+                    <div key={o.v} className={`tap-chip ${vetting.travel_tolerance===o.v?'selected':''}`} onClick={()=>setV('travel_tolerance',o.v)}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Compensation Structure</label>
+                <div className="tap-options-row">
+                  {[{v:'fixed',l:'Fixed salary'},{v:'bonus',l:'Bonus important'},{v:'equity',l:'Equity critical'}].map(o=>(
+                    <div key={o.v} className={`tap-chip ${vetting.comp_structure===o.v?'selected':''}`} onClick={()=>setV('comp_structure',o.v)}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Market Presence */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Market Presence</div>
+            <div className="form-group">
+              <label className="form-label">Companies or organizations where your work would be recognized</label>
+              <input className="form-input" placeholder="e.g. Cargill, Trafigura, Port of Houston Authority, Stolt-Nielsen" value={vetting.market_presence} onChange={e=>setV('market_presence',e.target.value)} />
+              <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.375rem'}}>Helps recruiters understand your market standing and network depth.</p>
+            </div>
+          </div>
+
+          {/* References */}
+          <div className="vetting-section">
+            <div className="vetting-section-title">Professional References (Optional)</div>
+            <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1rem',lineHeight:'1.65'}}>
+              Add up to 2 references. Each receives a 5-minute questionnaire by email — no login required.
+              Their responses strengthen your profile and are shared only with your consent.
+            </p>
+            {refs.map((ref, i) => (
+              <div key={i} className="ref-card">
+                <div className="ref-num">{i+1}</div>
+                <div className="ref-fields">
+                  <div className="ref-row">
+                    <div className="form-group">
+                      <label className="form-label">Full Name</label>
+                      <input className="form-input" placeholder="Reference name" value={ref.name} onChange={e=>setRef(i,'name',e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Email Address</label>
+                      <input className="form-input" type="email" placeholder="their@email.com" value={ref.email} onChange={e=>setRef(i,'email',e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <p style={{fontSize:'0.7rem',color:'var(--ink-4)',lineHeight:'1.55',marginTop:'0.5rem'}}>
+              You can skip references now and add them later from your profile dashboard.
+            </p>
+          </div>
+
+          {/* Summary */}
+          <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'1rem 1.25rem',marginBottom:'1rem',fontSize:'0.78rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
+            <strong style={{color:'var(--ink)'}}>Profile summary:</strong>{' '}
+            {form.current_title || 'Executive'} ·{' '}
+            {Array.isArray(form.industry) ? form.industry.join(', ') : (form.industry || 'Industry TBD')} ·{' '}
+            {form.location || 'Location TBD'} ·{' '}
+            {career.filter(e=>e.title).length} career roles ·{' '}
+            {refs.filter(r=>r.email).length} reference{refs.filter(r=>r.email).length!==1?'s':''} ·{' '}
+            {tier === 'free' ? 'Free' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
+          </div>
+
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
             {loading ? 'Creating Profile…'
               : tier==='active' ? 'Create Executive Profile — $199/yr'
@@ -3582,16 +4429,16 @@ function ProfileForm({ showToast }) {
           </button>
           <p className="form-note">
             {tier==='free'
-              ? 'Free access always. Upgrade to Active anytime from your profile.'
-              : 'Billed annually. Cancel anytime. Your current employer is never disclosed to anyone.'
+              ? 'Free access always. Vetting and references optional — add anytime.'
+              : 'Billed annually. Cancel anytime. Your employer is never disclosed.'
             }
           </p>
-
-          <div className="step-nav" style={{marginTop:'0'}}>
-            <button className="step-back" onClick={()=>setStep(3)}>← Back</button>
+          <div className="step-nav" style={{marginTop:'0.5rem'}}>
+            <button className="step-back" onClick={()=>setStep(4)}>← Back</button>
           </div>
         </>
       )}
+
     </div>
   );
 }
@@ -3858,7 +4705,7 @@ function PricingPage({ setActiveView, openRecruiterModal }) {
             </div>
             <div className="faq-item">
               <div className="faq-q">What industries does the platform cover?</div>
-              <div className="faq-a">Maritime, energy, industrial logistics, port & terminal, offshore, and cruise. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
+              <div className="faq-a">Maritime, energy, industrial logistics, port & terminal, offshore, bulk commodities, and trading & freight. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
             </div>
           </>
         )}
@@ -4737,7 +5584,7 @@ function AdminLogin({ onLogin }) {
 // ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
 const ALL_INDUSTRY_OPTIONS = [
   'Maritime', 'Energy', 'Industrial Logistics',
-  'Port & Terminal', 'Offshore', 'Cruise'
+  'Port & Terminal', 'Offshore', 'Bulk Commodities', 'Trading & Freight'
 ];
 
 function IndustryMultiSelect({ value, onChange, placeholder }) {
@@ -5125,6 +5972,21 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade 
           </div>
           <div className="profile-visibility-row">
             <div>
+              <div className="profile-visibility-label">Available for Consulting</div>
+              <div className="profile-visibility-desc">
+                {profile.consulting_available
+                  ? 'Visible to companies posting consulting briefs'
+                  : 'Not visible on the consulting board'
+                }
+              </div>
+            </div>
+            <div className={`toggle-switch ${profile.consulting_available?'on':''}`}
+              style={{cursor:'pointer'}}
+              onClick={() => saveField({consulting_available: !profile.consulting_available})}
+            />
+          </div>
+          <div className="profile-visibility-row">
+            <div>
               <div className="profile-visibility-label">Profile Visibility</div>
               <div className="profile-visibility-desc">
                 {profile.visibility === 'open'
@@ -5225,7 +6087,18 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade 
           </div>
         )}
 
-        {/* Interest History */}
+        {/* References */}
+        <div className="profile-card full-width">
+          <div className="profile-card-header">
+            <div className="profile-card-title">Professional References</div>
+            <span style={{fontSize:'0.7rem',color:'var(--ink-4)',fontFamily:"'DM Mono',monospace",letterSpacing:'0.08em',textTransform:'uppercase'}}>
+              Strengthen your profile
+            </span>
+          </div>
+          <ReferenceStatus email={user.email} showToast={showToast} />
+        </div>
+
+      {/* Interest History */}
         <div className="profile-card full-width">
           <div className="profile-card-header">
             <div className="profile-card-title">Searches You've Expressed Interest In</div>
@@ -5562,10 +6435,956 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   );
 }
 
+
+
+// ── REFERENCE STATUS COMPONENT ───────────────────────────────────────────────
+function ReferenceStatus({ email, showToast }) {
+  const [refs, setRefs]       = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding]   = useState(false);
+  const [newRef, setNewRef]   = useState({ name:'', email:'' });
+
+  useEffect(() => { loadRefs(); }, [email]);
+
+  async function loadRefs() {
+    try {
+      const { data } = await sb.from('fed_references').select('*').eq('profile_email', email).order('created_at');
+      setRefs(data || []);
+    } catch(e) {}
+    setLoading(false);
+  }
+
+  async function addRef() {
+    if (!newRef.name || !newRef.email) { showToast('Please enter reference name and email.'); return; }
+    try {
+      const { data, error } = await sb.from('fed_references').insert({
+        profile_email: email,
+        ref_name: newRef.name,
+        ref_email: newRef.email,
+        status: 'pending',
+      }).select().single();
+      if (error) throw error;
+      setRefs(p => [...p, data]);
+      setNewRef({ name:'', email:'' });
+      setAdding(false);
+      showToast('✓ Reference added. They will receive a questionnaire link shortly.');
+    } catch(e) {
+      showToast('Failed to add reference. Try again.');
+    }
+  }
+
+  const statusLabel = { pending:'Pending', sent:'Questionnaire Sent', completed:'Completed', expired:'Expired' };
+
+  if (loading) return <div style={{color:'var(--ink-4)',fontSize:'0.82rem',padding:'0.5rem 0'}}>Loading references…</div>;
+
+  return (
+    <div>
+      {refs.length === 0 && !adding && (
+        <div className="profile-field-empty" style={{marginBottom:'1rem'}}>
+          No references added yet. References significantly strengthen your profile and improve matching.
+        </div>
+      )}
+      {refs.map(r => (
+        <div key={r.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0.75rem 0',borderBottom:'1px solid var(--rule-lt)',gap:'1rem'}}>
+          <div>
+            <div style={{fontWeight:600,color:'var(--ink)',fontSize:'0.875rem'}}>{r.ref_name}</div>
+            <div style={{fontSize:'0.75rem',color:'var(--ink-4)'}}>{r.ref_email}</div>
+          </div>
+          <span className={`ref-status ${r.status}`}>{statusLabel[r.status] || r.status}</span>
+        </div>
+      ))}
+
+      {adding ? (
+        <div style={{marginTop:'1rem',padding:'1rem',background:'var(--paper)',border:'1px solid var(--rule)'}}>
+          <div className="ref-row" style={{marginBottom:'0.625rem'}}>
+            <div className="form-group">
+              <label className="form-label">Reference Name</label>
+              <input className="form-input" placeholder="Full name" value={newRef.name} onChange={e=>setNewRef(p=>({...p,name:e.target.value}))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input className="form-input" type="email" placeholder="their@email.com" value={newRef.email} onChange={e=>setNewRef(p=>({...p,email:e.target.value}))} />
+            </div>
+          </div>
+          <div style={{display:'flex',gap:'0.5rem'}}>
+            <button className="profile-edit-btn save" onClick={addRef}>Add Reference</button>
+            <button className="profile-edit-btn" onClick={()=>setAdding(false)}>Cancel</button>
+          </div>
+        </div>
+      ) : refs.length < 3 && (
+        <button className="add-entry-btn" style={{marginTop:'0.75rem'}} onClick={()=>setAdding(true)}>
+          + Add Reference
+        </button>
+      )}
+
+      <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.55'}}>
+        References receive a secure 5-minute questionnaire link by email. No login required.
+        Completed references are shown to verified search firms with your consent.
+        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>desk.fredheimtech.com?ref=[token]</code>
+      </p>
+    </div>
+  );
+}
+
+// ── REFERENCE QUESTIONNAIRE PAGE ─────────────────────────────────────────────
+// Accessed via unique token link — no login required
+function QuestionnairePage({ token }) {
+  const [ref, setRef]           = useState(null);
+  const [loading, setLoading]   = useState(true);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]       = useState('');
+
+  const [answers, setAnswers] = useState({
+    q1_relationship:    '',
+    q2_client_facing:   '',
+    q3_working_style:   '',
+    q4_knowledge:       '',
+    q5_market_standing: '',
+    q6_pressure_story:  '',
+    q7_recommend:       '',
+    q7_caveats:         '',
+  });
+
+  function set(k, v) { setAnswers(p => ({...p, [k]: v})); }
+
+  useEffect(() => {
+    async function loadRef() {
+      try {
+        const { data, error } = await sb
+          .from('fed_references')
+          .select('*')
+          .eq('token', token)
+          .single();
+        if (error || !data) { setError('This link is invalid or has expired.'); }
+        else if (data.status === 'completed') { setSubmitted(true); }
+        else { setRef(data); }
+      } catch(e) { setError('Unable to load questionnaire. Please try again.'); }
+      setLoading(false);
+    }
+    if (token) loadRef();
+  }, [token]);
+
+  async function handleSubmit() {
+    if (!answers.q1_relationship || !answers.q2_client_facing || !answers.q7_recommend) {
+      alert('Please answer all required questions (marked with *).');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { error } = await sb
+        .from('fed_references')
+        .update({
+          ...answers,
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('token', token);
+      if (error) throw error;
+      setSubmitted(true);
+    } catch(e) {
+      alert('Submission failed. Please try again or email desk@fredheimtech.com.');
+    }
+    setSubmitting(false);
+  }
+
+  const Q2_OPTIONS = [
+    { value: 'exceptional', label: 'Absolutely — one of the best I've seen' },
+    { value: 'yes_with_context', label: 'Yes, with appropriate context provided' },
+    { value: 'selective', label: 'Selectively — depends on the situation' },
+    { value: 'not_strength', label: 'This is not their strength' },
+  ];
+
+  const Q3_OPTIONS = [
+    { value: 'independent', label: 'Highly independent — sets own agenda, drives outcomes with minimal oversight' },
+    { value: 'collaborative', label: 'Collaborative — builds consensus, works well in structured teams' },
+    { value: 'analytical', label: 'Analytical — methodical, data-driven, careful decision-maker' },
+    { value: 'entrepreneurial', label: 'Entrepreneurial — comfortable with ambiguity, builds from scratch' },
+  ];
+
+  const Q4_OPTIONS = [
+    { value: 'expert', label: 'Expert — recognized by peers in the field' },
+    { value: 'strong', label: 'Strong — above average for their level' },
+    { value: 'solid', label: 'Solid — competent for the role' },
+    { value: 'developing', label: 'Still developing' },
+  ];
+
+  const Q5_OPTIONS = [
+    { value: 'name_opens_doors', label: 'Yes — their name opens doors' },
+    { value: 'solid_reputation', label: 'Yes — solid reputation, well respected' },
+    { value: 'known_not_networked', label: 'Known but not particularly networked' },
+    { value: 'limited', label: 'Limited market presence' },
+  ];
+
+  const Q7_OPTIONS = [
+    { value: 'unreservedly', label: 'Unreservedly — I'd hire them myself' },
+    { value: 'yes_right_role', label: 'Yes, for the right role' },
+    { value: 'yes_with_caveats', label: 'Yes, with some caveats' },
+    { value: 'not_at_level', label: 'Not at this level' },
+  ];
+
+  if (loading) return (
+    <div className="questionnaire-page">
+      <div className="questionnaire-inner">
+        <div style={{textAlign:'center',padding:'3rem',color:'var(--ink-4)'}}>
+          <span className="spinner" />Loading…
+        </div>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="questionnaire-page">
+      <div className="questionnaire-inner">
+        <div className="questionnaire-header">
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+            Fredheim Executive Desk
+          </div>
+          <div className="questionnaire-title">Link Unavailable</div>
+        </div>
+        <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',borderLeft:'3px solid var(--red)',padding:'1.25rem',color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.65'}}>
+          {error} If you believe this is an error, please email <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>.
+        </div>
+      </div>
+    </div>
+  );
+
+  if (submitted) return (
+    <div className="questionnaire-page">
+      <div className="questionnaire-inner">
+        <div className="questionnaire-header">
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+            Fredheim Executive Desk
+          </div>
+          <div className="questionnaire-title">Thank You</div>
+        </div>
+        <div style={{background:'var(--green-bg)',border:'1px solid rgba(26,122,74,0.2)',borderLeft:'3px solid var(--green)',padding:'1.5rem',color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.75'}}>
+          Your reference has been received and will be kept confidential.
+          It will be shared only with verified executive search firms, with the candidate's consent.
+          You can close this window.
+        </div>
+      </div>
+    </div>
+  );
+
+  const candidateName = ref?.ref_name ? `for ${ref.ref_name.split(' ')[0]}` : '';
+
+  return (
+    <div className="questionnaire-page">
+      <div className="questionnaire-inner">
+        <div className="questionnaire-header">
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+            Fredheim Executive Desk — Confidential Reference
+          </div>
+          <div className="questionnaire-title">Professional Reference</div>
+          <p className="questionnaire-desc">
+            You have been listed as a professional reference on Fredheim Executive Desk —
+            a curated executive search platform for maritime, energy, and industrial logistics.
+            This takes approximately 5 minutes. Your responses are confidential and shared
+            only with verified search firms, with the candidate's consent.
+          </p>
+        </div>
+
+        {/* Q1 */}
+        <div className="q-block">
+          <div className="q-num">Question 1 of 7 *</div>
+          <div className="q-text">How long and in what capacity did you work with this person?</div>
+          <textarea
+            className="q-textarea"
+            placeholder="e.g. I worked with [name] for 4 years at [company] where they reported to me as Commercial Director..."
+            value={answers.q1_relationship}
+            onChange={e => set('q1_relationship', e.target.value)}
+          />
+        </div>
+
+        {/* Q2 */}
+        <div className="q-block">
+          <div className="q-num">Question 2 of 7 *</div>
+          <div className="q-text">Can they represent your organization credibly in front of a client or senior counterparty — without preparation or hand-holding?</div>
+          <div className="tap-options">
+            {Q2_OPTIONS.map(o => (
+              <div key={o.value} className={`tap-option ${answers.q2_client_facing===o.value?'selected':''}`}
+                onClick={() => set('q2_client_facing', o.value)}>
+                <div className="tap-radio" />
+                <div className="tap-option-text">{o.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Q3 */}
+        <div className="q-block">
+          <div className="q-num">Question 3 of 7</div>
+          <div className="q-text">How would you describe their working style?</div>
+          <div className="tap-options">
+            {Q3_OPTIONS.map(o => (
+              <div key={o.value} className={`tap-option ${answers.q3_working_style===o.value?'selected':''}`}
+                onClick={() => set('q3_working_style', o.value)}>
+                <div className="tap-radio" />
+                <div className="tap-option-text">{o.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Q4 */}
+        <div className="q-block">
+          <div className="q-num">Question 4 of 7</div>
+          <div className="q-text">How deep is their knowledge of the industry?</div>
+          <div className="tap-options">
+            {Q4_OPTIONS.map(o => (
+              <div key={o.value} className={`tap-option ${answers.q4_knowledge===o.value?'selected':''}`}
+                onClick={() => set('q4_knowledge', o.value)}>
+                <div className="tap-radio" />
+                <div className="tap-option-text">{o.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Q5 */}
+        <div className="q-block">
+          <div className="q-num">Question 5 of 7</div>
+          <div className="q-text">Are they trusted and well-regarded in the market?</div>
+          <div className="tap-options">
+            {Q5_OPTIONS.map(o => (
+              <div key={o.value} className={`tap-option ${answers.q5_market_standing===o.value?'selected':''}`}
+                onClick={() => set('q5_market_standing', o.value)}>
+                <div className="tap-radio" />
+                <div className="tap-option-text">{o.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Q6 */}
+        <div className="q-block">
+          <div className="q-num">Question 6 of 7</div>
+          <div className="q-text">Describe a moment when they performed well under pressure or in a difficult situation.</div>
+          <textarea
+            className="q-textarea"
+            placeholder="2–3 sentences describing a specific situation and how they handled it..."
+            value={answers.q6_pressure_story}
+            onChange={e => set('q6_pressure_story', e.target.value)}
+          />
+        </div>
+
+        {/* Q7 */}
+        <div className="q-block">
+          <div className="q-num">Question 7 of 7 *</div>
+          <div className="q-text">Would you recommend them for a senior executive role?</div>
+          <div className="tap-options" style={{marginBottom:'1rem'}}>
+            {Q7_OPTIONS.map(o => (
+              <div key={o.value} className={`tap-option ${answers.q7_recommend===o.value?'selected':''}`}
+                onClick={() => set('q7_recommend', o.value)}>
+                <div className="tap-radio" />
+                <div className="tap-option-text">{o.label}</div>
+              </div>
+            ))}
+          </div>
+          {(answers.q7_recommend === 'yes_with_caveats' || answers.q7_recommend === 'not_at_level') && (
+            <textarea
+              className="q-textarea"
+              placeholder="Please share any context or caveats that would be helpful..."
+              value={answers.q7_caveats}
+              onChange={e => set('q7_caveats', e.target.value)}
+            />
+          )}
+        </div>
+
+        <button
+          className="submit-btn"
+          onClick={handleSubmit}
+          disabled={submitting}
+          style={{width:'100%'}}
+        >
+          {submitting ? 'Submitting…' : 'Submit Reference'}
+        </button>
+
+        <p style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'center',marginTop:'1rem',lineHeight:'1.6'}}>
+          Your responses are confidential. Fredheim Executive Desk · desk@fredheimtech.com
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
+// ── CONSULTING BOARD ──────────────────────────────────────────────────────────
+const EXPERTISE_AREAS = [
+  'Chartering & Freight','Terminal Operations','Port Development','Vessel Management',
+  'Commercial Strategy','M&A / Acquisitions','Regulatory & Compliance','Supply Chain',
+  'LNG / Gas','Bulk Commodities','Project Cargo','Offshore Operations',
+  'Digital Transformation','Finance & Restructuring','HSE & Risk','Expert Witness',
+];
+
+const ENGAGEMENT_TYPES = [
+  'Advisory','Interim Management','Project-based','Board Observer','Expert Witness','Retainer',
+];
+
+function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToast }) {
+  const [briefs, setBriefs]         = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [selectedBrief, setSelectedBrief] = useState(null);
+  const [interestSent, setInterestSent]   = useState({});
+  const [filters, setFilters]       = useState({ expertise:'', duration:'', urgency:'' });
+
+  useEffect(() => { loadBriefs(); }, []);
+
+  async function loadBriefs() {
+    try {
+      const { data } = await sb
+        .from('fed_consulting_briefs')
+        .select('*')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setBriefs(data || []);
+    } catch(e) { setBriefs([]); }
+    setLoading(false);
+  }
+
+  async function expressInterest(brief) {
+    if (!authUser) { onSignIn(); return; }
+    try {
+      await sb.from('fed_consulting_interests').insert({
+        brief_id: brief.id,
+        consultant_email: authUser.email,
+        status: 'pending',
+      });
+      setInterestSent(p => ({...p, [brief.id]: true}));
+      showToast('✓ Interest registered. The platform will be in touch.');
+    } catch(e) {
+      showToast('Already registered interest in this brief.');
+    }
+  }
+
+  const filtered = briefs.filter(b => {
+    if (filters.expertise && !b.expertise_tags?.includes(filters.expertise)) return false;
+    if (filters.duration && b.duration !== filters.duration) return false;
+    if (filters.urgency && b.urgency !== filters.urgency) return false;
+    return true;
+  });
+
+  const urgencyLabel = { immediate:'Immediate', within_30:'Within 30 days', planning:'Planning ahead' };
+  const urgencyClass = { immediate:'immediate', within_30:'soon', planning:'planning' };
+
+  function fmt(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  }
+
+  // Demo briefs for preview
+  const demoBriefs = [
+    {
+      id:'demo-1', demo:true,
+      title:'Interim Commercial Director — LNG Terminal',
+      company_display:'Confidential — Major LNG Operator',
+      description:'Seeking an experienced commercial director to cover a 3-month maternity leave. The role oversees all third-party shipping relationships, tariff negotiations, and vessel scheduling for a 6-MTPA LNG export terminal.',
+      expertise_tags:['Chartering & Freight','Terminal Operations','LNG / Gas'],
+      duration:'1_3_months', urgency:'immediate',
+      rate_min:1500, rate_max:2500, rate_currency:'USD',
+      location:'Houston, TX', remote_ok:false,
+      engagement_type:'Interim Management',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id:'demo-2', demo:true,
+      title:'Commercial Strategy Advisory — Bulk Terminal Acquisition',
+      company_display:'Private Equity — Infrastructure Fund',
+      description:'PE fund evaluating the acquisition of a bulk terminal on the Gulf Coast. Need an experienced terminal commercial advisor for 6 weeks to assess revenue quality, customer concentration, and competitive positioning.',
+      expertise_tags:['Terminal Operations','Commercial Strategy','M&A / Acquisitions'],
+      duration:'1_3_months', urgency:'within_30',
+      rate_min:2000, rate_max:3000, rate_currency:'USD',
+      location:'Remote', remote_ok:true,
+      engagement_type:'Advisory',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id:'demo-3', demo:true,
+      title:'Expert Witness — Charter Party Dispute',
+      company_display:'International Law Firm',
+      description:'Major law firm requires an expert witness with deep knowledge of voyage charter practices for an arbitration proceeding. Matter involves a demurrage dispute on a dry bulk vessel. Expected 20–30 hours total.',
+      expertise_tags:['Chartering & Freight','Expert Witness','Bulk Commodities'],
+      duration:'short', urgency:'within_30',
+      rate_min:500, rate_max:800, rate_currency:'USD',
+      location:'London / Remote', remote_ok:true,
+      engagement_type:'Expert Witness',
+      created_at: new Date().toISOString(),
+    },
+  ];
+
+  const displayBriefs = briefs.length > 0 ? filtered : demoBriefs;
+  const isDemo = briefs.length === 0;
+
+  return (
+    <div className="consulting-board">
+      {/* Hero */}
+      <div className="consulting-hero">
+        <div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold-lt)',marginBottom:'0.75rem'}}>
+            Fredheim Consulting
+          </div>
+          <div className="consulting-hero-title">
+            Senior expertise,<br/><em>on demand.</em>
+          </div>
+          <p className="consulting-hero-desc">
+            The curated marketplace for interim, advisory, and project-based engagements
+            in maritime, energy, and industrial logistics. Day rates published.
+            Identity protected until you choose to engage.
+          </p>
+          <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
+            {authUser ? (
+              <button className="btn-primary" style={{fontSize:'0.78rem'}} onClick={openBriefModal}>
+                Post a Brief
+              </button>
+            ) : (
+              <button className="btn-primary" style={{fontSize:'0.78rem'}} onClick={openBriefModal}>
+                Post a Consulting Brief
+              </button>
+            )}
+            {!authUser && (
+              <button className="btn-outline" style={{fontSize:'0.78rem',borderColor:'rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.7)'}} onClick={onSignIn}>
+                Offer Your Expertise
+              </button>
+            )}
+          </div>
+        </div>
+        <div className="consulting-hero-stats">
+          <div className="consulting-stat">
+            <div className="consulting-stat-label">Active Briefs</div>
+            <div className="consulting-stat-value">{isDemo ? '3' : briefs.length}</div>
+          </div>
+          <div className="consulting-stat">
+            <div className="consulting-stat-label">Engagement Types</div>
+            <div className="consulting-stat-value">6</div>
+          </div>
+          <div className="consulting-stat">
+            <div className="consulting-stat-label">Introduction Fee</div>
+            <div className="consulting-stat-value">$1,500</div>
+          </div>
+          <div className="consulting-stat">
+            <div className="consulting-stat-label">Founding Partner</div>
+            <div className="consulting-stat-value" style={{fontSize:'0.875rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>Free through Dec 31</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div style={{display:'flex',gap:'0.75rem',marginBottom:'1.5rem',flexWrap:'wrap',alignItems:'center'}}>
+        <select className="filter-select" value={filters.expertise} onChange={e=>setFilters(p=>({...p,expertise:e.target.value}))}>
+          <option value="">All Expertise</option>
+          {EXPERTISE_AREAS.map(a=><option key={a}>{a}</option>)}
+        </select>
+        <select className="filter-select" value={filters.duration} onChange={e=>setFilters(p=>({...p,duration:e.target.value}))}>
+          <option value="">Any Duration</option>
+          <option value="short">Days to 2 weeks</option>
+          <option value="1_3_months">1–3 months</option>
+          <option value="3_6_months">3–6 months</option>
+          <option value="ongoing">Ongoing retainer</option>
+        </select>
+        <select className="filter-select" value={filters.urgency} onChange={e=>setFilters(p=>({...p,urgency:e.target.value}))}>
+          <option value="">Any Urgency</option>
+          <option value="immediate">Immediate</option>
+          <option value="within_30">Within 30 days</option>
+          <option value="planning">Planning ahead</option>
+        </select>
+        {(filters.expertise||filters.duration||filters.urgency) && (
+          <button className="filter-clear" onClick={()=>setFilters({expertise:'',duration:'',urgency:''})}>Clear</button>
+        )}
+        <div style={{marginLeft:'auto',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)'}}>
+          {isDemo ? '3 example briefs' : `${filtered.length} of ${briefs.length} briefs`}
+        </div>
+      </div>
+
+      {/* Demo banner */}
+      {isDemo && (
+        <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
+          ✦ Example briefs shown for illustration. Live briefs from companies onboarding now. 
+          Founding Partner Program 2026 — post one brief per month, free through December 31.
+        </div>
+      )}
+
+      {/* Brief cards */}
+      {loading ? (
+        <div style={{textAlign:'center',padding:'3rem',color:'var(--ink-4)'}}>Loading briefs…</div>
+      ) : (
+        <div style={{display:'flex',flexDirection:'column',gap:'1px',background:'var(--rule)'}}>
+          {displayBriefs.map(brief => (
+            <div key={brief.id} className={`brief-card ${brief.engagement_type==='Advisory'?'featured':''}`}
+              onClick={()=>setSelectedBrief(brief)}>
+              <div>
+                {brief.urgency && (
+                  <span className={`urgency-badge ${urgencyClass[brief.urgency]||'planning'}`}>
+                    {urgencyLabel[brief.urgency]||brief.urgency}
+                  </span>
+                )}
+                {brief.demo && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',marginLeft:'0.5rem',border:'1px solid var(--rule)',padding:'0.15rem 0.4rem'}}>Example</span>}
+                <div className="brief-card-title">{brief.title}</div>
+                <div className="brief-card-company">{brief.company_display}</div>
+                <div className="brief-card-meta">
+                  <div className="brief-meta-item">
+                    <span>Duration:</span>
+                    <strong>
+                      {brief.duration==='short'?'Days–2 weeks':
+                       brief.duration==='1_3_months'?'1–3 months':
+                       brief.duration==='3_6_months'?'3–6 months':
+                       brief.duration==='ongoing'?'Ongoing retainer':brief.duration}
+                    </strong>
+                  </div>
+                  {brief.engagement_type && (
+                    <div className="brief-meta-item"><span>Type:</span><strong>{brief.engagement_type}</strong></div>
+                  )}
+                  {brief.location && (
+                    <div className="brief-meta-item"><span>Location:</span><strong>{brief.location}{brief.remote_ok?' / Remote':''}</strong></div>
+                  )}
+                  <div className="brief-meta-item">
+                    <span>Posted:</span><strong>{fmt(brief.created_at)}</strong>
+                  </div>
+                </div>
+                <div className="brief-tags">
+                  {(brief.expertise_tags||[]).slice(0,4).map(t=>(
+                    <span key={t} className="brief-tag">{t}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="brief-rate">
+                {brief.rate_min && (
+                  <>
+                    <div className="brief-rate-value">
+                      ${brief.rate_min.toLocaleString()}
+                      {brief.rate_max && brief.rate_max !== brief.rate_min ? `–$${brief.rate_max.toLocaleString()}` : '+'}
+                    </div>
+                    <div className="brief-rate-label">Day Rate (USD)</div>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Company CTA */}
+      <div className="brief-cta">
+        <div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>For Companies</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.2rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.375rem'}}>Need specialist expertise?</div>
+          <div style={{fontSize:'0.82rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
+            Post a brief. Day rate published. Founding Partner Program 2026 — free through December 31.
+            $1,500 introduction fee on confirmed engagements.
+          </div>
+        </div>
+        <button className="btn-primary" style={{flexShrink:0,whiteSpace:'nowrap'}} onClick={openBriefModal}>
+          Post a Brief
+        </button>
+      </div>
+
+      {/* Brief detail modal */}
+      {selectedBrief && (
+        <div className="brief-detail-overlay" onClick={()=>setSelectedBrief(null)}>
+          <div className="brief-detail-modal" onClick={e=>e.stopPropagation()}>
+            <div className="brief-detail-header">
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                <div>
+                  <div className="brief-detail-title">{selectedBrief.title}</div>
+                  <div className="brief-detail-company">{selectedBrief.company_display}</div>
+                </div>
+                <button onClick={()=>setSelectedBrief(null)} style={{background:'none',border:'none',color:'rgba(250,250,248,0.5)',fontSize:'1.2rem',cursor:'pointer',padding:'0',lineHeight:1}}>✕</button>
+              </div>
+              {selectedBrief.rate_min && (
+                <div style={{marginTop:'1rem',padding:'0.875rem',background:'rgba(250,250,248,0.06)',border:'1px solid rgba(250,250,248,0.12)'}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.4rem',fontWeight:600,color:'var(--gold-lt)'}}>
+                    ${selectedBrief.rate_min.toLocaleString()}
+                    {selectedBrief.rate_max && selectedBrief.rate_max !== selectedBrief.rate_min
+                      ? ` – $${selectedBrief.rate_max.toLocaleString()}`
+                      : '+'}
+                  </div>
+                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'rgba(250,250,248,0.4)'}}>
+                    Day Rate (USD) · {selectedBrief.engagement_type}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="brief-detail-body">
+              <div className="brief-detail-section">
+                <div className="brief-detail-label">Engagement Overview</div>
+                <div className="brief-detail-value">{selectedBrief.description}</div>
+              </div>
+              <div className="brief-detail-section" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'1.5rem'}}>
+                <div>
+                  <div className="brief-detail-label">Duration</div>
+                  <div className="brief-detail-value">
+                    {selectedBrief.duration==='short'?'Days to 2 weeks':
+                     selectedBrief.duration==='1_3_months'?'1–3 months':
+                     selectedBrief.duration==='3_6_months'?'3–6 months':
+                     selectedBrief.duration==='ongoing'?'Ongoing retainer':selectedBrief.duration}
+                  </div>
+                </div>
+                <div>
+                  <div className="brief-detail-label">Urgency</div>
+                  <div className="brief-detail-value">
+                    {selectedBrief.urgency==='immediate'?'Immediate start':
+                     selectedBrief.urgency==='within_30'?'Within 30 days':
+                     'Planning ahead'}
+                  </div>
+                </div>
+                <div>
+                  <div className="brief-detail-label">Location</div>
+                  <div className="brief-detail-value">{selectedBrief.location}{selectedBrief.remote_ok?' (Remote OK)':''}</div>
+                </div>
+                <div>
+                  <div className="brief-detail-label">Engagement Type</div>
+                  <div className="brief-detail-value">{selectedBrief.engagement_type}</div>
+                </div>
+              </div>
+              <div className="brief-detail-section">
+                <div className="brief-detail-label">Expertise Required</div>
+                <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap',marginTop:'0.375rem'}}>
+                  {(selectedBrief.expertise_tags||[]).map(t=>(
+                    <span key={t} className="brief-tag" style={{background:'var(--paper-2)'}}>{t}</span>
+                  ))}
+                </div>
+              </div>
+
+              {selectedBrief.demo ? (
+                <div style={{background:'var(--paper)',border:'1px solid var(--rule)',padding:'1.25rem',textAlign:'center',color:'var(--ink-4)',fontSize:'0.82rem'}}>
+                  This is an example brief. Live briefs from companies onboarding now.
+                </div>
+              ) : interestSent[selectedBrief.id] ? (
+                <div style={{background:'var(--green-bg)',border:'1px solid rgba(26,122,74,0.2)',borderLeft:'3px solid var(--green)',padding:'1rem 1.25rem',color:'var(--green)',fontSize:'0.875rem'}}>
+                  ✓ Interest registered. Fredheim will be in touch to facilitate the introduction.
+                </div>
+              ) : (
+                <button className="submit-btn" onClick={()=>expressInterest(selectedBrief)}>
+                  Register Confidential Interest
+                </button>
+              )}
+
+              <p style={{fontSize:'0.7rem',color:'var(--ink-4)',textAlign:'center',marginTop:'0.75rem',lineHeight:'1.55'}}>
+                Your identity is protected until you choose to engage. A $1,500 introduction fee applies on confirmed engagements.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── COMPANY BRIEF MODAL ───────────────────────────────────────────────────────
+function BriefModal({ onClose, showToast }) {
+  const [step, setStep]     = useState('tos'); // tos | form | done
+  const [loading, setLoading] = useState(false);
+  const [form, setForm]     = useState({
+    company_name:'', contact_name:'', email:'', company_display:'',
+    title:'', description:'', expertise_tags:[], engagement_type:'',
+    duration:'', urgency:'', rate_min:'', rate_max:'', location:'', remote_ok:false,
+  });
+  function set(k,v) { setForm(p=>({...p,[k]:v})); }
+
+  function toggleTag(tag) {
+    set('expertise_tags', form.expertise_tags.includes(tag)
+      ? form.expertise_tags.filter(t=>t!==tag)
+      : [...form.expertise_tags, tag]);
+  }
+
+  async function handleSubmit() {
+    if (!form.email || !form.title || !form.description || !form.rate_min) {
+      showToast('Please complete all required fields.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await sb.from('fed_consulting_briefs').insert({
+        company_name:    form.company_name,
+        contact_name:    form.contact_name,
+        email:           form.email,
+        company_display: form.company_display || 'Confidential',
+        title:           form.title,
+        description:     form.description,
+        expertise_tags:  form.expertise_tags,
+        engagement_type: form.engagement_type,
+        duration:        form.duration,
+        urgency:         form.urgency,
+        rate_min:        parseInt(form.rate_min) || null,
+        rate_max:        parseInt(form.rate_max) || null,
+        location:        form.location,
+        remote_ok:       form.remote_ok,
+        status:          'pending',
+        demo_brief:      false,
+      });
+      if (error) throw error;
+      setStep('done');
+    } catch(e) {
+      showToast('Submission failed. Please try again.');
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" style={{maxWidth:'560px'}} onClick={e=>e.stopPropagation()}>
+        <button className="modal-close" onClick={onClose}>✕</button>
+
+        {step === 'tos' && (
+          <>
+            <div className="modal-eyebrow">For Companies</div>
+            <h2 className="modal-title">Post a Consulting Brief</h2>
+            <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem',fontWeight:300}}>
+              Reach senior executives available for interim, advisory, and project-based
+              engagements in maritime, energy, and industrial logistics.
+              Day rate required. Introductions facilitated by Fredheim.
+            </p>
+            <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.875rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
+              ✦ Founding Partner Program 2026 — one brief per month, complimentary through December 31.
+              $1,500 introduction fee applies on confirmed engagements.
+            </div>
+            <div style={{background:'var(--paper)',border:'1px solid var(--rule)',padding:'1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.65'}}>
+              By continuing you agree that: day rate ranges are accurate and will be published,
+              a $1,500 introduction fee is payable to Fredheim Technologies LLC on confirmed engagements
+              within 12 months of introduction, and consultant contact information will not be shared
+              outside this engagement without their consent.
+            </div>
+            <button className="submit-btn" onClick={()=>setStep('form')}>
+              I Agree — Continue to Brief
+            </button>
+          </>
+        )}
+
+        {step === 'form' && (
+          <>
+            <div className="modal-eyebrow">Consulting Brief</div>
+            <h2 className="modal-title">Brief Details</h2>
+            <div className="form" style={{gap:'0.75rem'}}>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Company Name *</label>
+                  <input className="form-input" placeholder="Your company name" value={form.company_name} onChange={e=>set('company_name',e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Displayed As</label>
+                  <input className="form-input" placeholder="e.g. Confidential, or company name" value={form.company_display} onChange={e=>set('company_display',e.target.value)} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Your Name *</label>
+                  <input className="form-input" placeholder="Contact name" value={form.contact_name} onChange={e=>set('contact_name',e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email Address *</label>
+                  <input className="form-input" type="email" placeholder="your@company.com" value={form.email} onChange={e=>set('email',e.target.value)} />
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Brief Title *</label>
+                <input className="form-input" placeholder="e.g. Interim Commercial Director — LNG Terminal" value={form.title} onChange={e=>set('title',e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Description *</label>
+                <textarea className="form-textarea" rows={4} placeholder="Describe the engagement, context, and what expertise is needed..." value={form.description} onChange={e=>set('description',e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Expertise Required (select all that apply)</label>
+                <div style={{display:'flex',flexWrap:'wrap',gap:'0.375rem',marginTop:'0.375rem'}}>
+                  {EXPERTISE_AREAS.map(tag=>(
+                    <div key={tag} className={`tap-chip ${form.expertise_tags.includes(tag)?'selected':''}`}
+                      style={{fontSize:'0.72rem',padding:'0.375rem 0.625rem'}}
+                      onClick={()=>toggleTag(tag)}>{tag}</div>
+                  ))}
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Engagement Type</label>
+                  <select className="form-select" value={form.engagement_type} onChange={e=>set('engagement_type',e.target.value)}>
+                    <option value="">Select</option>
+                    {ENGAGEMENT_TYPES.map(t=><option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Duration</label>
+                  <select className="form-select" value={form.duration} onChange={e=>set('duration',e.target.value)}>
+                    <option value="">Select</option>
+                    <option value="short">Days to 2 weeks</option>
+                    <option value="1_3_months">1–3 months</option>
+                    <option value="3_6_months">3–6 months</option>
+                    <option value="ongoing">Ongoing retainer</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Day Rate Min * (USD)</label>
+                  <input className="form-input" type="number" placeholder="e.g. 1500" value={form.rate_min} onChange={e=>set('rate_min',e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Day Rate Max (USD)</label>
+                  <input className="form-input" type="number" placeholder="e.g. 2500" value={form.rate_max} onChange={e=>set('rate_max',e.target.value)} />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Urgency</label>
+                  <div className="tap-options-row">
+                    {[{v:'immediate',l:'Immediate'},{v:'within_30',l:'Within 30 days'},{v:'planning',l:'Planning ahead'}].map(o=>(
+                      <div key={o.v} className={`tap-chip ${form.urgency===o.v?'selected':''}`} onClick={()=>set('urgency',o.v)}>{o.l}</div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label className="form-label">Location</label>
+                  <input className="form-input" placeholder="e.g. Houston TX, London, Remote" value={form.location} onChange={e=>set('location',e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Remote OK</label>
+                  <div className="tap-options-row">
+                    <div className={`tap-chip ${form.remote_ok===true?'selected':''}`} onClick={()=>set('remote_ok',true)}>Yes</div>
+                    <div className={`tap-chip ${form.remote_ok===false?'selected':''}`} onClick={()=>set('remote_ok',false)}>No</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr className="modal-divider" />
+            <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Submitting…' : 'Submit Brief for Review'}
+            </button>
+            <div className="interest-note">
+              Reviewed within 24 hours. Day rate transparency is required.
+              $1,500 introduction fee applies on confirmed engagements.
+            </div>
+          </>
+        )}
+
+        {step === 'done' && (
+          <>
+            <div style={{textAlign:'center',padding:'1.5rem 0'}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.75rem'}}>
+                Brief Received
+              </div>
+              <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem'}}>
+                Your brief will be reviewed within 24 hours. Once approved, it will be
+                visible to qualified consultants on the platform. You will be notified
+                when consultants express interest.
+              </p>
+              <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'1rem',fontSize:'0.82rem',color:'var(--ink-3)',textAlign:'left',lineHeight:'1.65'}}>
+                As a Founding Partner, your brief is complimentary through December 31, 2026.
+                The $1,500 introduction fee applies only when an engagement is confirmed.
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
   const [pricingAudience, setPricingAudience] = useState('recruiters');
+  const [briefModal, setBriefModal]   = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
   const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
 
@@ -5573,6 +7392,12 @@ function App() {
   const [authUser, setAuthUser]       = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userType, setUserType]       = useState(null); // 'executive' | 'recruiter' | null
+
+  // Check for questionnaire token in URL
+  const questionnaireToken = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('ref');
+  }, []);
   const [jobs, setJobs]               = useState([]);
   const [loading, setLoading]         = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -5711,6 +7536,11 @@ function App() {
     });
   }, [jobs, search, industry, func, salaryBand]);
 
+  // Reference questionnaire — standalone page, no nav needed
+  if (questionnaireToken) {
+    return <QuestionnairePage token={questionnaireToken} />;
+  }
+
   // Admin view
   if (showAdmin) {
     if (!adminAuthed) {
@@ -5755,7 +7585,7 @@ function App() {
         />
 
       {/* Hero and manifesto only on public views */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting'].includes(activeView) && (
         <>
           <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} authUser={authUser} onGoToProfile={() => goToView('myprofile')} />
           <div className="manifesto">
@@ -5769,6 +7599,87 @@ function App() {
         </>
       )}
 
+
+      {/* ── CONSULTING STRIP ── */}
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','profile'].includes(activeView) && (
+        <div style={{
+          background: 'var(--white)',
+          borderTop: '1px solid var(--rule)',
+          borderBottom: '1px solid var(--rule)',
+          padding: '2.5rem 3rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '2rem',
+          flexWrap: 'wrap',
+        }}>
+          <div style={{display:'flex',gap:'2rem',alignItems:'flex-start',flex:1}}>
+            {/* Icon */}
+            <div style={{
+              width:'48px',height:'48px',background:'var(--ink)',
+              display:'flex',alignItems:'center',justifyContent:'center',
+              flexShrink:0,
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,248,0.8)" strokeWidth="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <div style={{
+                fontFamily:"'DM Mono',monospace",
+                fontSize:'0.6rem',
+                letterSpacing:'0.18em',
+                textTransform:'uppercase',
+                color:'var(--gold)',
+                marginBottom:'0.375rem',
+              }}>
+                Fredheim Consulting
+              </div>
+              <div style={{
+                fontFamily:"'Playfair Display',serif",
+                fontSize:'1.2rem',
+                fontWeight:500,
+                color:'var(--ink)',
+                marginBottom:'0.375rem',
+                lineHeight:1.3,
+              }}>
+                Senior expertise, on demand.
+              </div>
+              <p style={{
+                fontSize:'0.82rem',
+                color:'var(--ink-4)',
+                lineHeight:'1.65',
+                maxWidth:'520px',
+                fontWeight:300,
+                margin:0,
+              }}>
+                Interim, advisory, and project-based engagements in maritime, energy, and logistics.
+                Day rates published. Identity protected until you choose to engage.
+                Founding Partner Program 2026 — post one brief free through December 31.
+              </p>
+            </div>
+          </div>
+          <div style={{display:'flex',gap:'0.625rem',flexShrink:0,flexWrap:'wrap'}}>
+            <button
+              className="btn-outline"
+              style={{fontSize:'0.78rem',whiteSpace:'nowrap'}}
+              onClick={() => goToView('consulting')}
+            >
+              Browse Briefs
+            </button>
+            <button
+              className="btn-primary"
+              style={{fontSize:'0.78rem',whiteSpace:'nowrap'}}
+              onClick={() => setBriefModal(true)}
+            >
+              Post a Brief
+            </button>
+          </div>
+        </div>
+      )}
       <div className="main">
         <div id="jobs-anchor" />
 
@@ -5840,7 +7751,7 @@ function App() {
                 <li>Email alerts when a matching search is posted</li>
                 <li>Senior Professional ($99/yr) — Director level, recruiters can find you</li>
                 <li>Executive ($199/yr) — C-Suite/VP, priority matching</li>
-                <li>Maritime · Energy · Logistics · Offshore · Cruise only</li>
+                <li>Maritime · Energy · Logistics · Offshore · Commodities only</li>
               </ul>
             </div>
             <div className="profile-right">
@@ -5855,6 +7766,18 @@ function App() {
 
         {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
+
+        {activeView === 'consulting' && (
+          <div className="main">
+            <ConsultingBoard
+              authUser={authUser}
+              userType={userType}
+              onSignIn={() => goToView('signin')}
+              openBriefModal={() => setBriefModal(true)}
+              showToast={showToast}
+            />
+          </div>
+        )}
 
         {activeView === 'signin' && (
           <SignInPage onBack={() => setActiveView('profile')} />
@@ -5899,7 +7822,7 @@ function App() {
           <RecruiterSignInPage onBack={() => setRecruiterModal(true)} />
         )}
 
-        {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy'].includes(activeView) && <div className="recruiter-cta">
+        {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting'].includes(activeView) && <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms</div>
             <div className="recruiter-title">Reach the right executives.</div>
@@ -5943,7 +7866,7 @@ function App() {
           <div>
             <div className="footer-col-title">Verticals</div>
             <ul className="footer-links">
-              <li>Maritime</li><li>Energy</li><li>Industrial Logistics</li><li>Port &amp; Terminal</li><li>Offshore</li><li>Cruise</li>
+              <li>Maritime</li><li>Energy</li><li>Industrial Logistics</li><li>Port &amp; Terminal</li><li>Offshore</li><li>Bulk Commodities</li><li>Trading &amp; Freight</li>
             </ul>
           </div>
           <div>
@@ -5955,12 +7878,13 @@ function App() {
         </div>
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
-          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Logistics · Offshore · Cruise</div>
+          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Logistics · Offshore · Commodities</div>
         </div>
       </footer>
 
       {selectedJob && <JobModal job={selectedJob} onClose={() => setSelectedJob(null)} showToast={showToast} />}
       {recruiterModal && <RecruiterModal onClose={() => setRecruiterModal(false)} showToast={showToast} />}
+      {briefModal && <BriefModal onClose={() => setBriefModal(false)} showToast={showToast} />}
       {toast && <div className="toast">{toast}</div>}
     </>
   );
