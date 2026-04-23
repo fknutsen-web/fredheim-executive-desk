@@ -3310,7 +3310,7 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
 }
 
 // ── HERO ─────────────────────────────────────────────────────────────────────
-function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile }) {
+function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile, minSalary }) {
   return (
     <div className="hero">
       <div className="hero-inner">
@@ -3349,17 +3349,19 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             <div className="stat-label">Industry Verticals</div>
           </div>
           <div className="stat-item">
-            <div className="stat-num stat-gold">$200K+</div>
+            <div className="stat-num stat-gold">
+              {minSalary ? `$${minSalary >= 1000000 ? (minSalary/1000000).toFixed(1)+'M' : Math.round(minSalary/1000)+'K'}+` : '$200K+'}
+            </div>
             <div className="stat-label">Min. Published Range</div>
           </div>
           <div className="stat-item">
             <div className="stat-num">100%</div>
             <div className="stat-label">Salary Transparency</div>
           </div>
-          <div className="hero-stat" style={{cursor:'pointer',borderTop:'1px solid var(--rule)'}}
-            onClick={() => scrollToJobs()}>
-            <div className="stat-value" style={{color:'var(--gold)',fontSize:'0.9rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>Consulting →</div>
-            <div className="stat-label">Also Available</div>
+          <div className="hero-stat" style={{cursor:'pointer',borderTop:'1px solid var(--rule)',textAlign:'left',padding:'1rem'}}
+            onClick={() => goToView('consulting')}>
+            <div className="stat-value" style={{color:'var(--gold)',fontSize:'1.4rem',fontFamily:"'Playfair Display',serif",fontWeight:600,lineHeight:1,marginBottom:'0.3rem'}}>→</div>
+            <div className="stat-label">Consulting</div>
           </div>
         </div>
       </div>
@@ -7718,7 +7720,14 @@ function App() {
       {/* Hero and manifesto only on public views */}
       {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about'].includes(activeView) && (
         <>
-          <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} authUser={authUser} onGoToProfile={() => goToView('myprofile')} />
+          <Hero
+            jobCount={jobs.length}
+            scrollToJobs={() => scrollTo('jobs','jobs-anchor')}
+            scrollToProfile={() => scrollTo('profile','profile-anchor')}
+            authUser={authUser}
+            onGoToProfile={() => goToView('myprofile')}
+            minSalary={jobs.filter(j=>j.salary_min>0).reduce((min,j)=>Math.min(min,j.salary_min), Infinity) || 0}
+          />
           <div className="manifesto">
             <p className="manifesto-text">
               Executive search has always been opaque by design.{' '}
