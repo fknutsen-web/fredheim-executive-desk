@@ -5386,7 +5386,7 @@ function AdminDashboard({ onLogout, showToast }) {
                         <td>{latest ? new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
                         <td>
                           <div style={{display:'flex',gap:'0.375rem'}}>
-                            <a href={`mailto:${latest?.email}?subject=Fredheim Executive Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Executive Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredrik Knutsen%0AFredheim Executive Desk%0Adesk@fredheimtech.com`} style={{textDecoration:'none'}}>
+                            <a href={`mailto:${latest?.email}?subject=Fredheim Executive Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Executive Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Executive Desk%0Adesk@fredheimtech.com`} style={{textDecoration:'none'}}>
                               <button className="admin-action-btn">Email</button>
                             </a>
                           </div>
@@ -7480,8 +7480,8 @@ function AboutPage({ setActiveView }) {
 
         <h2>Built By</h2>
         <p>
-          Fredheim Executive Desk is a product of Fredheim Technologies LLC, founded by
-          Fredrik Knutsen — Commercial Director with 25+ years in maritime and logistics,
+          Fredheim Executive Desk is a product of Fredheim Technologies LLC —
+          a team with 25+ years of combined experience in maritime, energy, and logistics,
           spanning terminal operations, vessel chartering, bulk commodity trade, and
           commercial strategy across the Gulf Coast, Gulf Region, and international markets.
         </p>
@@ -7495,7 +7495,6 @@ function AboutPage({ setActiveView }) {
           <h3>Get in Touch</h3>
           <p>For questions about the platform, partnerships, or founding partner onboarding:</p>
           <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
-          <p><a href="https://desk.fredheimtech.com">desk.fredheimtech.com</a></p>
           <p>Houston, Texas</p>
         </div>
       </div>
