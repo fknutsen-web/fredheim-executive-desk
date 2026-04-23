@@ -4312,37 +4312,46 @@ function AdminDashboard({ onLogout, showToast }) {
   }
 
   async function publishJob(submission) {
-    // Create a job posting from an approved submission
     try {
-      const { error } = await sb.from('fed_jobs').insert({
-        title:           submission.role_title,
-        description:     `Search mandate managed by ${submission.firm_name}. Contact the firm for full details.`,
-        responsibilities: '[]',
-        requirements:    '[]',
-        company_display: 'Confidential',
-        firm_name:       submission.firm_name,
-        firm_code:       submission.firm_name.slice(0,2).toUpperCase(),
-        firm_contact:    submission.contact_name,
-        firm_email:      submission.email,
-        industry:        submission.industry || 'Maritime',
-        function:        'Commercial',
-        tags:            '[]',
-        location:        submission.location || 'To Be Confirmed',
-        type:            'Full-Time',
-        salary_min:      0,
-        salary_max:      999999,
-        salary_display:  submission.salary_range || 'Competitive',
-        role_level:      submission.role_level || 'executive',
-        status:          'active',
-        badge:           'new',
-        demo_post:       false,
-      });
-      if (error) throw error;
+      // Build the job object with only columns that exist in fed_jobs schema
+      const jobData = {
+        title:            submission.role_title,
+        description:      `Search managed by ${submission.firm_name}. Salary range: ${submission.salary_range || 'Competitive'}. Contact the firm for full role details.`,
+        responsibilities: JSON.stringify([]),
+        requirements:     JSON.stringify([]),
+        company_display:  'Confidential',
+        company_actual:   null,
+        firm_name:        submission.firm_name,
+        firm_code:        (submission.firm_name || 'XX').slice(0,2).toUpperCase(),
+        industry:         submission.industry || 'Maritime',
+        function:         submission.role_level === 'senior' ? 'Operations' : 'Commercial',
+        tags:             JSON.stringify([]),
+        location:         submission.location || 'To Be Confirmed',
+        type:             'Full-Time',
+        salary_min:       1,
+        salary_max:       9999999,
+        salary_display:   submission.salary_range || 'Competitive — contact firm',
+        salary_note:      'Published range',
+        role_level:       submission.role_level || 'executive',
+        status:           'active',
+        badge:            'new',
+        demo_post:        false,
+        view_count:       0,
+        interest_count:   0,
+      };
+
+      const { data, error } = await sb.from('fed_jobs').insert(jobData).select();
+      if (error) {
+        console.error('Publish error:', error);
+        showToast(`Publish failed: ${error.message}`);
+        return;
+      }
       await updateSubmissionStatus(submission.id, 'posted');
       showToast('✓ Job published to the board.');
       loadAll();
     } catch(e) {
-      showToast('Publish failed — check Supabase schema.');
+      console.error('Publish exception:', e);
+      showToast(`Publish error: ${e.message}`);
     }
   }
 
