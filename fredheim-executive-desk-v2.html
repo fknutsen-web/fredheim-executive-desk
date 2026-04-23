@@ -3289,8 +3289,8 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
       </div>
       <div className="nav-links">
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
-        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => setActiveView('consulting')}>Consulting</button>
-        <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
+        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => goToView('consulting')}>Consulting</button>
+        <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => goToView('pricing')}>Pricing</button>
         <div className="nav-divider" />
         {authUser && userType === 'recruiter' && (
           <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => setActiveView('recruiter-dash')}>Firm Dashboard</button>
@@ -7380,6 +7380,129 @@ function BriefModal({ onClose, showToast }) {
   );
 }
 
+
+// ── ABOUT PAGE ───────────────────────────────────────────────────────────────
+function AboutPage({ setActiveView }) {
+  return (
+    <div className="legal-page">
+      <div className="legal-eyebrow">About</div>
+      <h1 className="legal-title">Fredheim Executive Desk</h1>
+      <div className="legal-meta">
+        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; desk.fredheimtech.com
+      </div>
+
+      <div className="legal-body">
+
+        <h2>What We Built</h2>
+        <p>
+          Fredheim Executive Desk is a curated executive search and consulting marketplace
+          built exclusively for maritime, energy, industrial logistics, and commodities.
+          We exist because executive search in this industry has always been opaque by design —
+          salary ranges hidden, firms unnamed, candidates kept in the dark until the last moment.
+        </p>
+        <p>
+          We built something different. Salary ranges are always published.
+          Search firms are named. Your identity is protected until you choose to engage.
+          Introductions are facilitated personally — not algorithmically.
+        </p>
+
+        <h2>Who We Serve</h2>
+
+        <h3>Senior Executives</h3>
+        <p>
+          C-suite, VP, and Director-level professionals in maritime, energy, logistics,
+          and commodities who want access to the best opportunities without sacrificing
+          confidentiality or wasting time on roles that don't fit. Free to join.
+          Upgrade to Senior Professional or Executive tier for full visibility.
+        </p>
+
+        <h3>Executive Search Firms</h3>
+        <p>
+          Retained search firms running mandates in our verticals who want access to
+          a curated, qualified pool of senior professionals. Salary transparency is
+          non-negotiable — every posting must include a published compensation range.
+          Founding Partner Program 2026 — one search per month, complimentary through
+          December 31. Subscriptions open January 2027.
+        </p>
+
+        <h3>Companies Seeking Expertise</h3>
+        <p>
+          Companies, funds, and law firms that need senior expertise on an interim,
+          advisory, or project basis — without a full hire. Post a brief, publish your
+          day rate range, and let the right person come to you. $1,500 introduction fee
+          on confirmed engagements. Founding Partner Program terms apply.
+        </p>
+
+        <h2>How Introductions Work</h2>
+        <p>
+          Fredheim is not a job board. When a candidate expresses interest in a search
+          or consulting brief, Fredheim facilitates a personal introduction — verifying
+          fit on both sides before contact details are shared. This keeps the quality
+          of every interaction high and protects both parties from wasted time.
+        </p>
+        <p>
+          Reference-based vetting is built into the platform. Executives can submit
+          professional references who complete a short confidential questionnaire.
+          Completed references are shared with verified search firms — with the
+          executive's consent — and significantly improve matching quality.
+        </p>
+
+        <h2>Our Verticals</h2>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem',marginBottom:'1rem'}}>
+          {['Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'].map(v => (
+            <div key={v} style={{
+              background:'var(--paper-2)',border:'1px solid var(--rule)',
+              padding:'0.625rem 1rem',fontSize:'0.875rem',color:'var(--ink-3)',
+              fontWeight:500,
+            }}>{v}</div>
+          ))}
+        </div>
+
+        <h2>The Founding Partner Program</h2>
+        <div className="legal-highlight">
+          Search firms and companies posting consulting briefs may participate in the
+          Fredheim Founding Partner Program through December 31, 2026.
+          One posting per month, complimentary. No subscription required.
+          Introduction fees apply on confirmed placements and engagements.
+          Founding partners receive preferred pricing when subscriptions open January 2027.
+        </div>
+
+        <h2>Pricing</h2>
+        <p>
+          Executive profiles are free to create. Paid tiers — Senior Professional ($99/year)
+          and Executive ($199/year) — unlock full visibility to posting search firms.
+          Introduction fees are charged to search firms only — executives are never charged
+          placement fees of any kind.
+        </p>
+        <p style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}} onClick={() => setActiveView('pricing')}>
+          View full pricing →
+        </p>
+
+        <h2>Built By</h2>
+        <p>
+          Fredheim Executive Desk is a product of Fredheim Technologies LLC, founded by
+          Fredrik Knutsen — Commercial Director with 25+ years in maritime and logistics,
+          spanning terminal operations, vessel chartering, bulk commodity trade, and
+          commercial strategy across the Gulf Coast, Gulf Region, and international markets.
+        </p>
+        <p>
+          The platform is purpose-built for an industry we know from the inside.
+          Every design decision reflects how executive search and consulting actually works
+          in maritime and energy — not how generic job boards assume it works.
+        </p>
+
+        <div className="legal-contact-box">
+          <h3>Get in Touch</h3>
+          <p>For questions about the platform, partnerships, or founding partner onboarding:</p>
+          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
+          <p><a href="https://desk.fredheimtech.com">desk.fredheimtech.com</a></p>
+          <p>Houston, Texas</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
@@ -7433,6 +7556,15 @@ function App() {
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
+  // Footer vertical filter event
+  useEffect(() => {
+    function handleFilter(e) {
+      window._pendingIndustryFilter = e.detail;
+    }
+    window.addEventListener('filterIndustry', handleFilter);
+    return () => window.removeEventListener('filterIndustry', handleFilter);
   }, []);
 
   // Supabase auth session listener
@@ -7585,7 +7717,7 @@ function App() {
         />
 
       {/* Hero and manifesto only on public views */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about'].includes(activeView) && (
         <>
           <Hero jobCount={jobs.length} scrollToJobs={() => scrollTo('jobs','jobs-anchor')} scrollToProfile={() => scrollTo('profile','profile-anchor')} authUser={authUser} onGoToProfile={() => goToView('myprofile')} />
           <div className="manifesto">
@@ -7766,6 +7898,9 @@ function App() {
 
         {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
+        {activeView === 'about' && (
+          <div className="main"><AboutPage setActiveView={goToView} /></div>
+        )}
 
         {activeView === 'consulting' && (
           <div className="main">
@@ -7822,7 +7957,7 @@ function App() {
           <RecruiterSignInPage onBack={() => setRecruiterModal(true)} />
         )}
 
-        {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting'].includes(activeView) && <div className="recruiter-cta">
+        {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about'].includes(activeView) && <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms</div>
             <div className="recruiter-title">Reach the right executives.</div>
@@ -7866,13 +8001,18 @@ function App() {
           <div>
             <div className="footer-col-title">Verticals</div>
             <ul className="footer-links">
-              <li>Maritime</li><li>Energy</li><li>Industrial Logistics</li><li>Port &amp; Terminal</li><li>Offshore</li><li>Bulk Commodities</li><li>Trading &amp; Freight</li>
+              {['Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'].map(v => (
+              <li key={v} style={{cursor:'pointer'}} onClick={()=>{
+                goToView('jobs');
+                setTimeout(()=>window.dispatchEvent(new CustomEvent('filterIndustry',{detail:v})),100);
+              }}>{v}</li>
+            ))}
             </ul>
           </div>
           <div>
             <div className="footer-col-title">Company</div>
             <ul className="footer-links">
-              <li>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
+              <li onClick={()=>goToView('about')} style={{cursor:'pointer'}}>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
             </ul>
           </div>
         </div>
