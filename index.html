@@ -202,6 +202,26 @@
   }
   .nav-cta:hover { background: var(--ink-2); }
 
+  .nav-signout {
+    background: transparent;
+    border: 1px solid rgba(192,57,43,0.35);
+    color: var(--red);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-left: 0.5rem;
+    white-space: nowrap;
+  }
+  .nav-signout:hover {
+    background: #fdf2f2;
+    border-color: var(--red);
+    color: var(--red);
+  }
+
   /* ── HERO ── */
   .hero {
     background: var(--white);
@@ -3295,7 +3315,7 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── NAV ──────────────────────────────────────────────────────────────────────
-function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userType, onSignIn }) {
+function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userType, onSignIn, onSignOut }) {
   return (
     <nav className="nav">
       <div className="nav-brand" onClick={() => setActiveView('jobs')}>
@@ -3322,6 +3342,9 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
           <button className="nav-link" onClick={onSignIn}>Sign In</button>
         ) : null}
         <button className="nav-cta" onClick={openRecruiterModal}>Post a Search</button>
+        {authUser && (
+          <button className="nav-signout" onClick={onSignOut}>Sign Out</button>
+        )}
       </div>
     </nav>
   );
@@ -7816,6 +7839,20 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  async function handleSignOut() {
+    try {
+      await sb.auth.signOut();
+      setAuthUser(null);
+      setUserType(null);
+      setActiveView('jobs');
+      window.history.replaceState({}, '', window.location.origin);
+      showToast('Signed out.');
+    } catch (e) {
+      console.error('Sign out failed:', e);
+      showToast('Sign out failed. Please refresh the page.');
+    }
+  }
+
   async function detectUserType(email) {
     try {
       // Check if this email has an executive profile
@@ -7903,6 +7940,7 @@ function App() {
           authUser={authUser}
           userType={userType}
           onSignIn={() => setActiveView('signin')}
+          onSignOut={handleSignOut}
         />
 
       {/* Hero and manifesto only on public views */}
@@ -8126,11 +8164,7 @@ function App() {
             showToast={showToast}
             onCreateProfile={() => goToView('profile')}
             onUpgrade={() => goToView('pricing')}
-            onSignOut={async () => {
-              await sb.auth.signOut();
-              setAuthUser(null);
-              setActiveView('jobs');
-            }}
+            onSignOut={handleSignOut}
           />
         )}
 
@@ -8147,11 +8181,7 @@ function App() {
             user={authUser}
             showToast={showToast}
             openPostModal={() => setRecruiterModal(true)}
-            onSignOut={async () => {
-              await sb.auth.signOut();
-              setAuthUser(null);
-              setActiveView('jobs');
-            }}
+            onSignOut={handleSignOut}
           />
         )}
 
