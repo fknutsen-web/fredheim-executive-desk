@@ -26,18 +26,30 @@ module.exports = async function handler(req, res) {
 
     const { tier, email } = req.body || {};
 
-    const priceId =
-      tier === "senior"
-        ? process.env.ACTIVE_PRICE_SENIOR
-        : tier === "executive"
-        ? process.env.ACTIVE_PRICE_EXECUTIVE
+    const rawTier = String(tier || "").trim().toLowerCase();
+
+    const normalizedTier =
+      rawTier === "senior" ||
+      rawTier === "senior professional" ||
+      rawTier === "senior_professional" ||
+      rawTier === "senior-professional"
+        ? "senior"
+        : rawTier === "executive" ||
+          rawTier === "exec" ||
+          rawTier === "executive profile"
+        ? "executive"
         : null;
 
-    if (!priceId) {
+    if (!normalizedTier) {
       return res.status(400).json({
-        error: "Invalid tier. Expected 'senior' or 'executive'.",
+        error: `Invalid tier '${tier}'. Expected 'senior' or 'executive'.`,
       });
     }
+
+    const priceId =
+      normalizedTier === "senior"
+        ? process.env.ACTIVE_PRICE_SENIOR
+        : process.env.ACTIVE_PRICE_EXECUTIVE;
 
     const baseUrl = req.headers.origin || "https://desk.fredheimtech.com";
 
@@ -50,10 +62,10 @@ module.exports = async function handler(req, res) {
           quantity: 1,
         },
       ],
-      success_url: `${baseUrl}?view=myprofile&checkout=success&tier=${tier}`,
+      success_url: `${baseUrl}?view=myprofile&checkout=success&tier=${normalizedTier}`,
       cancel_url: `${baseUrl}?view=pricing&checkout=cancelled`,
       metadata: {
-        tier,
+        tier: normalizedTier,
         email: email || "",
       },
     });
