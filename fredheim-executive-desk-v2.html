@@ -10,7 +10,6 @@
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
 
 <style>
   :root {
@@ -3221,19 +3220,10 @@ const { useState, useEffect, useMemo } = React;
 const SUPABASE_URL  = 'https://bizbneqlzacvhekrbrgd.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
-// Stripe — test mode keys (switch to live keys when ready to go live)
-const STRIPE_PK    = 'pk_live_51TP4zEJ1BNVQzyrWpE1IlorMG3sd2Z955J8uS0MCtq0Y8OAhgYvMXdAXpVTEvHWnW4FWU9zBATlbEt7Z9SXSCNG800YQ7yY0uc';
-const ACTIVE_PRICE         = 'price_1TP6CIJ1BNVQzyrWSXVQxNNh'; // Executive $199/yr
-const ACTIVE_PRICE_SENIOR  = 'price_1TP8C8J1BNVQzyrWtGy4vMiM'; // Senior Professional $99/yr
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// Stripe client
-let stripeClient = null;
-function getStripe() {
-  if (!stripeClient) stripeClient = Stripe(STRIPE_PK);
-  return stripeClient;
-}
+// Checkout is created server-side through Vercel API: /api/create-checkout-session.
+// Do not load Stripe.js or expose Stripe price IDs in this HTML file.
 
 async function redirectToTierCheckout({ tier, email, showToast }) {
   try {
