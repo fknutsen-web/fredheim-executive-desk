@@ -25,20 +25,28 @@ module.exports = async function handler(req, res) {
     const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
     const { tier, email } = req.body || {};
-
     const rawTier = String(tier || "").trim().toLowerCase();
 
-    const normalizedTier =
-      rawTier === "senior" ||
-      rawTier === "senior professional" ||
-      rawTier === "senior_professional" ||
-      rawTier === "senior-professional"
-        ? "senior"
-        : rawTier === "executive" ||
-          rawTier === "exec" ||
-          rawTier === "executive profile"
-        ? "executive"
-        : null;
+    const seniorAliases = [
+      "senior",
+      "active_senior",
+      "senior professional",
+      "senior_professional",
+      "senior-professional",
+    ];
+
+    const executiveAliases = [
+      "executive",
+      "active_executive",
+      "exec",
+      "executive profile",
+    ];
+
+    const normalizedTier = seniorAliases.includes(rawTier)
+      ? "senior"
+      : executiveAliases.includes(rawTier)
+      ? "executive"
+      : null;
 
     if (!normalizedTier) {
       return res.status(400).json({
@@ -66,6 +74,7 @@ module.exports = async function handler(req, res) {
       cancel_url: `${baseUrl}?view=pricing&checkout=cancelled`,
       metadata: {
         tier: normalizedTier,
+        originalTier: rawTier,
         email: email || "",
       },
     });
