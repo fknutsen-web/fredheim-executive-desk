@@ -37,6 +37,7 @@ module.exports = async function handler(req, res) {
 
     const executiveAliases = [
       "executive",
+      "active",
       "active_executive",
       "exec",
       "executive profile",
