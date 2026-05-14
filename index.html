@@ -4608,8 +4608,11 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
     },
   ];
 
+  const plans = audience === 'recruiters' ? recruiterPlans : executivePlans;
+
   async function handlePlanCta(plan) {
-    if (plan.cta === 'Contact Us' || plan.cta === 'Apply for Concierge' || plan.cta === 'Get Started') {
+    if (plan.cta === 'Contact Us' || plan.cta === 'Apply for Concierge' ||
+        plan.cta === 'Get Started' || plan.cta === 'Request Concierge Access') {
       openRecruiterModal();
       return;
     }
