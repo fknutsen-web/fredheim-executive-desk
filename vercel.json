@@ -4,5 +4,27 @@
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/talent-billing",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/talent-notify?job=realtime",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/talent-notify?job=daily",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/talent-notify?job=weekly",
+      "schedule": "0 7 * * 1"
+    },
+    {
+      "path": "/api/talent-candidates?action=reengagement-job",
+      "schedule": "0 9 * * *"
+    }
   ]
 }
