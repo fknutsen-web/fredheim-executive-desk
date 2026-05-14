@@ -3291,7 +3291,7 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
 }
 
 // ── CONSTANTS ───────────────────────────────────────────────────────────────
-const INDUSTRIES  = ['All Industries','Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'];
+const INDUSTRIES  = ['All Industries','Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
 const SALARY_BANDS = [
   { label: 'Any Range', min: 0 },
@@ -3339,7 +3339,7 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
-          <span className="nav-sub">Maritime · Energy · Logistics · Offshore · Commodities</span>
+          <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics</span>
         </div>
       </div>
       <div className="nav-links">
@@ -3403,7 +3403,7 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             <div className="stat-label">Active Searches</div>
           </div>
           <div className="stat-item">
-            <div className="stat-num">3</div>
+            <div className="stat-num">4</div>
             <div className="stat-label">Industry Verticals</div>
           </div>
           <div className="stat-item">
@@ -3725,13 +3725,10 @@ function RecruiterModal({ onClose, showToast }) {
                       <label className="form-label">Industry</label>
                       <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
                         <option value="">Select</option>
-                        <option>Maritime</option>
-                        <option>Energy</option>
-                        <option>Industrial Logistics</option>
-                        <option>Port &amp; Terminal</option>
-                        <option>Offshore</option>
-                        <option>Bulk Commodities</option>
-                        <option>Trading &amp; Freight</option>
+                        <option>Maritime &amp; Shipping</option>
+                        <option>Ports &amp; Terminals</option>
+                        <option>Energy &amp; Offshore</option>
+                        <option>Industrial Commodities &amp; Logistics</option>
                       </select>
                     </div>
                     <div className="form-group">
@@ -5644,8 +5641,7 @@ function AdminLogin({ onLogin }) {
 
 // ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
 const ALL_INDUSTRY_OPTIONS = [
-  'Maritime', 'Energy', 'Industrial Logistics',
-  'Port & Terminal', 'Offshore', 'Bulk Commodities', 'Trading & Freight'
+  'Maritime & Shipping', 'Ports & Terminals', 'Energy & Offshore', 'Industrial Commodities & Logistics'
 ];
 
 function IndustryMultiSelect({ value, onChange, placeholder }) {
@@ -7698,8 +7694,8 @@ function AboutPage({ setActiveView }) {
 
         <h3>Senior Executives</h3>
         <p>
-          C-suite, VP, and Director-level professionals in maritime, energy, logistics,
-          and commodities who want access to the best opportunities without sacrificing
+          C-suite, VP, and Director-level professionals in maritime, ports and terminals, energy,
+          offshore, and industrial logistics who want access to the best opportunities without sacrificing
           confidentiality or wasting time on roles that don't fit. Free to join.
           Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
@@ -7707,7 +7703,8 @@ function AboutPage({ setActiveView }) {
         <h3>Executive Search Firms</h3>
         <p>
           Retained search firms running mandates in our verticals who want access to
-          a curated, qualified pool of senior professionals. Salary transparency is
+          a curated, qualified pool of senior professionals across maritime, ports and terminals,
+          energy, offshore, and industrial logistics. Salary transparency is
           non-negotiable — every posting must include a published compensation range.
           Founding Partner Program 2026 — one search per month, complimentary through
           December 31. Subscriptions open January 2027.
@@ -7737,12 +7734,19 @@ function AboutPage({ setActiveView }) {
 
         <h2>Our Verticals</h2>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem',marginBottom:'1rem'}}>
-          {['Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'].map(v => (
-            <div key={v} style={{
+          {[
+            {name:'Maritime & Shipping', desc:'Vessel operators, shipowners, chartering, freight, agency, marine services'},
+            {name:'Ports & Terminals', desc:'Terminal operators, stevedoring, storage, infrastructure, intermodal interfaces'},
+            {name:'Energy & Offshore', desc:'Offshore services, energy logistics, renewables, marine energy, oil and gas adjacencies'},
+            {name:'Industrial Commodities & Logistics', desc:'Bulk commodities, industrial supply chains, trading, project cargo, heavy logistics'},
+          ].map(v => (
+            <div key={v.name} style={{
               background:'var(--paper-2)',border:'1px solid var(--rule)',
-              padding:'0.625rem 1rem',fontSize:'0.875rem',color:'var(--ink-3)',
-              fontWeight:500,
-            }}>{v}</div>
+              padding:'0.875rem 1rem',
+            }}>
+              <div style={{fontSize:'0.875rem',color:'var(--ink)',fontWeight:600,marginBottom:'0.25rem'}}>{v.name}</div>
+              <div style={{fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.5'}}>{v.desc}</div>
+            </div>
           ))}
         </div>
 
@@ -8221,7 +8225,7 @@ function App() {
                 <li>Email alerts when a matching search is posted</li>
                 <li>Confidential Profile ($299/yr) — your name and employer stay hidden until you approve</li>
                 <li>Priority matching — surface in recruiter searches ahead of free profiles</li>
-                <li>Maritime · Energy · Logistics · Offshore · Commodities only</li>
+                <li>Maritime · Ports · Energy · Industrial Logistics only</li>
               </ul>
             </div>
             <div className="profile-right">
@@ -8298,7 +8302,7 @@ function App() {
             <div className="recruiter-title">Reach the right executives.</div>
             <div className="recruiter-desc">
               The only curated platform where retained search firms reach qualified senior leaders
-              in maritime, energy, and industrial logistics. No noise. Salary transparency required.
+              in maritime, ports and terminals, energy, offshore, and industrial logistics. No noise. Salary transparency required.
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
@@ -8315,8 +8319,7 @@ function App() {
             <div className="footer-brand-name">Fredheim Executive Desk</div>
             <div className="footer-brand-sub">A Fredheim Technologies Product</div>
             <p className="footer-desc">
-              The curated executive opportunity platform for maritime, energy,
-              and industrial logistics. Built with and for the professionals who move global trade.
+              The curated executive opportunity platform for maritime, ports and terminals, energy, offshore, bulk commodities, freight, and industrial logistics. Built with and for the professionals who move global trade.
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
               <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
@@ -8336,7 +8339,7 @@ function App() {
           <div>
             <div className="footer-col-title">Verticals</div>
             <ul className="footer-links">
-              {['Maritime','Energy','Industrial Logistics','Port & Terminal','Offshore','Bulk Commodities','Trading & Freight'].map(v => (
+              {['Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'].map(v => (
               <li key={v} style={{cursor:'pointer'}} onClick={()=>{
                 goToView('jobs');
                 setTimeout(()=>window.dispatchEvent(new CustomEvent('filterIndustry',{detail:v})),100);
@@ -8353,7 +8356,7 @@ function App() {
         </div>
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
-          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Energy · Logistics · Offshore · Commodities</div>
+          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>
 
