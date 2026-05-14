@@ -4212,7 +4212,7 @@ function ProfileForm({ showToast }) {
             </div>
             <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.375rem',lineHeight:'1.5'}}>
               Discreet: only visible when you express interest in a specific search.
-              Open: visible to all posting search firms (Active and Executive tiers only).
+              Open: visible to all posting search firms (Confidential tier only).
             </p>
           </div>
 
@@ -4602,8 +4602,8 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Quarterly market feedback and search activity report',
       ],
       muted: [],
-      cta: 'Request Concierge Access',
-      ctaStyle: '',
+      cta: 'Coming Soon',
+      ctaStyle: 'muted',
       recommended: false,
     },
   ];
@@ -4683,7 +4683,9 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </ul>
             <button
               className={`plan-cta ${plan.ctaStyle}`}
-              onClick={() => handlePlanCta(plan)}
+              onClick={() => plan.cta !== 'Coming Soon' && handlePlanCta(plan)}
+              disabled={plan.cta === 'Coming Soon'}
+              style={plan.cta === 'Coming Soon' ? {opacity:0.45,cursor:'default',pointerEvents:'none'} : {}}
             >
               {plan.cta}
             </button>
@@ -5193,7 +5195,7 @@ function AdminDashboard({ onLogout, showToast }) {
 
   // Stats
   const totalRevenue = profiles.filter(p => p.tier !== 'free').length *
-    profiles.reduce((sum, p) => sum + (p.tier === 'active' ? 199 : p.tier === 'active_senior' ? 99 : 0), 0) /
+    profiles.reduce((sum, p) => sum + (p.tier === 'confidential' ? 299 : p.tier === 'active' ? 199 : p.tier === 'active_senior' ? 99 : 0), 0) /
     Math.max(profiles.filter(p => p.tier !== 'free').length, 1);
 
   const paidProfiles  = profiles.filter(p => p.tier !== 'free').length;
@@ -5204,6 +5206,7 @@ function AdminDashboard({ onLogout, showToast }) {
   // Calculated ARR
   const arr = profiles.reduce((sum, p) => {
     if (p.tier === 'active') return sum + 199;
+    if (p.tier === 'confidential') return sum + 299;
     if (p.tier === 'active_senior') return sum + 99;
     return sum;
   }, 0);
@@ -5964,10 +5967,8 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade 
           </div>
           <div className="tier-display-info">
             <div className="tier-display-name">
-              {profile.tier === 'free'
+              {(profile.tier === 'free' || !profile.tier)
                 ? 'Free Access — browse all searches, signal interest confidentially'
-                : profile.tier === 'active_senior'
-                ? 'Confidential Profile — $299/yr — your name, employer, and location are hidden from recruiters until you approve a connection'
                 : 'Confidential Profile — $299/yr — your name, employer, and location are hidden from recruiters until you approve a connection'
               }
             </div>
@@ -6426,7 +6427,7 @@ function RecruiterSignInPage({ onBack }) {
     if (!email || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
     setLoading(true);
     setError('');
-    const redirectUrl = `${window.location.origin}?view=recruiter`;
+    const redirectUrl = `${window.location.origin}?view=recruiter-dash`;
     const { error: err } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: redirectUrl }
@@ -7700,7 +7701,7 @@ function AboutPage({ setActiveView }) {
           C-suite, VP, and Director-level professionals in maritime, energy, logistics,
           and commodities who want access to the best opportunities without sacrificing
           confidentiality or wasting time on roles that don't fit. Free to join.
-          Upgrade to Senior Professional or Executive tier for full visibility.
+          Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
 
         <h3>Executive Search Firms</h3>
@@ -7756,8 +7757,9 @@ function AboutPage({ setActiveView }) {
 
         <h2>Pricing</h2>
         <p>
-          Executive profiles are free to create. Paid tiers — Senior Professional ($99/year)
-          and Executive ($199/year) — unlock full visibility to posting search firms.
+          Executive profiles are free to create. The Confidential tier ($299/year) hides
+          your identity from all recruiters until you personally approve each connection,
+          and surfaces your profile in relevant searches.
           Introduction fees are charged to search firms only — executives are never charged
           placement fees of any kind.
         </p>
@@ -7898,16 +7900,16 @@ function App() {
       if (!authUser) return;
       const params = new URLSearchParams(window.location.search);
       const tier = params.get('upgradeSuccess');
-      if (tier !== 'active' && tier !== 'active_senior') return;
+      if (tier !== 'confidential' && tier !== 'active' && tier !== 'active_senior') return;
 
       try {
         const expiry = new Date();
         expiry.setFullYear(expiry.getFullYear() + 1);
         await sb.from('fed_profiles').update({
-          tier,
+          tier: tier === 'active_senior' ? 'confidential' : tier, // normalise legacy values
           tier_expires: expiry.toISOString(),
         }).eq('email', authUser.email.toLowerCase());
-        showToast(tier === 'active_senior' ? '✓ Senior Professional activated.' : '✓ Executive tier activated.');
+        showToast('✓ Confidential profile activated.');
       } catch(e) {
         showToast('Payment succeeded. If your tier does not update, email desk@fredheimtech.com.');
       }
