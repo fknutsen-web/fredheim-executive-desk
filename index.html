@@ -7866,16 +7866,19 @@ function App() {
       setAuthUser(session?.user ?? null);
       setAuthLoading(false);
       if (session?.user) {
-        const type = await detectUserType(session.user.email);
-        // Only redirect if coming back from a magic link (URL has view param)
         const params = new URLSearchParams(window.location.search);
         const view = params.get('view');
-        if (view === 'myprofile') {
-          setActiveView('myprofile');
-          window.history.replaceState({}, '', window.location.pathname);
-        } else if (view === 'recruiter') {
+        // Route immediately based on URL param — don't wait for detectUserType
+        if (view === 'recruiter-dash') {
+          setUserType('recruiter');
           setActiveView('recruiter-dash');
           window.history.replaceState({}, '', window.location.pathname);
+        } else if (view === 'myprofile') {
+          setActiveView('myprofile');
+          window.history.replaceState({}, '', window.location.pathname);
+          detectUserType(session.user.email);
+        } else {
+          detectUserType(session.user.email);
         }
       }
     });
@@ -7885,12 +7888,15 @@ function App() {
       setAuthUser(session?.user ?? null);
       // Only auto-navigate on actual sign-in event, not on page load session restore
       if (event === 'SIGNED_IN' && session?.user) {
-        detectUserType(session.user.email);
         const params = new URLSearchParams(window.location.search);
-        if (params.get('view') === 'recruiter') {
+        if (params.get('view') === 'recruiter-dash') {
+          setUserType('recruiter');
           setActiveView('recruiter-dash');
         } else if (params.get('view') === 'myprofile') {
           setActiveView('myprofile');
+          detectUserType(session.user.email);
+        } else {
+          detectUserType(session.user.email);
         }
       }
     });
@@ -8269,7 +8275,7 @@ function App() {
           <MyProfilePage
             user={authUser}
             showToast={showToast}
-            onCreateProfile={() => goToView('profile')}
+            onCreateProfile={() => setActiveView('profile')}
             onUpgrade={() => goToView('pricing')}
             onSignOut={handleSignOut}
           />
