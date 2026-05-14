@@ -3573,8 +3573,8 @@ function TosModal({ onAgree, onCancel }) {
             role through Fredheim Executive Desk and is subsequently hired for that role — or a
             substantially similar role at the same organization — within <strong>12 months</strong> of
             first documented contact on the platform obligates the posting firm to pay a flat
-            platform introduction fee of <strong>$3,500 (Executive tier)</strong> or{' '}
-            <strong>$1,500 (Senior Professional tier)</strong>. This fee is invoiced to the search firm
+            platform introduction fee of <strong>$3,500 (C-Suite / VP)</strong> or{' '}
+            <strong>$1,500 (Director / Senior Manager)</strong>. This fee is invoiced to the search firm
             upon placement confirmation and is due within 30 days of invoice.
           </div>
 
@@ -3595,7 +3595,7 @@ function TosModal({ onAgree, onCancel }) {
         <div className="tos-check-row" onClick={() => setChecked1(!checked1)}>
           <div className={`tos-checkbox ${checked1?'checked':''}`} />
           <div className="tos-check-label">
-            I agree to pay the <strong>flat platform introduction fee ($3,500 Executive / $1,500 Senior Professional)</strong> for
+            I agree to pay the <strong>flat platform introduction fee ($3,500 C-Suite/VP · $1,500 Director level)</strong> for
             any confirmed hire resulting from a Fredheim Executive Desk introduction within 12 months.
           </div>
         </div>
@@ -3715,7 +3715,7 @@ function RecruiterModal({ onClose, showToast }) {
                         className={`toggle-opt ${form.role_level==='senior'?'active':''}`}
                         onClick={()=>set('role_level','senior')}
                       >
-                        Senior Professional — Director
+                        Director / Senior Manager
                         <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>Intro fee $1,500</span>
                       </button>
                     </div>
@@ -3958,7 +3958,7 @@ function ProfileForm({ showToast }) {
       } catch(e) { console.log('Reference save error:', e); }
     }
 
-    if (tier === 'active' || tier === 'active_senior') {
+    if (tier === 'confidential') {
       await redirectToTierCheckout({ tier, email: form.email, showToast });
       setLoading(false);
       return;
@@ -4006,21 +4006,16 @@ function ProfileForm({ showToast }) {
         <>
           <div className="form-group">
             <label className="form-label">Member Tier</label>
-            <div className="tiers" style={{gridTemplateColumns:'1fr 1fr 1fr'}}>
+            <div className="tiers" style={{gridTemplateColumns:'1fr 1fr'}}>
               <div className={`tier-card ${tier==='free'?'selected':''}`} onClick={()=>setTier('free')}>
                 <div className="tier-name">Free</div>
                 <div className="tier-price">$0</div>
                 <div className="tier-desc">Browse and signal interest. You control all contact.</div>
               </div>
-              <div className={`tier-card ${tier==='active_senior'?'selected':''}`} onClick={()=>setTier('active_senior')}>
-                <div className="tier-name">Senior Professional</div>
-                <div className="tier-price">$99 <span style={{fontSize:'0.85rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
-                <div className="tier-desc">Director level. Recruiters can find and contact you.</div>
-              </div>
-              <div className={`tier-card ${tier==='active'?'selected':''}`} onClick={()=>setTier('active')}>
-                <div className="tier-name">Executive</div>
-                <div className="tier-price">$199 <span style={{fontSize:'0.85rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
-                <div className="tier-desc">C-Suite / VP. Priority matching. Recruiters can reach you.</div>
+              <div className={`tier-card ${tier==='confidential'?'selected':''}`} onClick={()=>setTier('confidential')}>
+                <div className="tier-name">Confidential</div>
+                <div className="tier-price">$299 <span style={{fontSize:'0.85rem',fontWeight:400,color:'var(--ink-4)'}}>/ yr</span></div>
+                <div className="tier-desc">Identity hidden until you approve each connection. You control every reveal.</div>
               </div>
             </div>
           </div>
@@ -4269,7 +4264,7 @@ function ProfileForm({ showToast }) {
             <strong style={{color:'var(--ink)'}}>Profile summary:</strong> {form.current_title || 'Executive'} · {Array.isArray(form.industry) ? form.industry.join(', ') : (form.industry || 'Select industry')} · {form.location || 'Location TBD'} ·{' '}
             {career.filter(e=>e.title).length} career roles · {achievements.filter(a=>a).length} achievements ·{' '}
             {shareBigFive ? 'Big Five shared' : 'Big Five private'} ·{' '}
-            {tier === 'free' ? 'Free tier' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
+            {tier === 'free' ? 'Free tier' : 'Confidential $299/yr'}
           </div>
 
           <div className="step-nav" style={{marginTop:'0'}}>
@@ -4466,13 +4461,12 @@ function ProfileForm({ showToast }) {
             {form.location || 'Location TBD'} ·{' '}
             {career.filter(e=>e.title).length} career roles ·{' '}
             {refs.filter(r=>r.email).length} reference{refs.filter(r=>r.email).length!==1?'s':''} ·{' '}
-            {tier === 'free' ? 'Free' : tier === 'active_senior' ? 'Senior Professional $99/yr' : 'Executive $199/yr'}
+            {tier === 'free' ? 'Free' : 'Confidential $299/yr'}
           </div>
 
           <button className="submit-btn" onClick={handleSubmit} disabled={loading}>
             {loading ? 'Creating Profile…'
-              : tier==='active' ? 'Create Executive Profile — $199/yr'
-              : tier==='active_senior' ? 'Create Senior Profile — $99/yr'
+              : tier === 'confidential' ? 'Create Confidential Profile — $299/yr'
               : 'Create Free Profile'}
           </button>
           <p className="form-note">
@@ -4566,9 +4560,10 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Confidential interest signaling — email only, not your identity',
         'Email alerts for new matching searches',
         'Set compensation floor — hide searches below your range',
+        'Complete executive assessment — get matched by talent search firms',
       ],
       muted: [
-        'Recruiters cannot find or contact you',
+        'Recruiters cannot find or contact you directly',
         'Profile not visible to search firms',
       ],
       cta: 'Create Free Profile',
@@ -4576,44 +4571,42 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       recommended: false,
     },
     {
-      name: 'Senior Professional',
-      price: '99',
-      period: 'per year — Director level',
-      desc: 'For Director-level professionals in maritime, energy, and industrial logistics. Your profile becomes visible to posting search firms.',
+      name: 'Confidential',
+      price: '299',
+      period: 'per year',
+      desc: 'Your name, employer, and location are hidden from all recruiters until you personally approve a connection. You control every reveal.',
       features: [
-        'Everything in Free',
-        'Profile visible to posting search firms',
-        'Recruiters running Director-level searches can contact you',
-        'Compensation target visible to relevant firms only',
-        'Email alerts for Director and Senior Manager searches',
+        'Includes all Free access features',
+        'Anonymous executive profile — identity hidden by default',
+        'Employer, location, and age-identifying details hidden by default',
+        'Recruiter approval workflow — you decide who sees you',
+        'Priority placement in relevant search results',
+        'Visible to approved search firms running relevant searches',
         'No placement fee charged to you — ever',
       ],
       muted: [],
-      cta: 'Create Senior Profile',
-      ctaStyle: '',
-      recommended: false,
-    },
-    {
-      name: 'Executive',
-      price: '199',
-      period: 'per year — VP and above',
-      desc: 'For C-Suite and VP-level executives. Priority matching, full profile visibility, and direct recruiter access.',
-      features: [
-        'Everything in Senior Professional',
-        'Priority matching — profile surfaced first to relevant searches',
-        'Visible to all posting search firms — not just Director searches',
-        'Quarterly market compensation benchmarking',
-        'Concierge upgrade available — profile presented quarterly to firms',
-        'No placement fee charged to you — ever',
-      ],
-      muted: [],
-      cta: 'Create Executive Profile',
+      cta: 'Create Confidential Profile',
       ctaStyle: 'primary',
       recommended: true,
     },
+    {
+      name: 'Executive Concierge',
+      price: 'By invitation',
+      period: '',
+      desc: 'For executives who want a controlled, discreet market process with personal oversight at every step.',
+      features: [
+        'Private consultation before profile activation',
+        'Manual review of all recruiter access requests',
+        'Controlled introduction workflow',
+        'Compensation positioning support',
+        'Quarterly market feedback and search activity report',
+      ],
+      muted: [],
+      cta: 'Request Concierge Access',
+      ctaStyle: '',
+      recommended: false,
+    },
   ];
-
-  const plans = audience === 'recruiters' ? recruiterPlans : executivePlans;
 
   async function handlePlanCta(plan) {
     if (plan.cta === 'Contact Us' || plan.cta === 'Apply for Concierge' || plan.cta === 'Get Started') {
@@ -4621,19 +4614,15 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       return;
     }
 
-    if (['Create Free Profile','Create Active Profile','Create Senior Profile','Create Executive Profile'].includes(plan.cta)) {
+    if (['Create Free Profile', 'Create Active Profile', 'Create Senior Profile',
+         'Create Executive Profile', 'Create Confidential Profile'].includes(plan.cta)) {
       if (!authUser) {
         setActiveView('profile');
         return;
       }
 
-      if (plan.name === 'Senior Professional') {
-        await redirectToTierCheckout({ tier: 'active_senior', email: authUser.email, showToast });
-        return;
-      }
-
-      if (plan.name === 'Executive') {
-        await redirectToTierCheckout({ tier: 'active', email: authUser.email, showToast });
+      if (plan.name === 'Confidential') {
+        await redirectToTierCheckout({ tier: 'confidential', email: authUser.email, showToast });
         return;
       }
 
@@ -4705,18 +4694,18 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           <div className="intro-fee-eyebrow">Platform Introduction Fee</div>
           <div className="intro-fee-title">When the introduction leads to a hire</div>
           <p className="intro-fee-desc">
-            Fredheim Executive Desk charges a flat platform introduction fee when a hire is confirmed 
-            through the platform — regardless of compensation level. No percentage. No sliding scale. 
-            One flat fee, invoiced to the search firm upon placement confirmation. 
+            Fredheim Executive Desk charges a flat platform introduction fee when a hire is confirmed
+            through the platform — regardless of compensation level. <strong>Candidates are never charged a placement fee.</strong> No percentage. No sliding scale.
+            One flat fee, invoiced to the search firm upon placement confirmation.
             We make the introduction. You own the search.
           </p>
         </div>
         <div className="intro-fee-amount">
           <div className="intro-fee-num">$3,500</div>
-          <div className="intro-fee-label">Executive placement</div>
+          <div className="intro-fee-label">C-Suite / VP placement</div>
           <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid var(--gold-rule)'}}>
             <div className="intro-fee-num" style={{fontSize:'2rem'}}>$1,500</div>
-            <div className="intro-fee-label">Senior Professional placement</div>
+            <div className="intro-fee-label">Director / Senior Manager placement</div>
           </div>
         </div>
       </div>
@@ -4733,7 +4722,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </div>
             <div className="faq-item">
               <div className="faq-q">What counts as a "confirmed placement" for the introduction fee?</div>
-              <div className="faq-a">A placement is confirmed when a candidate who first expressed interest via Fredheim Executive Desk accepts an offer for the posted role. The $3,500 introduction fee is invoiced to the search firm at that point. There is no introduction fee on postings where the hire came from outside the platform.</div>
+              <div className="faq-a">A placement is confirmed when a candidate who first expressed interest via Fredheim Executive Desk accepts an offer for the posted role. The introduction fee ($3,500 for C-Suite/VP, $1,500 for Director level) is invoiced to the search firm at that point. There is no introduction fee on postings where the hire came from outside the platform.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Can I post roles that are already live on other job boards?</div>
@@ -4759,12 +4748,12 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
               <div className="faq-a">No. Your current employer is never displayed — not on your profile, not in search results, not to any recruiter. The platform is designed from the ground up for confidential passive search.</div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">What's the difference between Free and Active?</div>
-              <div className="faq-a">Free members can browse every search and signal interest anonymously. Active members ($199/yr) have their profiles visible to posting search firms, enabling direct recruiter outreach when a relevant search opens.</div>
+              <div className="faq-q">What's the difference between Free and Confidential?</div>
+              <div className="faq-a">Free members can browse every search and signal interest anonymously. Confidential members ($299/yr) have an anonymous executive profile — name, employer, location, and graduation year are hidden from all recruiters until you personally approve a connection request.</div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">Who can access the Concierge tier?</div>
-              <div className="faq-a">Concierge is designed for VP-level and above executives conducting a structured, discreet search. Applications are reviewed individually to ensure fit with the platform's search firm network. Not all applications are accepted.</div>
+              <div className="faq-q">Who controls when my identity is revealed?</div>
+              <div className="faq-a">You do, always. When a search firm expresses interest, you receive a notification and decide whether to accept the connection. Only after you accept is your identity and contact information shared. You can decline any connection without explanation.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Do I pay anything if I get placed through the platform?</div>
@@ -4839,8 +4828,7 @@ function TermsPage() {
           </thead>
           <tbody>
             <tr><td>Free</td><td>$0</td><td>Browse all postings, set alerts, signal interest anonymously</td></tr>
-            <tr><td>Senior Professional</td><td>$99/year</td><td>Profile visible to search firms for Director-level searches</td></tr>
-            <tr><td>Executive</td><td>$199/year</td><td>Profile visible to all posting search firms; priority matching</td></tr>
+            <tr><td>Confidential</td><td>$299/year</td><td>Anonymous executive profile — identity hidden until you approve each connection</td></tr>
           </tbody>
         </table>
         <p>
@@ -4904,8 +4892,8 @@ function TermsPage() {
             <tr><th>Role Level</th><th>Introduction Fee</th></tr>
           </thead>
           <tbody>
-            <tr><td>Executive — C-Suite, VP, and equivalent</td><td><strong>$3,500 flat fee</strong></td></tr>
-            <tr><td>Senior Professional — Director level</td><td><strong>$1,500 flat fee</strong></td></tr>
+            <tr><td>C-Suite, VP, and equivalent</td><td><strong>$3,500 flat fee</strong></td></tr>
+            <tr><td>Director level and Senior Manager</td><td><strong>$1,500 flat fee</strong></td></tr>
           </tbody>
         </table>
         <p>
