@@ -1,9 +1,8 @@
 // api/stripe-webhook.js
 // Handles all Stripe payment events for Fredheim Executive Desk:
-//   - Candidate subscriptions (professional / senior / executive)
-//   - Recruiter subscriptions (founding / standard / enterprise)
-//   - Engagement fees (day 0 introduction charges)
-//   - Continuation fees (day 30 / 60 / 90 automated charges)
+//   - Candidate confidential subscriptions ($299/yr)
+//   - Recruiter subscriptions: Pro ($499/mo) | Founding ($7,500/yr annual)
+//   - Engagement unlock fees (match-age-tiered: fresh/warm/aging — one-time)
 //   - Renewals and cancellations
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
@@ -40,49 +39,28 @@ function expiryOneMonth() {
 }
 
 // ── CANDIDATE TIER FROM PRICE ID ──────────────────────────────
+// Only one paid tier: confidential
 function candidateTierFromPrice(priceId) {
-  if (priceId === process.env.PRICE_CANDIDATE_PROFESSIONAL) return 'professional';
-  if (priceId === process.env.PRICE_CANDIDATE_SENIOR)       return 'senior';
-  if (priceId === process.env.PRICE_CANDIDATE_EXECUTIVE)    return 'executive';
+  if (priceId === process.env.PRICE_CANDIDATE_CONFIDENTIAL) return 'confidential';
   return null;
 }
 
 // ── RECRUITER TIER FROM PRICE ID ──────────────────────────────
 function recruiterTierFromPrice(priceId) {
-  if (priceId === process.env.PRICE_RECRUITER_FOUNDING)   return 'founding';
-  if (priceId === process.env.PRICE_RECRUITER_STANDARD)   return 'standard';
-  if (priceId === process.env.PRICE_RECRUITER_ENTERPRISE) return 'enterprise';
+  if (priceId === process.env.PRICE_RECRUITER_FOUNDING) return 'founding';
+  if (priceId === process.env.PRICE_RECRUITER_PRO)      return 'pro';
   return null;
 }
 
-// ── ENGAGEMENT / CONTINUATION TYPE FROM PRICE ID ─────────────
-function engagementTypeFromPrice(priceId) {
-  const engage = [
-    process.env.PRICE_ENGAGE_PROFESSIONAL,
-    process.env.PRICE_ENGAGE_SENIOR,
-    process.env.PRICE_ENGAGE_EXECUTIVE,
-  ];
-  const cont30 = [
-    process.env.PRICE_CONT30_PROFESSIONAL,
-    process.env.PRICE_CONT30_SENIOR,
-    process.env.PRICE_CONT30_EXECUTIVE,
-  ];
-  const cont60 = [
-    process.env.PRICE_CONT60_PROFESSIONAL,
-    process.env.PRICE_CONT60_SENIOR,
-    process.env.PRICE_CONT60_EXECUTIVE,
-  ];
-  const cont90 = [
-    process.env.PRICE_CONT90_PROFESSIONAL,
-    process.env.PRICE_CONT90_SENIOR,
-    process.env.PRICE_CONT90_EXECUTIVE,
-  ];
-
-  if (engage.includes(priceId))  return { type: 'engagement', day: 0 };
-  if (cont30.includes(priceId))  return { type: 'continuation', day: 30 };
-  if (cont60.includes(priceId))  return { type: 'continuation', day: 60 };
-  if (cont90.includes(priceId))  return { type: 'continuation', day: 90 };
-  return null;
+// ── ENGAGEMENT TYPE FROM PRICE ID ─────────────────────────────
+// All three price IDs represent the same event type (engagement unlock)
+// differentiated only by match age bracket at time of purchase
+function isEngagementPrice(priceId) {
+  return [
+    process.env.PRICE_ENGAGE_FRESH,   // 0–30 day match: $500
+    process.env.PRICE_ENGAGE_WARM,    // 31–60 day match: $350
+    process.env.PRICE_ENGAGE_AGING,   // 61–90 day match: $200
+  ].includes(priceId);
 }
 
 // ── SEND ZAPIER NOTIFICATION ──────────────────────────────────
@@ -133,33 +111,33 @@ module.exports = async function handler(req, res) {
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
         const priceId   = lineItems.data[0]?.price?.id;
 
-        // ── CANDIDATE SUBSCRIPTION ────────────────────────
+        // ── CANDIDATE CONFIDENTIAL SUBSCRIPTION ───────────
         const candidateTier = meta.type === 'candidate'
           ? meta.tier
           : candidateTierFromPrice(priceId);
 
-        if (candidateTier && ['professional','senior','executive'].includes(candidateTier)) {
+        if (candidateTier === 'confidential') {
           const { error } = await supabase
             .from('talent_candidates')
             .update({
-              tier: candidateTier,
-              tier_expires: expiryOneYear(),
-              stripe_customer_id: custId,
-              stripe_subscription_id: subId,
-              status: 'active',
-              last_active_at: new Date().toISOString(),
+              tier:                    'confidential',
+              tier_expires:            expiryOneYear(),
+              stripe_customer_id:      custId,
+              stripe_subscription_id:  subId,
+              status:                  'active',
+              last_active_at:          new Date().toISOString(),
             })
             .eq('email', email);
 
-          if (error) console.error('Candidate tier update failed:', error);
-          else console.log(`✓ Candidate upgraded to ${candidateTier}: ${email}`);
+          if (error) console.error('Candidate confidential tier update failed:', error);
+          else console.log(`✓ Candidate upgraded to confidential: ${email}`);
 
           await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
-            type: 'candidate_subscription',
+            type:    'candidate_subscription',
             to_email: email,
-            tier: candidateTier,
-            subject: `Welcome to Fredheim Executive Desk — ${candidateTier} profile active`,
-            body: `Your ${candidateTier} profile is now active and being matched against open searches.`,
+            tier:    'confidential',
+            subject: 'Your Fredheim confidential executive profile is now active',
+            body:    'Your confidential profile is active. Your name, employer, location, and graduation year are hidden from recruiters until you approve a connection. You control every reveal.',
           });
           break;
         }
@@ -169,24 +147,25 @@ module.exports = async function handler(req, res) {
           ? meta.tier
           : recruiterTierFromPrice(priceId);
 
-        if (recruiterTier && ['founding','standard','enterprise'].includes(recruiterTier)) {
+        if (recruiterTier && ['founding', 'pro'].includes(recruiterTier)) {
           const recruiterId = meta.recruiter_id || null;
 
-          // Upsert recruiter record
+          // Founding is annual; Pro is monthly
+          const tierExpiry = recruiterTier === 'founding' ? expiryOneYear() : expiryOneMonth();
+
           const upsertData = {
-            tier: recruiterTier,
-            tier_expires: expiryOneMonth(),
-            stripe_customer_id: custId,
-            stripe_subscription_id: subId,
+            tier:                    recruiterTier,
+            tier_expires:            tierExpiry,
+            stripe_customer_id:      custId,
+            stripe_subscription_id:  subId,
             email,
-            is_founding: recruiterTier === 'founding',
-            founding_locked_at: recruiterTier === 'founding' ? new Date().toISOString() : null,
+            is_founding:             recruiterTier === 'founding',
+            founding_locked_at:      recruiterTier === 'founding' ? new Date().toISOString() : null,
           };
 
           if (recruiterId) {
             await supabase.from('talent_recruiters').update(upsertData).eq('id', recruiterId);
           } else {
-            // Match by email if no recruiter_id in metadata
             const { data: existing } = await supabase
               .from('talent_recruiters')
               .select('id')
@@ -202,86 +181,32 @@ module.exports = async function handler(req, res) {
 
           console.log(`✓ Recruiter subscribed as ${recruiterTier}: ${email}`);
 
-          // Monthly fee labels for welcome email
-          const feeLabel = { founding: '$500/mo', standard: '$1,500/mo', enterprise: '$3,500/mo' }[recruiterTier];
+          const feeLabel = recruiterTier === 'founding' ? '$7,500/yr' : '$499/mo';
 
           await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
-            type: 'recruiter_subscription',
-            to_email: email,
-            tier: recruiterTier,
-            fee: feeLabel,
-            is_founding: recruiterTier === 'founding',
-            subject: `Welcome to Fredheim Talent Match — ${recruiterTier} access active`,
+            type:          'recruiter_subscription',
+            to_email:      email,
+            tier:          recruiterTier,
+            fee:           feeLabel,
+            is_founding:   recruiterTier === 'founding',
+            subject:       `Welcome to Fredheim Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
+            body:          recruiterTier === 'founding'
+              ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
+              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and engagement unlocks.`,
             dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-talent',
           });
           break;
         }
 
-        // ── ENGAGEMENT FEE PAID ───────────────────────────
-        if (meta.type === 'engagement' && meta.match_id) {
-          await handleEngagementPaid(meta.match_id, meta.candidate_tier, custId, email, 0);
+        // ── ENGAGEMENT UNLOCK FEE ─────────────────────────
+        // Fired when a recruiter pays to unlock a candidate introduction
+        const matchId = meta.match_id;
+        if (meta.type === 'engagement' && matchId && isEngagementPrice(priceId)) {
+          await handleEngagementPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
           break;
         }
 
-        // ── CONTINUATION FEE PAID (via checkout fallback) ─
-        if (meta.type === 'continuation' && meta.match_id) {
-          await handleContinuationPaid(meta.match_id, meta.candidate_tier, Number(meta.day), email);
-          break;
-        }
-
-        console.log('checkout.session.completed — unmatched type:', meta.type, priceId);
-        break;
-      }
-
-      // ── PAYMENT INTENT SUCCEEDED (off-session continuation) ─
-      case 'payment_intent.succeeded': {
-        const pi   = event.data.object;
-        const meta = pi.metadata || {};
-
-        if (meta.type === 'continuation' && meta.match_id) {
-          const customer = await stripe.customers.retrieve(pi.customer);
-          await handleContinuationPaid(
-            meta.match_id,
-            meta.candidate_tier,
-            Number(meta.day),
-            customer.email
-          );
-        }
-        break;
-      }
-
-      // ── PAYMENT INTENT FAILED (off-session continuation) ──
-      case 'payment_intent.payment_failed': {
-        const pi   = event.data.object;
-        const meta = pi.metadata || {};
-
-        if (meta.type === 'continuation' && meta.match_id) {
-          // Log failed charge — send recruiter a checkout link to pay manually
-          await supabase.from('talent_notifications').insert({
-            type: 'continuation_payment_failed',
-            match_id: meta.match_id,
-            subject: `Payment failed — Day ${meta.day} continuation fee`,
-            body_preview: `Automatic charge failed. A payment link has been sent to update payment method.`,
-          });
-
-          // Get recruiter email from match
-          const { data: match } = await supabase
-            .from('talent_matches')
-            .select('recruiter_id, talent_recruiters(email)')
-            .eq('id', meta.match_id)
-            .single();
-
-          if (match?.talent_recruiters?.email) {
-            await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
-              type: 'payment_failed',
-              to_email: match.talent_recruiters.email,
-              match_id: meta.match_id,
-              day: meta.day,
-              subject: `Action required — Fredheim continuation fee payment failed`,
-              update_url: 'https://desk.fredheimtech.com?view=recruiter-talent&tab=billing',
-            });
-          }
-        }
+        console.log('checkout.session.completed — unmatched metadata:', meta);
         break;
       }
 
@@ -293,21 +218,21 @@ module.exports = async function handler(req, res) {
         const custId  = invoice.customer;
         const priceId = invoice.lines?.data?.[0]?.price?.id;
 
-        // Candidate renewal
-        const candidateTier = candidateTierFromPrice(priceId);
-        if (candidateTier) {
+        // Candidate confidential renewal — extend one year
+        if (candidateTierFromPrice(priceId)) {
           await supabase.from('talent_candidates')
             .update({ tier_expires: expiryOneYear() })
             .eq('stripe_customer_id', custId);
-          console.log(`✓ Candidate subscription renewed: ${custId}`);
+          console.log(`✓ Candidate confidential subscription renewed: ${custId}`);
           break;
         }
 
-        // Recruiter renewal — extend by one month
+        // Recruiter renewal
         const recruiterTier = recruiterTierFromPrice(priceId);
         if (recruiterTier) {
+          const tierExpiry = recruiterTier === 'founding' ? expiryOneYear() : expiryOneMonth();
           await supabase.from('talent_recruiters')
-            .update({ tier_expires: expiryOneMonth() })
+            .update({ tier_expires: tierExpiry })
             .eq('stripe_customer_id', custId);
           console.log(`✓ Recruiter subscription renewed (${recruiterTier}): ${custId}`);
           break;
@@ -319,23 +244,22 @@ module.exports = async function handler(req, res) {
       // ── SUBSCRIPTION CANCELLED / PAYMENT FAILED ───────────
       case 'customer.subscription.deleted':
       case 'invoice.payment_failed': {
-        const obj    = event.data.object;
-        const custId = obj.customer;
+        const obj     = event.data.object;
+        const custId  = obj.customer;
         const priceId = obj.lines?.data?.[0]?.price?.id || obj.plan?.id;
 
-        // Downgrade candidate
-        const candidateTier = candidateTierFromPrice(priceId);
-        if (candidateTier) {
+        // Downgrade candidate to free
+        if (candidateTierFromPrice(priceId)) {
           await supabase.from('talent_candidates').update({
-            tier: 'free',
-            tier_expires: null,
+            tier:                   'free',
+            tier_expires:           null,
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
           console.log(`✓ Candidate downgraded to free: ${custId}`);
           break;
         }
 
-        // Downgrade recruiter — founding tier is NEVER downgraded
+        // Downgrade recruiter — founding tier is NEVER auto-downgraded
         const { data: recruiter } = await supabase
           .from('talent_recruiters')
           .select('tier, is_founding')
@@ -344,8 +268,8 @@ module.exports = async function handler(req, res) {
 
         if (recruiter && !recruiter.is_founding) {
           await supabase.from('talent_recruiters').update({
-            tier: 'inactive',
-            tier_expires: null,
+            tier:                   'inactive',
+            tier_expires:           null,
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
           console.log(`✓ Recruiter downgraded to inactive: ${custId}`);
@@ -361,30 +285,33 @@ module.exports = async function handler(req, res) {
     }
   } catch (err) {
     console.error('Webhook handler error:', err);
-    // Still return 200 — Stripe retries on non-200
+    // Return 200 regardless — Stripe retries on non-200
   }
 
   return res.status(200).json({ received: true });
 };
 
-// ── ENGAGEMENT PAID HANDLER ────────────────────────────────────
-async function handleEngagementPaid(matchId, candidateTier, custId, recruiterEmail, day) {
+// ── ENGAGEMENT UNLOCK PAID HANDLER ────────────────────────────
+// Called when checkout.session.completed fires for an engagement unlock.
+// Records the payment, marks the match engaged, and fires the introduction email.
+async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruiterEmail) {
   const now = new Date().toISOString();
 
-  // Mark match as engaged and record day-0 payment
   const { error } = await supabase
     .from('talent_matches')
     .update({
-      recruiter_status: 'engaged',
-      engaged_at: now,
-      fee_day0_paid: true,
-      fee_day0_paid_at: now,
+      recruiter_status:      'engaged',
+      engaged_at:            now,
+      fee_unlock_paid:       true,
+      fee_unlock_paid_at:    now,
+      fee_unlock_amount:     feeAmount || '',
+      fee_unlock_bracket:    bracket   || '',
     })
     .eq('id', matchId);
 
   if (error) { console.error('Match engagement update failed:', error); return; }
 
-  // Get candidate and recruiter details for introduction email
+  // Pull candidate and recruiter details for introduction email
   const { data: match } = await supabase
     .from('talent_matches')
     .select(`
@@ -401,52 +328,32 @@ async function handleEngagementPaid(matchId, candidateTier, custId, recruiterEma
   const cName  = match.talent_candidates?.first_name;
   const rName  = match.talent_recruiters?.contact_name || match.talent_recruiters?.firm_name;
 
-  // Send introduction email to BOTH parties via Zapier
+  // Send bilateral introduction via Zapier
   await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
-    type: 'engagement_introduction',
-    to_recruiter_email: rEmail,
-    to_candidate_email: cEmail,
-    recruiter_name: rName,
+    type:                 'engagement_introduction',
+    to_recruiter_email:   rEmail,
+    to_candidate_email:   cEmail,
+    recruiter_name:       rName,
     candidate_first_name: cName,
-    candidate_email: cEmail,
-    recruiter_email: rEmail,
-    subject_recruiter: `Fredheim Introduction — ${cName} is ready to connect`,
-    subject_candidate: `A search firm wants to connect with you`,
-    body_recruiter: `Your engagement fee has been processed. ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly.`,
-    body_candidate: `A search firm has expressed interest in your profile and your connection request has been accepted. Their contact: ${rEmail}. All further communication is between you directly. Fredheim will not be party to subsequent conversations.`,
-    match_id: matchId,
+    candidate_email:      cEmail,
+    recruiter_email:      rEmail,
+    unlock_bracket:       bracket,
+    unlock_fee:           feeAmount,
+    subject_recruiter:    `Fredheim Introduction — ${cName} is ready to connect`,
+    subject_candidate:    `A search firm wants to connect with you`,
+    body_recruiter:       `Your engagement unlock has been processed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`,
+    body_candidate:       `A retained search firm has expressed interest in your profile and you have accepted. Their contact: ${rEmail}. All further communication is between you directly.`,
+    match_id:             matchId,
   });
 
-  // Log introduction sent
+  // Log the introduction in the notification table
   await supabase.from('talent_notifications').insert({
-    type: 'engagement_introduction',
-    match_id: matchId,
-    subject: `Introduction sent — ${cName} ↔ ${rName}`,
-    sent_at: now,
+    type:      'engagement_introduction',
+    match_id:  matchId,
+    subject:   `Introduction sent — ${cName} ↔ ${rName}`,
+    sent_at:   now,
     delivered: true,
   });
 
-  console.log(`✓ Engagement fee paid and introduction sent: match ${matchId}`);
-}
-
-// ── CONTINUATION PAID HANDLER ─────────────────────────────────
-async function handleContinuationPaid(matchId, candidateTier, day, recruiterEmail) {
-  const now = new Date().toISOString();
-  const field = { 30: 'fee_day30_paid', 60: 'fee_day60_paid', 90: 'fee_day90_paid' }[day];
-  const fieldAt = { 30: 'fee_day30_paid_at', 60: 'fee_day60_paid_at', 90: 'fee_day90_paid_at' }[day];
-
-  if (!field) return;
-
-  await supabase.from('talent_matches')
-    .update({ [field]: true, [fieldAt]: now })
-    .eq('id', matchId);
-
-  // If day 90 paid — auto-archive the engagement after 14 days
-  if (day === 90) {
-    await supabase.from('talent_matches')
-      .update({ auto_archive_at: new Date(Date.now() + 14 * 86400000).toISOString() })
-      .eq('id', matchId);
-  }
-
-  console.log(`✓ Continuation fee day ${day} paid: match ${matchId}`);
+  console.log(`✓ Engagement unlock paid (${bracket}, ${feeAmount}) — introduction sent: match ${matchId}`);
 }
