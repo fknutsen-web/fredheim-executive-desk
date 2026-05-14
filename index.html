@@ -3641,6 +3641,12 @@ function RecruiterModal({ onClose, showToast }) {
         tos_agreed: true,
         tos_agreed_at: new Date().toISOString(),
       });
+      // Notify admin and send confirmation to submitter
+      await fetch('/api/notify-posting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      }).catch(() => {}); // non-blocking — submission already saved
     } catch(e) {}
     setSubmitted(true);
     setLoading(false);
@@ -3663,7 +3669,7 @@ function RecruiterModal({ onClose, showToast }) {
             <div className="modal-eyebrow">For Search Firms</div>
             <h2 className="modal-title">Post a Search</h2>
             <p style={{color:'var(--ink-3)',fontSize:'0.875rem',marginBottom:'0.875rem',lineHeight:'1.7'}}>
-              Reach qualified senior leaders in maritime, energy, and industrial logistics.
+              Reach qualified senior leaders in maritime, ports and terminals, energy, offshore, and industrial logistics.
               Salary transparency is required on every posting.
             </p>
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
