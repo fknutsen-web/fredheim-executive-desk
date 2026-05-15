@@ -3818,19 +3818,32 @@ function RecruiterModal({ onClose, showToast }) {
 }
 
 // ── PROFILE FORM ──────────────────────────────────────────────────────────────
-function ProfileForm({ showToast, onComplete }) {
-  const [step, setStep]           = useState(1); // 1=Basics 2=Career 3=Personality 4=Preferences
+function ProfileForm({ showToast, onComplete, authUserEmail }) {
+  const [step, setStep]           = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
   const [tier, setTier]           = useState('free');
   const [visibility, setVisibility] = useState('discreet');
+  const [isUpdate, setIsUpdate]   = useState(false); // true if profile already exists
 
-  // Basic info
+  // Basic info — pre-fill email from authenticated session
   const [form, setForm] = useState({
-    first_name:'', last_name:'', email:'', current_title:'',
+    first_name:'', last_name:'', email: authUserEmail || '', current_title:'',
     current_company:'', industry:'', function:'', location:'', salary_min:''
   });
-  function set(k,v) { setForm(p=>({...p,[k]:v})); }
+  function set(k,v) {
+    // Prevent changing email for authenticated users — it must match their auth account
+    if (k === 'email' && authUserEmail) return;
+    setForm(p=>({...p,[k]:v}));
+  }
+
+  // Check if an existing profile already exists for this email
+  useEffect(() => {
+    if (!authUserEmail) return;
+    sb.from('fed_profiles').select('id').eq('email', authUserEmail).maybeSingle().then(({ data }) => {
+      if (data) setIsUpdate(true);
+    });
+  }, [authUserEmail]);
 
   // Career timeline — up to 4 entries
   const [career, setCareer] = useState([
@@ -3954,6 +3967,23 @@ function ProfileForm({ showToast, onComplete }) {
       big_five_shared: shareBigFive,
     };
 
+    // C1 FIX: Never downgrade a paid tier via form re-submission.
+    // If an existing profile already has a paid tier, preserve it regardless of form state.
+    if (isUpdate) {
+      try {
+        const { data: existing } = await sb
+          .from('fed_profiles')
+          .select('tier')
+          .eq('email', form.email)
+          .maybeSingle();
+        const paidTiers = ['confidential', 'active', 'active_senior'];
+        if (existing && paidTiers.includes(existing.tier)) {
+          // Keep their paid tier — do not allow form to overwrite it
+          profileData.tier = existing.tier;
+        }
+      } catch(e) { /* non-critical — proceed with form tier */ }
+    }
+
     try {
       await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
     } catch(e) { console.log('Profile save:', e); }
@@ -3971,11 +4001,17 @@ function ProfileForm({ showToast, onComplete }) {
           }).select().single();
 
           if (refData?.token) {
-            // Send questionnaire email via Supabase Edge Function or direct email
-            // For now: log the token — Zapier webhook handles email sending
-            console.log('Reference token created:', refData.token);
-            // The admin can see this and manually send if needed
-            // Full email automation requires a Zapier webhook on fed_references INSERT
+            // Send questionnaire email to the reference via /api/notify-reference
+            fetch('/api/notify-reference', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                ref_name:       ref.name,
+                ref_email:      ref.email,
+                candidate_name: form.first_name + (form.last_name ? ' ' + form.last_name : ''),
+                token:          refData.token,
+              }),
+            }).catch(e => console.error('Reference notify failed:', e));
           }
         }
       } catch(e) { console.log('Reference save error:', e); }
@@ -4029,6 +4065,11 @@ function ProfileForm({ showToast, onComplete }) {
       {/* ── STEP 1: BASICS ── */}
       {step === 1 && (
         <>
+          {isUpdate && (
+            <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.25rem',fontSize:'0.8rem',color:'var(--ink-3)',lineHeight:'1.5'}}>
+              ⚠ You already have a profile. Submitting this form will update your existing profile.
+            </div>
+          )}
           <div className="form-group">
             <label className="form-label">Member Tier</label>
             <div className="tiers" style={{gridTemplateColumns:'1fr 1fr'}}>
@@ -4079,7 +4120,7 @@ function ProfileForm({ showToast, onComplete }) {
               </select>
             </div>
           </div>
-          <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" placeholder="your@email.com" value={form.email} onChange={e=>set('email',e.target.value)} /></div>
+          <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" placeholder="your@email.com" value={form.email} onChange={e=>set('email',e.target.value)} readOnly={!!authUserEmail} style={authUserEmail ? {background:'var(--paper-2)',color:'var(--ink-3)',cursor:'default'} : {}} /></div>
 
           <div className="step-nav">
             <button className="step-next" onClick={() => { if(validateStep()) setStep(2); }}>
@@ -5160,7 +5201,7 @@ function PrivacyPage() {
 
 
 // ── ADMIN DASHBOARD ───────────────────────────────────────────────────────────
-const ADMIN_PASSWORD = null; // Password is validated server-side via /api/admin-auth
+// Admin password is validated server-side via /api/admin-auth — never exposed in client HTML
 
 function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   const [tab, setTab]           = useState('submissions');
@@ -5218,10 +5259,6 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   useEffect(() => { loadAll(); }, []);
 
   // Stats
-  const totalRevenue = profiles.filter(p => p.tier !== 'free').length *
-    profiles.reduce((sum, p) => sum + (p.tier === 'confidential' ? 299 : p.tier === 'active' ? 199 : p.tier === 'active_senior' ? 99 : 0), 0) /
-    Math.max(profiles.filter(p => p.tier !== 'free').length, 1);
-
   const paidProfiles  = profiles.filter(p => p.tier !== 'free').length;
   const pendingSubs   = submissions.filter(s => s.status === 'pending').length;
   const activeJobs    = jobs.filter(j => j.status === 'active').length;
@@ -5262,6 +5299,19 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
       const rawIndustry = (submission.industry || 'Maritime & Shipping').trim();
       const industry = industryMap[rawIndustry.toLowerCase()] || rawIndustry;
 
+      // Parse salary values from the salary_range string for filter compatibility
+      // e.g. "$300K – $400K total compensation" → min=300000, max=400000
+      function parseSalary(str) {
+        if (!str) return { min: 0, max: 9999999 };
+        const nums = (str.match(/\d[\d,]*/g) || [])
+          .map(n => parseInt(n.replace(/,/g,'')) * (str.includes('K') ? 1000 : 1))
+          .filter(n => n > 0);
+        if (nums.length === 0) return { min: 0, max: 9999999 };
+        if (nums.length === 1) return { min: nums[0], max: nums[0] };
+        return { min: Math.min(...nums), max: Math.max(...nums) };
+      }
+      const { min: salaryMin, max: salaryMax } = parseSalary(submission.salary_range);
+
       // Build the job object with only columns that exist in fed_jobs schema
       const jobData = {
         title:            submission.role_title,
@@ -5278,8 +5328,8 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         tags:             JSON.stringify([]),
         location:         submission.location || 'To Be Confirmed',
         type:             'Full-Time',
-        salary_min:       1,
-        salary_max:       9999999,
+        salary_min:       salaryMin,
+        salary_max:       salaryMax,
         salary_display:   submission.salary_range || 'Competitive — contact firm',
         salary_note:      'Published range',
         role_level:       submission.role_level || 'executive',
@@ -5667,7 +5717,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                               if (!firmEmail) { showToast('No firm email on record for this job.'); return; }
                               try {
                                 // Send full introduction email via Zapier with candidate email revealed
-                                await fetch(window.location.origin + '/api/notify-interest', {
+                                await fetch('/api/notify-interest', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({
@@ -6660,8 +6710,13 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
     setLoading(true);
     try {
       // Use API endpoint so service role bypasses RLS on fed_recruiter_submissions
+      // Send the Supabase session token so the API can validate the caller
+      const { data: { session } } = await sb.auth.getSession();
+      const authToken = session?.access_token || '';
       const [dashRes, jRes] = await Promise.all([
-        fetch(`/api/recruiter-dash?email=${encodeURIComponent(userEmail)}`).then(r => r.json()),
+        fetch(`/api/recruiter-dash?email=${encodeURIComponent(userEmail)}`, {
+          headers: { 'Authorization': `Bearer ${authToken}` },
+        }).then(r => r.json()),
         sb.from('fed_jobs').select('*').ilike('firm_email', userEmail).order('created_at', {ascending:false}),
       ]);
       setSubmissions(dashRes.submissions || []);
@@ -7322,7 +7377,11 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
       setInterestSent(p => ({...p, [brief.id]: true}));
       showToast('✓ Interest registered. The platform will be in touch.');
     } catch(e) {
-      showToast('Already registered interest in this brief.');
+      if (e?.code === '23505' || e?.message?.includes('unique')) {
+        showToast('You have already registered interest in this brief.');
+      } else {
+        showToast('Could not register interest. Please try again.');
+      }
     }
   }
 
@@ -7988,7 +8047,6 @@ function AboutPage({ setActiveView }) {
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
   const [activeView, setActiveView]   = useState('jobs');
-  const [pricingAudience, setPricingAudience] = useState('recruiters');
   const [briefModal, setBriefModal]   = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
   const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
@@ -8074,7 +8132,17 @@ function App() {
       } else if (view === 'myprofile') {
         setActiveView('myprofile');
         detectUserType(email);
+      } else if (view === 'pricing') {
+        setActiveView('pricing');
+        detectUserType(email);
+      } else if (view === 'profile') {
+        setActiveView('profile');
+        detectUserType(email);
+      } else if (['jobs','consulting','about','terms','privacy'].includes(view)) {
+        setActiveView(view);
+        detectUserType(email);
       } else {
+        // Unknown or no view param — default behaviour
         detectUserType(email);
       }
     }
@@ -8084,6 +8152,9 @@ function App() {
       setAuthUser(session?.user ?? null);
       setAuthLoading(false);
       if (session?.user) applyRouting(session.user.email);
+    }).catch(() => {
+      // Network/Supabase error — unblock the app rather than hanging
+      setAuthLoading(false);
     });
 
     // Listen for sign-in via magic link
@@ -8129,23 +8200,16 @@ function App() {
   }, [authUser]);
 
   function scrollToSection(view, id) {
-    // If signed in and trying to create a profile, go to existing profile instead
-    if (view === 'profile' && authUser) {
-      setActiveView('myprofile');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+    // scrollToSection('profile') from hero — if signed in, go to profile FORM (not myprofile)
+    // so users without a profile can create one, and existing users can update
     setActiveView(view);
     setTimeout(() => document.getElementById(id)?.scrollIntoView({behavior:'smooth'}), 50);
   }
 
   function goToView(view) {
-    // If signed in and trying to create a profile, go to existing profile instead
-    if (view === 'profile' && authUser) {
-      setActiveView('myprofile');
-    } else {
-      setActiveView(view);
-    }
+    // 'profile' view shows the ProfileForm — accessible to all users whether authed or not
+    // Authenticated users with an existing profile are informed via the isUpdate flag in the form
+    setActiveView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -8210,6 +8274,15 @@ function App() {
     return <QuestionnairePage token={questionnaireToken} />;
   }
 
+  // Auth loading — brief gate prevents nav flash and incorrect role rendering
+  if (authLoading) {
+    return (
+      <div style={{minHeight:'100vh',background:'var(--paper)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+        <span className="spinner" />
+      </div>
+    );
+  }
+
   // Admin view
   if (showAdmin) {
     if (!adminAuthed) {
@@ -8243,7 +8316,7 @@ function App() {
 
   return (
     <>
-      {showBanner && <DemoBanner onDismiss={() => setShowBanner(false)} />}
+      {showBanner && !(authUser && activeView === 'recruiter-dash') && <DemoBanner onDismiss={() => setShowBanner(false)} />}
 
       <NavBar
           activeView={activeView}
@@ -8442,25 +8515,30 @@ function App() {
               </ul>
             </div>
             <div className="profile-right">
-              <ProfileForm showToast={showToast} onComplete={() => setActiveView('myprofile')} />
+              <ProfileForm showToast={showToast} onComplete={() => setActiveView('myprofile')} authUserEmail={authUser?.email || null} />
             </div>
           </div>
         )}
 
         {activeView === 'pricing' && (
-          <PricingPage
-            setActiveView={setActiveView}
-            openRecruiterModal={() => setRecruiterModal(true)}
-            authUser={authUser}
-            showToast={showToast}
-          />
+          <>
+            {new URLSearchParams(window.location.search).get('checkout') === 'cancelled' && (
+              <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',borderLeft:'3px solid var(--ink-3)',padding:'0.75rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.82rem',color:'var(--ink-3)'}}>
+                Your payment was cancelled — no charge was made. Select a plan below to try again.
+              </div>
+            )}
+            <PricingPage
+              setActiveView={setActiveView}
+              openRecruiterModal={() => setRecruiterModal(true)}
+              authUser={authUser}
+              showToast={showToast}
+            />
+          </>
         )}
 
         {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
-        {activeView === 'about' && (
-          <div className="main"><AboutPage setActiveView={goToView} /></div>
-        )}
+        {activeView === 'about' && <AboutPage setActiveView={goToView} />}
 
         {activeView === 'consulting' && (
           <div className="main">
