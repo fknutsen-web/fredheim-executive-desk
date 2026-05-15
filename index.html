@@ -6538,16 +6538,27 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   async function loadData() {
     setLoading(true);
     try {
-      const [sRes, jRes, iRes] = await Promise.all([
-        sb.from('fed_recruiter_submissions').select('*').eq('email', userEmail).order('created_at', {ascending:false}),
-        sb.from('fed_jobs').select('*').eq('firm_email', userEmail).order('created_at', {ascending:false}),
-        sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
+      // Use API endpoint so service role bypasses RLS on fed_recruiter_submissions
+      const [dashRes, jRes] = await Promise.all([
+        fetch(`/api/recruiter-dash?email=${encodeURIComponent(userEmail)}`).then(r => r.json()),
+        sb.from('fed_jobs').select('*').ilike('firm_email', userEmail).order('created_at', {ascending:false}),
       ]);
-      setSubmissions(sRes.data || []);
+      setSubmissions(dashRes.submissions || []);
       setJobs(jRes.data || []);
-      setInterests(iRes.data || []);
+      // Interests matched to this firm's jobs
+      const jobIds = (jRes.data || []).map(j => j.id);
+      if (jobIds.length > 0) {
+        const { data: iData } = await sb
+          .from('fed_interests')
+          .select('*')
+          .in('job_id', jobIds)
+          .order('created_at', {ascending:false});
+        setInterests(iData || []);
+      } else {
+        setInterests([]);
+      }
     } catch(e) {
-      showToast('Error loading data.');
+      showToast('Error loading dashboard data.');
     }
     setLoading(false);
   }
@@ -7897,45 +7908,47 @@ function App() {
     return () => window.removeEventListener('filterIndustry', handleFilter);
   }, []);
 
+  // Capture URL params synchronously at render — before any async handler can wipe them
+  const initViewRef  = useRef(new URLSearchParams(window.location.search).get('view'));
+  const hasRoutedRef = useRef(false);
+
   // Supabase auth session listener
   useEffect(() => {
-    // Check for existing session
-    sb.auth.getSession().then(async ({ data: { session } }) => {
+    function applyRouting(email) {
+      if (hasRoutedRef.current) return; // only route once
+      hasRoutedRef.current = true;
+      const view = initViewRef.current;
+      // Clean the URL now that we've captured the intent
+      if (view) window.history.replaceState({}, '', window.location.pathname);
+
+      if (view === 'recruiter-dash') {
+        // Always trust the recruiter sign-in intent — don't verify via DB
+        setUserType('recruiter');
+        setActiveView('recruiter-dash');
+      } else if (view === 'myprofile') {
+        setActiveView('myprofile');
+        detectUserType(email);
+      } else {
+        detectUserType(email);
+      }
+    }
+
+    // Check for existing session (page load / refresh)
+    sb.auth.getSession().then(({ data: { session } }) => {
       setAuthUser(session?.user ?? null);
       setAuthLoading(false);
-      if (session?.user) {
-        const params = new URLSearchParams(window.location.search);
-        const view = params.get('view');
-        // Route immediately based on URL param — don't wait for detectUserType
-        if (view === 'recruiter-dash') {
-          setUserType('recruiter');
-          setActiveView('recruiter-dash');
-          window.history.replaceState({}, '', window.location.pathname);
-        } else if (view === 'myprofile') {
-          setActiveView('myprofile');
-          window.history.replaceState({}, '', window.location.pathname);
-          detectUserType(session.user.email);
-        } else {
-          detectUserType(session.user.email);
-        }
-      }
+      if (session?.user) applyRouting(session.user.email);
     });
 
-    // Listen for auth changes
+    // Listen for sign-in via magic link
     const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
       setAuthUser(session?.user ?? null);
-      // Only auto-navigate on actual sign-in event, not on page load session restore
       if (event === 'SIGNED_IN' && session?.user) {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('view') === 'recruiter-dash') {
-          setUserType('recruiter');
-          setActiveView('recruiter-dash');
-        } else if (params.get('view') === 'myprofile') {
-          setActiveView('myprofile');
-          detectUserType(session.user.email);
-        } else {
-          detectUserType(session.user.email);
-        }
+        applyRouting(session.user.email);
+      }
+      if (event === 'SIGNED_OUT') {
+        hasRoutedRef.current = false; // reset so next sign-in routes correctly
+        initViewRef.current  = null;
       }
     });
 
