@@ -5719,7 +5719,10 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                                 // Send full introduction email via Zapier with candidate email revealed
                                 await fetch('/api/notify-interest', {
                                   method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Admin-Secret': sessionStorage.getItem('fed_admin_pwd') || '',
+                                  },
                                   body: JSON.stringify({
                                     job_id: i.job_id,
                                     candidate_email: i.anon_email,
@@ -5774,6 +5777,7 @@ function AdminLogin({ onLogin }) {
       const data = await resp.json();
       if (resp.ok && data.ok) {
         sessionStorage.setItem('fed_admin', 'true');
+        sessionStorage.setItem('fed_admin_pwd', password); // stored for authenticated API calls
         onLogin();
       } else {
         setError(data.error || 'Incorrect password.');
@@ -8304,7 +8308,7 @@ function App() {
         </div>
         <div style={{maxWidth:'1280px',margin:'0 auto',padding:'2rem'}}>
           <AdminDashboard
-            onLogout={() => { sessionStorage.removeItem('fed_admin'); setAdminAuthed(false); setShowAdmin(false); }}
+            onLogout={() => { sessionStorage.removeItem('fed_admin'); sessionStorage.removeItem('fed_admin_pwd'); setAdminAuthed(false); setShowAdmin(false); }}
             showToast={showToast}
             onJobPublished={loadJobs}
           />
