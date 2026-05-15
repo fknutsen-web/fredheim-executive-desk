@@ -5792,14 +5792,15 @@ function SignInPage({ onBack }) {
 }
 
 // ── MY PROFILE DASHBOARD ──────────────────────────────────────────────────────
-function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade }) {
+function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade, onRecruiterRedirect }) {
   const [profile, setProfile]             = useState(null);
-  const [talentProfile, setTalentProfile] = useState(null); // assessment scores from talent_candidates
+  const [talentProfile, setTalentProfile] = useState(null);
   const [interests, setInterests]         = useState([]);
   const [jobs, setJobs]                   = useState([]);
   const [loading, setLoading]             = useState(true);
   const [editing, setEditing]             = useState(null);
   const [editData, setEditData]           = useState({});
+  const [isRecruiter, setIsRecruiter]     = useState(false);
 
   useEffect(() => { loadProfile(); }, [user]);
 
@@ -5815,6 +5816,21 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade 
           'score_composite,score_executive_fit,score_technology,score_change_mgmt,score_background,badge_seasoned_exec,badge_tech_forward,badge_pivot,last_answers_updated,tier,status'
         ).eq('email', email).maybeSingle(),
       ]);
+
+      if (!pRes.data) {
+        // No executive profile — check if this email belongs to a recruiter
+        const { data: recruiterSub } = await sb
+          .from('fed_recruiter_submissions')
+          .select('id')
+          .ilike('email', email)
+          .limit(1);
+        if (recruiterSub && recruiterSub.length > 0) {
+          setIsRecruiter(true);
+          setLoading(false);
+          return;
+        }
+      }
+
       setProfile(pRes.data);
       setInterests(iRes.data || []);
       setJobs(jRes.data || []);
@@ -5935,13 +5951,29 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade 
 
   if (!profile) return (
     <div style={{textAlign:'center',padding:'4rem'}}>
-      <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
-        No profile found for {user.email}
-      </div>
-      <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
-        This email doesn't have a profile yet. Create one to get started.
-      </p>
-      <button className="btn-primary" onClick={onCreateProfile || onSignOut}>Create a Profile</button>
+      {isRecruiter ? (
+        <>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
+            Welcome back, {user.email}
+          </div>
+          <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
+            Your account is registered as a search firm. Go to your Firm Dashboard to manage postings and view candidate activity.
+          </p>
+          <button className="btn-primary" onClick={() => onRecruiterRedirect && onRecruiterRedirect()}>
+            Go to Firm Dashboard →
+          </button>
+        </>
+      ) : (
+        <>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
+            No profile found for {user.email}
+          </div>
+          <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
+            This email doesn't have a profile yet. Create one to get started.
+          </p>
+          <button className="btn-primary" onClick={onCreateProfile}>Create a Profile</button>
+        </>
+      )}
     </div>
   );
 
@@ -7974,23 +8006,24 @@ function App() {
 
   async function detectUserType(email) {
     try {
+      const emailLower = email.toLowerCase();
       // Check if this email has an executive profile
       const { data: profile } = await sb
         .from('fed_profiles')
         .select('id')
-        .eq('email', email.toLowerCase())
+        .eq('email', emailLower)
         .maybeSingle();
       if (profile) { setUserType('executive'); return 'executive'; }
 
-      // Check if this email has recruiter submissions
+      // Check if this email submitted a search posting (case-insensitive)
       const { data: subs } = await sb
         .from('fed_recruiter_submissions')
         .select('id')
-        .eq('email', email.toLowerCase())
+        .ilike('email', emailLower)
         .limit(1);
       if (subs && subs.length > 0) { setUserType('recruiter'); return 'recruiter'; }
 
-      // Unknown — default to executive (they can always switch)
+      // Default to executive
       setUserType('executive');
       return 'executive';
     } catch(e) {
@@ -8282,6 +8315,7 @@ function App() {
             user={authUser}
             showToast={showToast}
             onCreateProfile={() => setActiveView('profile')}
+            onRecruiterRedirect={() => { setUserType('recruiter'); setActiveView('recruiter-dash'); }}
             onUpgrade={() => goToView('pricing')}
             onSignOut={handleSignOut}
           />
