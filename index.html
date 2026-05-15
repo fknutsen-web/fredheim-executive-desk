@@ -5224,6 +5224,23 @@ function AdminDashboard({ onLogout, showToast }) {
 
   async function publishJob(submission) {
     try {
+      // Normalise industry value to current 4-vertical model
+      const industryMap = {
+        'maritime':                        'Maritime & Shipping',
+        'maritime & shipping':             'Maritime & Shipping',
+        'ports & terminals':               'Ports & Terminals',
+        'port & terminal':                 'Ports & Terminals',
+        'energy & offshore':               'Energy & Offshore',
+        'energy':                          'Energy & Offshore',
+        'offshore':                        'Energy & Offshore',
+        'industrial commodities & logistics': 'Industrial Commodities & Logistics',
+        'industrial logistics':            'Industrial Commodities & Logistics',
+        'bulk commodities':                'Industrial Commodities & Logistics',
+        'trading & freight':               'Industrial Commodities & Logistics',
+      };
+      const rawIndustry = (submission.industry || 'Maritime & Shipping').trim();
+      const industry = industryMap[rawIndustry.toLowerCase()] || rawIndustry;
+
       // Build the job object with only columns that exist in fed_jobs schema
       const jobData = {
         title:            submission.role_title,
@@ -5233,8 +5250,9 @@ function AdminDashboard({ onLogout, showToast }) {
         company_display:  'Confidential',
         company_actual:   null,
         firm_name:        submission.firm_name,
+        firm_email:       submission.email,
         firm_code:        (submission.firm_name || 'XX').slice(0,2).toUpperCase(),
-        industry:         submission.industry || 'Maritime',
+        industry,
         function:         submission.role_level === 'senior' ? 'Operations' : 'Commercial',
         tags:             JSON.stringify([]),
         location:         submission.location || 'To Be Confirmed',
