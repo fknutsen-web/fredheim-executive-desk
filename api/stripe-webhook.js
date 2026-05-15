@@ -117,20 +117,21 @@ module.exports = async function handler(req, res) {
           : candidateTierFromPrice(priceId);
 
         if (candidateTier === 'confidential') {
+          // Update fed_profiles (Executive Desk) — this is the table index.html reads
+          const expiry = new Date();
+          expiry.setFullYear(expiry.getFullYear() + 1);
           const { error } = await supabase
-            .from('talent_candidates')
+            .from('fed_profiles')
             .update({
               tier:                    'confidential',
-              tier_expires:            expiryOneYear(),
+              tier_expires:            expiry.toISOString(),
               stripe_customer_id:      custId,
               stripe_subscription_id:  subId,
-              status:                  'active',
-              last_active_at:          new Date().toISOString(),
             })
             .eq('email', email);
 
-          if (error) console.error('Candidate confidential tier update failed:', error);
-          else console.log(`✓ Candidate upgraded to confidential: ${email}`);
+          if (error) console.error('fed_profiles tier update failed:', error);
+          else console.log(`✓ Candidate upgraded to confidential in fed_profiles: ${email}`);
 
           await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
             type:    'candidate_subscription',
@@ -193,7 +194,7 @@ module.exports = async function handler(req, res) {
             body:          recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
               : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and engagement unlocks.`,
-            dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-talent',
+            dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-dash',
           });
           break;
         }
@@ -218,9 +219,9 @@ module.exports = async function handler(req, res) {
         const custId  = invoice.customer;
         const priceId = invoice.lines?.data?.[0]?.price?.id;
 
-        // Candidate confidential renewal — extend one year
+        // Candidate confidential renewal — extend one year in fed_profiles
         if (candidateTierFromPrice(priceId)) {
-          await supabase.from('talent_candidates')
+          await supabase.from('fed_profiles')
             .update({ tier_expires: expiryOneYear() })
             .eq('stripe_customer_id', custId);
           console.log(`✓ Candidate confidential subscription renewed: ${custId}`);
@@ -248,9 +249,9 @@ module.exports = async function handler(req, res) {
         const custId  = obj.customer;
         const priceId = obj.lines?.data?.[0]?.price?.id || obj.plan?.id;
 
-        // Downgrade candidate to free
+        // Downgrade candidate to free in fed_profiles
         if (candidateTierFromPrice(priceId)) {
-          await supabase.from('talent_candidates').update({
+          await supabase.from('fed_profiles').update({
             tier:                   'free',
             tier_expires:           null,
             stripe_subscription_id: null,

@@ -1,9 +1,10 @@
 // api/recruiter-dash.js
-// Returns recruiter dashboard data for the authenticated firm email.
-// Uses service role key to bypass RLS on fed_recruiter_submissions.
-// The email param is validated against the Supabase auth token.
+// Returns recruiter dashboard data using service role to bypass RLS.
+// Validates caller via Supabase JWT Bearer token.
+// Falls back to published anon key if SUPABASE_ANON_KEY env var is not set.
 
 const { createClient } = require('@supabase/supabase-js');
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,39 +16,24 @@ module.exports = async function handler(req, res) {
   const email = (req.query.email || '').toLowerCase().trim();
   if (!email) return res.status(400).json({ error: 'email param required.' });
 
-  // Validate the caller via their Supabase JWT
-  const authHeader = req.headers.authorization || '';
-  const token = authHeader.replace('Bearer ', '').trim();
+  const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
+  if (!token) return res.status(401).json({ error: 'Authorization required.' });
 
-  const anonClient = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-  );
-
-  // Verify the JWT belongs to this email
-  if (token) {
-    const { data: { user }, error } = await anonClient.auth.getUser(token);
-    if (error || !user || user.email.toLowerCase() !== email) {
-      return res.status(403).json({ error: 'Unauthorized.' });
-    }
+  const anonClient = createClient(process.env.SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { data: { user }, error: authError } = await anonClient.auth.getUser(token);
+  if (authError || !user || user.email.toLowerCase() !== email) {
+    return res.status(403).json({ error: 'Unauthorized.' });
   }
-  // Note: if no token provided (e.g. cookie-based session), we still serve the data
-  // The email param itself is the access control here — recruiter can only see their own
 
-  // Use service role to read submissions (bypasses RLS)
-  const admin = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
-
-  const { data: submissions, error } = await admin
+  const adminClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const { data: submissions, error } = await adminClient
     .from('fed_recruiter_submissions')
     .select('*')
     .ilike('email', email)
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.error('recruiter-dash fetch error:', error);
+    console.error('recruiter-dash error:', error);
     return res.status(500).json({ error: 'Failed to fetch submissions.' });
   }
 
