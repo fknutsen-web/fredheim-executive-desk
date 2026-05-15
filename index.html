@@ -3818,7 +3818,7 @@ function RecruiterModal({ onClose, showToast }) {
 }
 
 // ── PROFILE FORM ──────────────────────────────────────────────────────────────
-function ProfileForm({ showToast }) {
+function ProfileForm({ showToast, onComplete }) {
   const [step, setStep]           = useState(1); // 1=Basics 2=Career 3=Personality 4=Preferences
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
@@ -3989,6 +3989,8 @@ function ProfileForm({ showToast }) {
 
     setSubmitted(true);
     setLoading(false);
+    // Route to profile dashboard after brief confirmation display
+    setTimeout(() => { if (onComplete) onComplete(); }, 2000);
   }
 
   if (submitted) return (
@@ -4559,7 +4561,6 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Unlimited active postings',
         'Premium featured placement + firm branding',
         'Full candidate profile access — Open profiles',
-        'Introduction fee waiver on first 3 placements',
         'Custom posting templates',
         'Quarterly strategy review with Fredheim team',
         'API access for ATS integration',
@@ -4820,7 +4821,7 @@ function TermsPage() {
         <h2>1. The Platform</h2>
         <p>
           Fredheim Executive Desk is an executive opportunity marketplace connecting senior
-          professionals in maritime, energy, and industrial logistics with retained executive
+          professionals in maritime, ports and terminals, energy, offshore, and industrial logistics with retained executive
           search firms. Fredheim Technologies LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
@@ -5159,7 +5160,7 @@ function PrivacyPage() {
 
 
 // ── ADMIN DASHBOARD ───────────────────────────────────────────────────────────
-const ADMIN_PASSWORD = 'FredheimDesk2026!'; // Change this after first login
+const ADMIN_PASSWORD = null; // Password is validated server-side via /api/admin-auth
 
 function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   const [tab, setTab]           = useState('submissions');
@@ -5709,15 +5710,29 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
 function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
 
-  function handleLogin() {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem('fed_admin', 'true');
-      onLogin();
-    } else {
-      setError('Incorrect password.');
-      setTimeout(() => setError(''), 2000);
+  async function handleLogin() {
+    setLoading(true);
+    setError('');
+    try {
+      const resp = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        sessionStorage.setItem('fed_admin', 'true');
+        onLogin();
+      } else {
+        setError(data.error || 'Incorrect password.');
+        setTimeout(() => setError(''), 2000);
+      }
+    } catch(e) {
+      setError('Auth check failed. Try again.');
     }
+    setLoading(false);
   }
 
   return (
@@ -5738,7 +5753,9 @@ function AdminLogin({ onLogin }) {
           />
         </div>
         {error && <div style={{color:'var(--red)',fontSize:'0.78rem',marginBottom:'0.75rem'}}>{error}</div>}
-        <button className="submit-btn" onClick={handleLogin}>Access Control Room</button>
+        <button className="submit-btn" onClick={handleLogin} disabled={loading}>
+          {loading ? 'Checking…' : 'Access Control Room'}
+        </button>
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.75rem',textAlign:'center'}}>
           Fredheim Technologies LLC — Internal Use Only
         </p>
@@ -7130,7 +7147,7 @@ function QuestionnairePage({ token }) {
           <div className="questionnaire-title">Professional Reference</div>
           <p className="questionnaire-desc">
             You have been listed as a professional reference on Fredheim Executive Desk —
-            a curated executive search platform for maritime, energy, and industrial logistics.
+            a curated executive search platform for maritime, ports and terminals, energy, offshore, and industrial logistics.
             This takes approximately 5 minutes. Your responses are confidential and shared
             only with verified search firms, with the candidate's consent.
           </p>
@@ -7380,7 +7397,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
           </div>
           <p className="consulting-hero-desc">
             The curated marketplace for interim, advisory, and project-based engagements
-            in maritime, energy, and industrial logistics. Day rates published.
+            in maritime, ports and terminals, energy, offshore, and industrial logistics. Day rates published.
             Identity protected until you choose to engage.
           </p>
           <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
@@ -7664,6 +7681,12 @@ function BriefModal({ onClose, showToast }) {
         demo_brief:      false,
       });
       if (error) throw error;
+      // Notify admin and submitter — non-blocking
+      fetch('/api/notify-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      }).catch(() => {});
       setStep('done');
     } catch(e) {
       showToast('Submission failed. Please try again.');
@@ -7682,7 +7705,7 @@ function BriefModal({ onClose, showToast }) {
             <h2 className="modal-title">Post a Consulting Brief</h2>
             <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem',fontWeight:300}}>
               Reach senior executives available for interim, advisory, and project-based
-              engagements in maritime, energy, and industrial logistics.
+              engagements in maritime, ports and terminals, energy, offshore, and industrial logistics.
               Day rate required. Introductions facilitated by Fredheim.
             </p>
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.875rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
@@ -8022,10 +8045,10 @@ function App() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  // Footer vertical filter event
+  // Footer vertical filter event — apply industry filter when dispatched
   useEffect(() => {
     function handleFilter(e) {
-      window._pendingIndustryFilter = e.detail;
+      setIndustry(e.detail);
     }
     window.addEventListener('filterIndustry', handleFilter);
     return () => window.removeEventListener('filterIndustry', handleFilter);
@@ -8369,7 +8392,9 @@ function App() {
               <div className="loading-state"><span className="spinner" />Loading searches…</div>
             ) : filtered.length === 0 ? (
               <div className="no-results">
-                {jobs.length === 0 ? 'Connect Supabase and run the schema SQL to activate live postings.' : 'No searches match your filters.'}
+                {jobs.length === 0
+                ? 'No active searches posted yet — check back soon or post a search.'
+                : 'No searches match your filters. Try broadening your criteria.'}
               </div>
             ) : (
               <div className="jobs-grid">
@@ -8387,7 +8412,7 @@ function App() {
 
         <div id="profile-anchor" />
 
-        {activeView === 'profile' && !authUser && (
+        {activeView === 'profile' && (
           <div className="profile-section">
             <div className="profile-left">
               <div className="profile-eyebrow">Executive Profile</div>
@@ -8417,7 +8442,7 @@ function App() {
               </ul>
             </div>
             <div className="profile-right">
-              <ProfileForm showToast={showToast} />
+              <ProfileForm showToast={showToast} onComplete={() => setActiveView('myprofile')} />
             </div>
           </div>
         )}
