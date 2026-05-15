@@ -8338,7 +8338,7 @@ function App() {
             authUser={authUser}
             onGoToProfile={() => goToView('myprofile')}
             onGoToConsulting={() => goToView('consulting')}
-            minSalary={jobs.filter(j=>j.salary_min>0).reduce((min,j)=>Math.min(min,j.salary_min), Infinity) || 0}
+            minSalary={jobs.filter(j=>j.salary_min > 50000).reduce((min,j)=>Math.min(min,j.salary_min), Infinity) || 0}
           />
           <div className="manifesto">
             <p className="manifesto-text">
