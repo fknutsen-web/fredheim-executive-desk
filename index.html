@@ -3268,6 +3268,7 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        type: 'candidate',   // required by create-checkout-session.js
         tier,
         email,
         origin: window.location.origin,
@@ -3481,9 +3482,22 @@ function JobModal({ job, onClose, showToast }) {
     if (!email) { showToast('Please enter your email to register interest.'); return; }
     setLoading(true);
     try {
-      await sb.from('fed_interests').insert({ job_id: job.id, anon_email: email });
-    } catch(e) {}
-    setExpressed(true);
+      const { error } = await sb.from('fed_interests').insert({ job_id: job.id, anon_email: email.toLowerCase().trim() });
+      if (error) {
+        if (error.code === '23505') {
+          showToast('You have already registered interest in this search.');
+          setExpressed(true);
+        } else {
+          showToast('Could not register interest. Please try again.');
+        }
+      } else {
+        // Sync interest_count on fed_jobs non-blocking
+        sb.from('fed_jobs').update({ interest_count: (job.interest_count || 0) + 1 }).eq('id', job.id);
+        setExpressed(true);
+      }
+    } catch(e) {
+      showToast('Could not register interest. Please try again.');
+    }
     setLoading(false);
   }
 
@@ -8213,7 +8227,7 @@ function App() {
                 fontWeight:300,
                 margin:0,
               }}>
-                Interim, advisory, and project-based engagements in maritime, energy, and logistics.
+                Interim, advisory, and project-based engagements in maritime, ports and terminals, energy, offshore, and industrial logistics.
                 Day rates published. Identity protected until you choose to engage.
                 Founding Partner Program 2026 — post one brief free through December 31.
               </p>
@@ -8274,7 +8288,13 @@ function App() {
               </div>
             ) : (
               <div className="jobs-grid">
-                {filtered.map(j => <JobCard key={j.id} job={j} onClick={setSelectedJob} />)}
+                {filtered.map(j => <JobCard key={j.id} job={j} onClick={async (job) => {
+                setSelectedJob(job);
+                // Increment view count non-blocking
+                sb.from('fed_jobs').update({ view_count: (job.view_count || 0) + 1 }).eq('id', job.id).then(() => {
+                  setJobs(prev => prev.map(x => x.id === job.id ? {...x, view_count: (x.view_count||0)+1} : x));
+                });
+              }} />)}
               </div>
             )}
           </>
