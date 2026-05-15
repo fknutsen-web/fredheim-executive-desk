@@ -5141,7 +5141,7 @@ function PrivacyPage() {
 // ── ADMIN DASHBOARD ───────────────────────────────────────────────────────────
 const ADMIN_PASSWORD = 'FredheimDesk2026!'; // Change this after first login
 
-function AdminDashboard({ onLogout, showToast }) {
+function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   const [tab, setTab]           = useState('submissions');
   const [loading, setLoading]   = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -5277,6 +5277,7 @@ function AdminDashboard({ onLogout, showToast }) {
       }
       await updateSubmissionStatus(submission.id, 'posted');
       showToast('✓ Job published to the board.');
+      if (onJobPublished) onJobPublished(); // refresh main board
       loadAll();
     } catch(e) {
       console.error('Publish exception:', e);
@@ -7894,17 +7895,22 @@ function App() {
 
   function showToast(msg) { setToast(msg); setTimeout(()=>setToast(null), 4000); }
 
+  async function loadJobs() {
+    setLoading(true);
+    try {
+      const { data } = await sb.from('fed_jobs').select('*').eq('status','active').order('created_at',{ascending:false});
+      setJobs(data || []);
+    } catch(e) { setJobs([]); }
+    setLoading(false);
+  }
+
+  // Initial load
+  useEffect(() => { loadJobs(); }, []);
+
+  // Reload jobs whenever admin mode is closed so newly published posts appear immediately
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const { data } = await sb.from('fed_jobs').select('*').eq('status','active').order('created_at',{ascending:false});
-        setJobs(data || []);
-      } catch(e) { setJobs([]); }
-      setLoading(false);
-    }
-    load();
-  }, []);
+    if (!showAdmin) loadJobs();
+  }, [showAdmin]);
 
   // Admin keyboard shortcut: Ctrl + Shift + A
   useEffect(() => {
@@ -8105,6 +8111,7 @@ function App() {
           <AdminDashboard
             onLogout={() => { sessionStorage.removeItem('fed_admin'); setAdminAuthed(false); setShowAdmin(false); }}
             showToast={showToast}
+            onJobPublished={loadJobs}
           />
         </div>
         {toast && <div className="toast">{toast}</div>}
