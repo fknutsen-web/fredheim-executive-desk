@@ -3245,6 +3245,63 @@
     .brief-cta { flex-direction: column; }
   }
 
+  /* ── MATCHING SYSTEM ── */
+  .match-tabs { display:flex; gap:0; border-bottom:1px solid var(--rule); margin-bottom:2rem; }
+  .match-tab { fontFamily:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; padding:0.75rem 1.25rem; cursor:pointer; border-bottom:2px solid transparent; color:var(--ink-4); background:none; border-top:none; border-left:none; border-right:none; transition:color 0.15s; }
+  .match-tab.active { color:var(--ink); border-bottom-color:var(--ink); }
+  .match-tab:hover:not(.active) { color:var(--ink-2); }
+  .match-stat-row { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; background:var(--rule); margin-bottom:2rem; }
+  .match-stat { background:var(--paper); padding:1rem 1.25rem; text-align:center; }
+  .match-stat-num { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:500; color:var(--ink); line-height:1; margin-bottom:0.25rem; }
+  .match-stat-num.gold { color:var(--gold); }
+  .match-stat-num.green { color:var(--green); }
+  .match-stat-label { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-4); }
+  .match-job-row { border:1px solid var(--rule); margin-bottom:1rem; }
+  .match-job-header { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; gap:1rem; flex-wrap:wrap; cursor:pointer; }
+  .match-job-title { font-family:'Playfair Display',serif; font-size:1rem; color:var(--ink); margin-bottom:0.2rem; }
+  .match-job-meta { font-size:0.75rem; color:var(--ink-4); }
+  .match-job-counts { display:flex; gap:1rem; align-items:center; flex-shrink:0; flex-wrap:wrap; }
+  .match-count-pill { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.08em; padding:0.25rem 0.625rem; border:1px solid var(--rule); background:var(--paper-2); color:var(--ink-3); white-space:nowrap; }
+  .match-count-pill.gold { border-color:var(--gold-rule); background:var(--gold-bg); color:var(--gold); }
+  .match-count-pill.green { border-color:rgba(26,122,74,0.2); background:var(--green-bg); color:var(--green); }
+  .match-candidates-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1px; background:var(--rule); border-top:1px solid var(--rule); }
+  .match-candidate-card { background:var(--paper); padding:1.25rem; display:flex; flex-direction:column; gap:0.875rem; }
+  .match-score-badge { display:inline-flex; align-items:center; gap:0.375rem; font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.1em; }
+  .match-score-bar { height:3px; background:var(--rule-lt); flex:1; max-width:80px; overflow:hidden; }
+  .match-score-fill { height:100%; background:var(--gold); }
+  .match-candidate-title { font-size:0.9rem; color:var(--ink); font-weight:500; }
+  .match-candidate-meta { font-size:0.75rem; color:var(--ink-4); line-height:1.5; }
+  .match-reason-tags { display:flex; gap:0.375rem; flex-wrap:wrap; }
+  .match-reason-tag { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.08em; padding:0.15rem 0.5rem; border:1px solid var(--rule); color:var(--ink-3); }
+  .match-reason-tag.match { border-color:rgba(26,122,74,0.3); color:var(--green); background:var(--green-bg); }
+  .match-action-row { display:flex; gap:0.5rem; align-items:center; margin-top:auto; }
+  .match-status-badge { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.08em; padding:0.25rem 0.625rem; }
+  .match-status-badge.recruiter-interested { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-rule); }
+  .match-status-badge.candidate-interested { background:var(--green-bg); color:var(--green); border:1px solid rgba(26,122,74,0.2); }
+  .match-status-badge.mutual { background:#1a7a4a; color:#fff; border:none; }
+  .match-status-badge.declined { background:var(--paper-2); color:var(--ink-4); border:1px solid var(--rule); }
+  .match-private-notice { font-size:0.72rem; color:var(--ink-4); font-style:italic; }
+  .notif-bell { position:relative; background:none; border:none; cursor:pointer; padding:0.25rem; color:var(--ink-3); font-size:1.1rem; }
+  .notif-badge { position:absolute; top:-2px; right:-4px; min-width:16px; height:16px; background:var(--gold); color:#fff; font-family:'DM Mono',monospace; font-size:0.5rem; font-weight:700; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px; }
+  .notif-dropdown { position:absolute; top:calc(100% + 8px); right:0; width:320px; background:var(--paper); border:1px solid var(--rule); box-shadow:0 4px 24px rgba(0,0,0,0.08); z-index:100; }
+  .notif-header { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border-bottom:1px solid var(--rule); }
+  .notif-header-title { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); }
+  .notif-item { padding:0.875rem 1rem; border-bottom:1px solid var(--rule-lt); cursor:pointer; transition:background 0.1s; }
+  .notif-item:hover { background:var(--paper-2); }
+  .notif-item.unread { background:var(--gold-bg); }
+  .notif-item-title { font-size:0.82rem; color:var(--ink); margin-bottom:0.2rem; font-weight:500; }
+  .notif-item-body { font-size:0.72rem; color:var(--ink-4); line-height:1.5; }
+  .notif-item-time { font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--ink-4); margin-top:0.25rem; }
+  .notif-empty { padding:2rem 1rem; text-align:center; font-size:0.78rem; color:var(--ink-4); }
+  .job-match-card { border:1px solid var(--rule); padding:1.25rem; margin-bottom:1px; display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+  .job-match-card.mutual { border-color:var(--green); background:var(--green-bg); }
+  .job-match-card.recruiter-interested { border-color:var(--gold-rule); background:var(--gold-bg); }
+  .job-match-left { flex:1; min-width:200px; }
+  .job-match-title { font-family:'Playfair Display',serif; font-size:1rem; color:var(--ink); margin-bottom:0.25rem; }
+  .job-match-firm { font-size:0.78rem; color:var(--ink-3); margin-bottom:0.5rem; }
+  .job-match-details { font-size:0.75rem; color:var(--ink-4); line-height:1.6; }
+  .job-match-actions { display:flex; gap:0.5rem; flex-direction:column; align-items:flex-end; flex-shrink:0; }
+
 </style>
 </head>
 <body>
@@ -3318,6 +3375,124 @@ function parseJson(v) {
 }
 
 // ── DEMO BANNER ──────────────────────────────────────────────────────────────
+// ── MATCH SCORING UTILITY ────────────────────────────────────────────────────
+function computeMatchScore(candidate, job) {
+  let score = 0;
+  const reasons = {};
+  if (candidate?.industry && job?.industry) {
+    const cI = candidate.industry.toLowerCase(), jI = job.industry.toLowerCase();
+    const cW = cI.split(/[\s&,]+/), jW = jI.split(/[\s&,]+/);
+    const overlap = cW.some(w => w.length > 3 && jW.some(jw => jw.length > 3 && (jw.includes(w) || w.includes(jw))));
+    if (overlap || cI === jI) { score += 40; reasons.industry = true; }
+  } else { score += 20; reasons.industry = null; }
+  if (candidate?.function && job?.function) {
+    if (candidate.function.toLowerCase() === job.function.toLowerCase()) { score += 30; reasons.function = true; }
+  } else { score += 15; reasons.function = null; }
+  if (candidate?.salary_min && job?.salary_max && job.salary_max > 1000) {
+    if (candidate.salary_min <= job.salary_max) { score += 20; reasons.salary = true; }
+    else { reasons.salary = false; }
+  } else { score += 20; reasons.salary = null; }
+  if (job?.location && candidate?.location) {
+    const jL = job.location.toLowerCase(), cL = candidate.location.toLowerCase();
+    if (jL.includes('remote') || jL.includes('global') || cL.includes(jL.split(',')[0].trim().slice(0,5)) || jL.includes(cL.split(',')[0].trim().slice(0,5))) { score += 10; reasons.location = true; }
+  } else { score += 10; reasons.location = null; }
+  return { score: Math.min(100, score), reasons };
+}
+
+// ── NOTIFICATION BELL ────────────────────────────────────────────────────────
+function NotificationBell({ userEmail, userType }) {
+  const [notifs, setNotifs]       = useState([]);
+  const [open, setOpen]           = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!userEmail) return;
+    loadNotifs();
+  }, [userEmail]);
+
+  useEffect(() => {
+    function handleClick(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  async function loadNotifs() {
+    setLoading(true);
+    const { data } = await sb.from('fed_notifications')
+      .select('*')
+      .eq('recipient_email', userEmail.toLowerCase())
+      .order('created_at', { ascending: false })
+      .limit(20);
+    setNotifs(data || []);
+    setLoading(false);
+  }
+
+  async function handleOpen() {
+    setOpen(o => !o);
+    if (!open) {
+      await loadNotifs();
+      // Mark all as read after brief delay
+      setTimeout(async () => {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return;
+        await fetch('/api/match-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({ action: 'mark_notifications_read' }),
+        });
+        setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+      }, 2000);
+    }
+  }
+
+  const unread = notifs.filter(n => !n.is_read).length;
+  function timeAgoShort(ts) {
+    if (!ts) return '';
+    const diff = Date.now() - new Date(ts).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return 'just now';
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h`;
+    return `${Math.floor(h / 24)}d`;
+  }
+
+  return (
+    <div ref={ref} style={{position:'relative'}}>
+      <button className="notif-bell" onClick={handleOpen} title="Notifications">
+        🔔
+        {unread > 0 && <span className="notif-badge">{unread > 9 ? '9+' : unread}</span>}
+      </button>
+      {open && (
+        <div className="notif-dropdown">
+          <div className="notif-header">
+            <span className="notif-header-title">Notifications</span>
+            {unread > 0 && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--gold)'}}>
+              {unread} unread
+            </span>}
+          </div>
+          {loading ? (
+            <div className="notif-empty"><span className="spinner"/>Loading…</div>
+          ) : notifs.length === 0 ? (
+            <div className="notif-empty">No notifications yet.</div>
+          ) : (
+            <div style={{maxHeight:'360px',overflowY:'auto'}}>
+              {notifs.map(n => (
+                <div key={n.id} className={`notif-item ${!n.is_read ? 'unread' : ''}`}>
+                  <div className="notif-item-title">{n.title}</div>
+                  {n.body && <div className="notif-item-body">{n.body}</div>}
+                  <div className="notif-item-time">{timeAgoShort(n.created_at)}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DemoBanner({ onDismiss }) {
   return (
     <div className="demo-banner">
@@ -3359,6 +3534,9 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
         ) : !authUser ? (
           <button className="nav-link" onClick={onSignIn}>Sign In</button>
         ) : null}
+        {authUser && (
+          <NotificationBell userEmail={authUser.email} userType={userType} />
+        )}
         <button className="nav-cta" onClick={openRecruiterModal}>Post a Search</button>
         {authUser && (
           <button className="nav-signout" onClick={onSignOut}>Sign Out</button>
@@ -6619,11 +6797,231 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
             </div>
           )}
         </div>
+
+        {/* Matching Jobs (bidirectional match system) */}
+        <CandidateMatchSection
+          userEmail={user.email}
+          profile={profile}
+          showToast={showToast}
+        />
+
       </div>
     </div>
   );
 }
 
+
+// ── CANDIDATE MATCH SECTION ───────────────────────────────────────────────────
+function CandidateMatchSection({ userEmail, profile, showToast }) {
+  const [matches, setMatches]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [actionLoad, setActLoad] = useState({});
+  const [tab, setTab]           = useState('all'); // 'all' | 'interested' | 'mutual'
+
+  useEffect(() => {
+    if (!userEmail) return;
+    loadMatches();
+  }, [userEmail]);
+
+  async function loadMatches() {
+    setLoading(true);
+    const { data } = await sb.from('fed_matches')
+      .select('*, fed_jobs(id,title,firm_name,firm_code,industry,location,salary_display,type,salary_min,salary_max,status)')
+      .eq('candidate_email', userEmail.toLowerCase())
+      .not('status', 'in', '("candidate_hidden","expired")')
+      .order('match_score', { ascending: false });
+    setMatches(data || []);
+    setLoading(false);
+  }
+
+  async function doAction(action, matchId, jobId) {
+    const key = matchId || jobId;
+    setActLoad(p => ({...p, [key]: true}));
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { showToast('Please sign in.'); return; }
+      const resp = await fetch('/api/match-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action, match_id: matchId || undefined, job_id: jobId || undefined }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Action failed.'); return; }
+
+      if (data.status) {
+        const updatedMatchId = data.match_id || matchId;
+        setMatches(prev => {
+          if (action === 'candidate_interest' && !matchId) {
+            // New match record created — reload
+            loadMatches();
+            return prev;
+          }
+          return prev.map(m =>
+            (m.id === updatedMatchId || (jobId && m.job_id === jobId && m.candidate_email === userEmail.toLowerCase()))
+              ? { ...m, status: data.status }
+              : m
+          );
+        });
+
+        const msgs = {
+          candidate_interested: '✓ Interest sent. The search firm will be notified.',
+          mutual_interest: '✓ Mutual interest! Fredheim will facilitate an introduction.',
+          candidate_declined: 'Interest declined.',
+          candidate_hidden: 'Match hidden from your view.',
+        };
+        showToast(msgs[data.status] || '✓ Done.');
+      }
+    } catch(e) { showToast('Error. Please try again.'); }
+    setActLoad(p => ({...p, [key]: false}));
+  }
+
+  // Filter by tab
+  const tabMatches = tab === 'interested'
+    ? matches.filter(m => ['candidate_interested', 'mutual_interest'].includes(m.status))
+    : tab === 'mutual'
+    ? matches.filter(m => m.status === 'mutual_interest')
+    : tab === 'received'
+    ? matches.filter(m => m.status === 'recruiter_interested')
+    : matches;
+
+  const counts = {
+    all:       matches.length,
+    received:  matches.filter(m => m.status === 'recruiter_interested').length,
+    interested: matches.filter(m => ['candidate_interested','mutual_interest'].includes(m.status)).length,
+    mutual:    matches.filter(m => m.status === 'mutual_interest').length,
+  };
+
+  function scoreColor(s) { return s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--gold)' : 'var(--ink-3)'; }
+  function fmt(ts) { if (!ts) return ''; return new Date(ts).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'2-digit'}); }
+
+  return (
+    <div className="profile-card full-width">
+      <div className="profile-card-header">
+        <div className="profile-card-title">Matching Job Posts</div>
+        <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{counts.all} MATCHES</span>
+      </div>
+
+      {/* Match stats */}
+      {counts.all > 0 && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'1px',background:'var(--rule)',marginBottom:'1.25rem'}}>
+          {[
+            { label:'Matching Jobs',       val: counts.all,        tab:'all',        cls:'' },
+            { label:'Firm Interest Recv.', val: counts.received,   tab:'received',   cls: counts.received>0 ? 'gold' : '' },
+            { label:'Your Interest Sent',  val: counts.interested, tab:'interested', cls: counts.interested>0 ? 'gold' : '' },
+            { label:'Mutual Interest',     val: counts.mutual,     tab:'mutual',     cls: counts.mutual>0 ? 'green' : '' },
+          ].map(s => (
+            <div key={s.tab} className="match-stat" style={{cursor:'pointer',borderBottom: tab===s.tab ? '2px solid var(--ink)' : '2px solid transparent'}}
+                 onClick={() => setTab(s.tab)}>
+              <div className={`match-stat-num ${s.cls}`} style={{fontSize:'1.25rem'}}>{s.val}</div>
+              <div className="match-stat-label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading ? (
+        <div style={{textAlign:'center',padding:'2rem',color:'var(--ink-4)'}}><span className="spinner"/>Loading matches…</div>
+      ) : matches.length === 0 ? (
+        <div className="profile-field-empty">
+          No matching job posts yet. Matches are computed when search firms post new searches and will appear here automatically.
+        </div>
+      ) : tabMatches.length === 0 ? (
+        <div className="profile-field-empty">No matches in this category yet.</div>
+      ) : (
+        <div>
+          {tabMatches.map(match => {
+            const job = match.fed_jobs;
+            if (!job || job.status !== 'active') return null;
+            const key    = match.id;
+            const isBusy = actionLoad[key] || actionLoad[job.id];
+
+            const reasons = typeof match.match_reasons === 'string'
+              ? JSON.parse(match.match_reasons) : (match.match_reasons || {});
+
+            const isMutual   = match.status === 'mutual_interest';
+            const isReceived = match.status === 'recruiter_interested';
+
+            return (
+              <div key={match.id} className={`job-match-card ${isMutual ? 'mutual' : ''} ${isReceived ? 'recruiter-interested' : ''}`}>
+                <div className="job-match-left">
+                  <div style={{display:'flex',alignItems:'center',gap:'0.625rem',marginBottom:'0.375rem'}}>
+                    <div style={{width:28,height:28,background:'var(--ink)',color:'var(--paper)',fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      {job.firm_code || 'FH'}
+                    </div>
+                    <div>
+                      <div className="job-match-title">{job.title}</div>
+                      <div className="job-match-firm">
+                        {isMutual ? job.firm_name : 'Confidential Search Firm'} · {job.industry}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="job-match-details">
+                    {job.location} · {job.type} · {job.salary_display}
+                  </div>
+                  <div className="match-reason-tags" style={{marginTop:'0.5rem'}}>
+                    <span className="match-score-badge">
+                      <span style={{color:scoreColor(match.match_score),fontWeight:700}}>{match.match_score}%</span>
+                      <div className="match-score-bar" style={{maxWidth:50}}>
+                        <div className="match-score-fill" style={{width:`${match.match_score}%`,background:scoreColor(match.match_score)}} />
+                      </div>
+                      <span style={{fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.08em'}}>FIT</span>
+                    </span>
+                    {reasons.industry  === true && <span className="match-reason-tag match">Industry</span>}
+                    {reasons.function  === true && <span className="match-reason-tag match">Function</span>}
+                    {reasons.salary    === true && <span className="match-reason-tag match">Salary</span>}
+                    {reasons.location  === true && <span className="match-reason-tag match">Location</span>}
+                    {reasons.salary    === false && <span className="match-reason-tag" style={{color:'var(--red)'}}>Salary gap</span>}
+                  </div>
+                </div>
+
+                <div className="job-match-actions">
+                  {/* Status badge */}
+                  {isMutual && <span className="match-status-badge mutual">⬤ Mutual Interest</span>}
+                  {isReceived && <span className="match-status-badge recruiter-interested">Firm Interested in You</span>}
+                  {match.status === 'candidate_interested' && <span className="match-status-badge candidate-interested">Interest Sent</span>}
+                  {match.status === 'candidate_declined' && <span className="match-status-badge declined">Declined</span>}
+                  {match.status === 'recruiter_withdrawn' && <span className="match-status-badge declined">Firm Withdrew</span>}
+
+                  {/* Action buttons */}
+                  {match.status === 'matched' && (
+                    <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
+                      onClick={() => doAction('candidate_interest', null, job.id)} disabled={isBusy}>
+                      {isBusy ? '…' : 'Indicate Interest'}
+                    </button>
+                  )}
+                  {isReceived && (
+                    <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap',justifyContent:'flex-end'}}>
+                      <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
+                        onClick={() => doAction('candidate_interest', match.id, job.id)} disabled={isBusy}>
+                        {isBusy ? '…' : 'Accept Interest'}
+                      </button>
+                      <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
+                        onClick={() => doAction('candidate_decline', match.id)} disabled={isBusy}>
+                        {isBusy ? '…' : 'Decline'}
+                      </button>
+                    </div>
+                  )}
+                  {isMutual && (
+                    <div style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'right',maxWidth:140}}>
+                      Fredheim will facilitate your introduction.
+                    </div>
+                  )}
+                  {/* Hide option */}
+                  {!['candidate_hidden','mutual_interest'].includes(match.status) && (
+                    <button onClick={() => doAction('candidate_hide', match.id)} disabled={isBusy}
+                      style={{background:'none',border:'none',fontSize:'0.65rem',color:'var(--ink-4)',cursor:'pointer',padding:'0',textDecoration:'underline'}}>
+                      Hide
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── RECRUITER SIGN IN PAGE ────────────────────────────────────────────────────
 function RecruiterSignInPage({ onBack }) {
@@ -6699,12 +7097,231 @@ function RecruiterSignInPage({ onBack }) {
   );
 }
 
+// ── RECRUITER MATCH TAB ───────────────────────────────────────────────────────
+function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate }) {
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [actionLoading, setActionLoading] = useState({});
+
+  async function indicateInterest(matchId) {
+    setActionLoading(p => ({...p, [matchId]: true}));
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/match-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ action: 'recruiter_interest', match_id: matchId }),
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        onMatchUpdate(matchId, data.status);
+        showToast(data.status === 'mutual_interest' ? '✓ Mutual interest! Fredheim will facilitate the introduction.' : '✓ Interest sent. Candidate will be notified.');
+      } else {
+        showToast(data.error || 'Could not send interest.');
+      }
+    } catch(e) { showToast('Error sending interest.'); }
+    setActionLoading(p => ({...p, [matchId]: false}));
+  }
+
+  async function withdrawInterest(matchId) {
+    setActionLoading(p => ({...p, [matchId]: true}));
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/match-action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ action: 'recruiter_withdraw', match_id: matchId }),
+      });
+      const data = await resp.json();
+      if (resp.ok) { onMatchUpdate(matchId, 'recruiter_withdrawn'); showToast('Interest withdrawn.'); }
+      else showToast(data.error || 'Could not withdraw.');
+    } catch(e) { showToast('Error.'); }
+    setActionLoading(p => ({...p, [matchId]: false}));
+  }
+
+  // Aggregate stats
+  const totalMatches      = matches.length;
+  const interestSent      = matches.filter(m => ['recruiter_interested','mutual_interest'].includes(m.status)).length;
+  const candidateInterest = matches.filter(m => m.status === 'candidate_interested').length;
+  const mutualMatches     = matches.filter(m => m.status === 'mutual_interest').length;
+  const newMatches        = matches.filter(m => !m.last_recruiter_view_at).length;
+
+  function scoreColor(s) { return s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--gold)' : 'var(--ink-3)'; }
+
+  function privacyLabel(match) {
+    // We don't have candidate profile details in match record — show generic label
+    // The candidate_email is used internally only; display-facing is anonymized
+    return `Executive Candidate #${match.id.slice(-4).toUpperCase()}`;
+  }
+
+  return (
+    <div>
+      {/* Stats */}
+      <div className="match-stat-row" style={{marginBottom:'2rem'}}>
+        {[
+          { label:'Total Matches',      num: totalMatches,      cls:'' },
+          { label:'New Since Last View', num: newMatches,        cls: newMatches > 0 ? 'gold' : '' },
+          { label:'Interest Sent',       num: interestSent,      cls: interestSent > 0 ? 'gold' : '' },
+          { label:'Candidate Interest',  num: candidateInterest, cls: candidateInterest > 0 ? 'green' : '' },
+          { label:'Mutual Interest',     num: mutualMatches,     cls: mutualMatches > 0 ? 'green' : '' },
+        ].map(s => (
+          <div key={s.label} className="match-stat">
+            <div className={`match-stat-num ${s.cls}`}>{s.num}</div>
+            <div className="match-stat-label">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {jobs.length === 0 ? (
+        <div style={{textAlign:'center',padding:'3rem',color:'var(--ink-4)',fontSize:'0.875rem'}}>
+          No active searches. Post a search to start seeing candidate matches.
+        </div>
+      ) : jobs.map(job => {
+        const jobMatches = matches.filter(m => m.job_id === job.id);
+        const jNew       = jobMatches.filter(m => !m.last_recruiter_view_at).length;
+        const jSent      = jobMatches.filter(m => ['recruiter_interested','mutual_interest'].includes(m.status)).length;
+        const jReceived  = jobMatches.filter(m => m.status === 'candidate_interested').length;
+        const jMutual    = jobMatches.filter(m => m.status === 'mutual_interest').length;
+        const isOpen     = selectedJobId === job.id;
+
+        return (
+          <div key={job.id} className="match-job-row">
+            <div className="match-job-header" onClick={() => {
+              setSelectedJobId(isOpen ? null : job.id);
+              // Mark as viewed (background call)
+              if (!isOpen) {
+                sb.auth.getSession().then(({ data: { session } }) => {
+                  if (!session) return;
+                  fetch('/api/match-action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+                    body: JSON.stringify({ action: 'mark_viewed', job_id: job.id }),
+                  });
+                });
+              }
+            }}>
+              <div>
+                <div className="match-job-title">{job.title}</div>
+                <div className="match-job-meta">{job.industry} · {job.location} · {job.salary_display}</div>
+              </div>
+              <div className="match-job-counts">
+                <span className="match-count-pill">{jobMatches.length} matches</span>
+                {jNew > 0 && <span className="match-count-pill gold">{jNew} new</span>}
+                {jReceived > 0 && <span className="match-count-pill green">{jReceived} interested</span>}
+                {jMutual > 0 && <span className="match-count-pill green">⬤ {jMutual} mutual</span>}
+                <button className="admin-action-btn" style={{marginLeft:'0.5rem'}}>{isOpen ? '▲ Hide' : '▼ View Candidates'}</button>
+              </div>
+            </div>
+
+            {isOpen && (
+              <div className="match-candidates-grid">
+                {jobMatches.length === 0 ? (
+                  <div style={{padding:'2rem',color:'var(--ink-4)',fontSize:'0.82rem',gridColumn:'1/-1'}}>
+                    No candidate matches yet. Match computation runs when you load this dashboard.
+                  </div>
+                ) : jobMatches.map(match => {
+                  const isBusy      = actionLoading[match.id];
+                  const canInterest = match.status === 'matched' || match.status === 'candidate_interested';
+                  const canWithdraw = match.status === 'recruiter_interested' || match.status === 'mutual_interest';
+                  const isMutual    = match.status === 'mutual_interest';
+
+                  const reasons = typeof match.match_reasons === 'string'
+                    ? JSON.parse(match.match_reasons) : (match.match_reasons || {});
+
+                  return (
+                    <div key={match.id} className={`match-candidate-card ${isMutual ? 'mutual-border' : ''}`}
+                         style={isMutual ? {borderTop:'2px solid var(--green)'} : {}}>
+                      {/* Match score */}
+                      <div className="match-score-badge">
+                        <span style={{color: scoreColor(match.match_score), fontWeight:700, fontSize:'0.9rem'}}>
+                          {match.match_score}%
+                        </span>
+                        <div className="match-score-bar">
+                          <div className="match-score-fill" style={{width:`${match.match_score}%`, background: scoreColor(match.match_score)}} />
+                        </div>
+                        <span style={{color:'var(--ink-4)',fontSize:'0.6rem',letterSpacing:'0.08em'}}>MATCH</span>
+                      </div>
+
+                      {/* Anonymized identity */}
+                      <div>
+                        <div className="match-candidate-title">
+                          {isMutual ? match.candidate_email : privacyLabel(match)}
+                        </div>
+                        <div className="match-candidate-meta">
+                          {isMutual
+                            ? 'Identity revealed — Fredheim will facilitate introduction.'
+                            : 'Identity protected until mutual interest is confirmed.'}
+                        </div>
+                      </div>
+
+                      {/* Match reason tags */}
+                      <div className="match-reason-tags">
+                        {reasons.industry === true && <span className="match-reason-tag match">Industry ✓</span>}
+                        {reasons.function === true && <span className="match-reason-tag match">Function ✓</span>}
+                        {reasons.salary   === true && <span className="match-reason-tag match">Salary ✓</span>}
+                        {reasons.location === true && <span className="match-reason-tag match">Location ✓</span>}
+                        {reasons.salary   === false && <span className="match-reason-tag" style={{color:'var(--red)'}}>Salary gap</span>}
+                      </div>
+
+                      {/* Status and action */}
+                      <div className="match-action-row">
+                        {match.status === 'matched' && (
+                          <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem'}}
+                            onClick={() => indicateInterest(match.id)} disabled={isBusy}>
+                            {isBusy ? '…' : 'Indicate Interest'}
+                          </button>
+                        )}
+                        {match.status === 'candidate_interested' && (
+                          <>
+                            <span className="match-status-badge candidate-interested">Candidate Interested →</span>
+                            <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem'}}
+                              onClick={() => indicateInterest(match.id)} disabled={isBusy}>
+                              {isBusy ? '…' : 'Accept & Match'}
+                            </button>
+                          </>
+                        )}
+                        {match.status === 'recruiter_interested' && (
+                          <>
+                            <span className="match-status-badge recruiter-interested">Interest Sent</span>
+                            <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
+                              onClick={() => withdrawInterest(match.id)} disabled={isBusy}>
+                              {isBusy ? '…' : 'Withdraw'}
+                            </button>
+                          </>
+                        )}
+                        {match.status === 'mutual_interest' && (
+                          <span className="match-status-badge mutual">⬤ Mutual Interest — Introduction Pending</span>
+                        )}
+                        {match.status === 'candidate_declined' && (
+                          <span className="match-status-badge declined">Candidate Declined</span>
+                        )}
+                        {match.status === 'recruiter_withdrawn' && (
+                          <span className="match-status-badge declined">Withdrawn</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <div style={{marginTop:'1.5rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
+        Candidate identities are protected until mutual interest is confirmed. Once mutual, Fredheim facilitates the introduction. Introduction fees apply upon placement.
+      </div>
+    </div>
+  );
+}
+
 // ── RECRUITER DASHBOARD ───────────────────────────────────────────────────────
 function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   const [submissions, setSubmissions] = useState([]);
   const [jobs, setJobs]               = useState([]);
   const [interests, setInterests]     = useState([]);
+  const [matches, setMatches]         = useState([]);
   const [loading, setLoading]         = useState(true);
+  const [dashTab, setDashTab]         = useState('overview'); // 'overview' | 'matches'
 
   const userEmail = user.email;
 
@@ -6725,7 +7342,6 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
       ]);
       setSubmissions(dashRes.submissions || []);
       setJobs(jRes.data || []);
-      // Interests matched to this firm's jobs
       const jobIds = (jRes.data || []).map(j => j.id);
       if (jobIds.length > 0) {
         const { data: iData } = await sb
@@ -6734,8 +7350,35 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
           .in('job_id', jobIds)
           .order('created_at', {ascending:false});
         setInterests(iData || []);
+
+        // Load bidirectional match data
+        const { data: mData } = await sb
+          .from('fed_matches')
+          .select('*')
+          .in('job_id', jobIds)
+          .not('status', 'in', '("candidate_hidden")')
+          .order('match_score', { ascending: false });
+        setMatches(mData || []);
+
+        // Trigger match computation in background (creates new match records for new candidates)
+        if (authToken) {
+          fetch('/api/compute-matches', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+          }).then(r => r.json()).then(result => {
+            if (result.matches_created > 0) {
+              // Refresh matches after computation
+              sb.from('fed_matches').select('*')
+                .in('job_id', jobIds)
+                .not('status', 'in', '("candidate_hidden")')
+                .order('match_score', { ascending: false })
+                .then(({ data }) => { if (data) setMatches(data); });
+            }
+          }).catch(() => {});
+        }
       } else {
         setInterests([]);
+        setMatches([]);
       }
     } catch(e) {
       showToast('Error loading dashboard data.');
@@ -6826,6 +7469,31 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
         </div>
       )}
 
+      {/* Dashboard Tabs */}
+      <div className="match-tabs">
+        <button className={`match-tab ${dashTab==='overview'?'active':''}`} onClick={() => setDashTab('overview')}>
+          Overview
+        </button>
+        <button className={`match-tab ${dashTab==='matches'?'active':''}`} onClick={() => setDashTab('matches')}>
+          Candidate Matches {matches.length > 0 && `(${matches.length})`}
+        </button>
+      </div>
+
+      {dashTab === 'matches' && (
+        <RecruiterMatchTab
+          jobs={jobs.filter(j=>j.status==='active' && !j.demo_post)}
+          matches={matches}
+          authToken={null}
+          userEmail={userEmail}
+          showToast={showToast}
+          onMatchUpdate={(matchId, newStatus) => {
+            setMatches(prev => prev.map(m => m.id === matchId ? {...m, status: newStatus} : m));
+          }}
+        />
+      )}
+
+      {dashTab === 'overview' && (
+      <div>
       {/* Stats */}
       <div className="admin-stats" style={{marginBottom:'2rem'}}>
         <div className="admin-stat">
@@ -6958,6 +7626,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
         Questions about your account or a posting?{' '}
         <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
       </div>
+      </div> {/* /overview tab */}
     </div>
   );
 }
