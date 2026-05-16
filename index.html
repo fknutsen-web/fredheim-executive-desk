@@ -3302,6 +3302,73 @@
   .job-match-details { font-size:0.75rem; color:var(--ink-4); line-height:1.6; }
   .job-match-actions { display:flex; gap:0.5rem; flex-direction:column; align-items:flex-end; flex-shrink:0; }
 
+  /* ── CLOSURE / FILL / FEEDBACK SYSTEM ── */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:flex; align-items:center; justify-content:center; padding:1rem; }
+  .workflow-modal { background:var(--paper); border:1px solid var(--rule); max-width:560px; width:100%; max-height:90vh; overflow-y:auto; padding:2rem; position:relative; }
+  .workflow-modal-title { font-family:'Playfair Display',serif; font-size:1.25rem; color:var(--ink); margin-bottom:0.25rem; }
+  .workflow-modal-sub { font-size:0.8rem; color:var(--ink-4); margin-bottom:1.75rem; line-height:1.5; }
+  .workflow-section { margin-bottom:1.5rem; }
+  .workflow-section-title { font-family:"'DM Mono',monospace"; font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--ink-3); margin-bottom:0.75rem; }
+  .workflow-radio-group { display:flex; flex-direction:column; gap:0.5rem; }
+  .workflow-radio-item { display:flex; align-items:flex-start; gap:0.625rem; padding:0.75rem; border:1px solid var(--rule); cursor:pointer; transition:border-color 0.1s; }
+  .workflow-radio-item:hover { border-color:var(--ink-3); }
+  .workflow-radio-item.selected { border-color:var(--ink); background:var(--paper-2); }
+  .workflow-radio-item input[type=radio] { margin-top:0.15rem; flex-shrink:0; }
+  .workflow-radio-label { font-size:0.875rem; color:var(--ink); }
+  .workflow-radio-desc { font-size:0.72rem; color:var(--ink-4); margin-top:0.15rem; line-height:1.4; }
+  .workflow-cert-box { background:var(--paper-2); border:1px solid var(--rule); border-left:3px solid var(--gold); padding:1rem 1.25rem; margin-bottom:1rem; }
+  .workflow-cert-text { font-size:0.8rem; color:var(--ink-2); line-height:1.6; margin-bottom:0.875rem; font-style:italic; }
+  .workflow-cert-check { display:flex; align-items:flex-start; gap:0.625rem; cursor:pointer; }
+  .workflow-cert-check input { margin-top:0.15rem; flex-shrink:0; }
+  .workflow-cert-check-label { font-size:0.82rem; color:var(--ink); font-weight:500; }
+  .warning-box { background:#fff8f0; border:1px solid #f5a623; border-left:3px solid #f5a623; padding:0.875rem 1.25rem; margin-bottom:1.25rem; font-size:0.8rem; color:#7a4d0a; line-height:1.5; }
+  .warning-box strong { display:block; margin-bottom:0.25rem; font-size:0.78rem; letter-spacing:0.05em; text-transform:uppercase; }
+  .workflow-actions { display:flex; gap:0.75rem; margin-top:1.75rem; padding-top:1.25rem; border-top:1px solid var(--rule); }
+  .workflow-close-btn { background:none; border:1px solid var(--rule); color:var(--ink-3); font-size:0.78rem; padding:0.6rem 1.25rem; cursor:pointer; }
+  .workflow-close-btn:hover { border-color:var(--ink-3); color:var(--ink); }
+  .btn-danger { background:#c0392b; color:#fff; border:none; font-size:0.78rem; padding:0.6rem 1.5rem; cursor:pointer; font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; }
+  .btn-danger:disabled { opacity:0.5; cursor:not-allowed; }
+  .rating-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+  .rating-item label { display:block; font-size:0.72rem; color:var(--ink-3); font-family:'DM Mono',monospace; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:0.375rem; }
+  .rating-stars { display:flex; gap:0.25rem; }
+  .rating-star { width:24px; height:24px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; color:var(--rule); transition:color 0.1s; }
+  .rating-star.filled { color:var(--gold); }
+  .placement-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+  .job-status-badge { display:inline-block; font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; padding:0.2rem 0.5rem; }
+  .job-status-badge.active { background:var(--green-bg); color:var(--green); border:1px solid rgba(26,122,74,0.2); }
+  .job-status-badge.closed-unfilled { background:var(--paper-2); color:var(--ink-4); border:1px solid var(--rule); }
+  .job-status-badge.filled-platform { background:#e8f5e9; color:#2e7d32; border:1px solid rgba(46,125,50,0.3); }
+  .job-status-badge.filled-external { background:var(--gold-bg); color:var(--gold); border:1px solid var(--gold-rule); }
+  .job-status-badge.pending-fill-review { background:#fff3e0; color:#e65100; border:1px solid rgba(230,81,0,0.3); }
+  .job-status-badge.flagged { background:#ffebee; color:#c62828; border:1px solid rgba(198,40,40,0.3); }
+  /* ── LEADERBOARD ── */
+  .leaderboard-section { margin: 3rem auto; max-width: 900px; padding: 0 1.5rem; }
+  .leaderboard-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; flex-wrap:wrap; gap:0.75rem; }
+  .leaderboard-title { font-family:'Playfair Display',serif; font-size:1.25rem; color:var(--ink); }
+  .leaderboard-filters { display:flex; gap:0.375rem; }
+  .leaderboard-filter { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; padding:0.3rem 0.75rem; border:1px solid var(--rule); background:transparent; color:var(--ink-3); cursor:pointer; }
+  .leaderboard-filter.active { background:var(--ink); color:var(--paper); border-color:var(--ink); }
+  .leaderboard-grid { display:grid; gap:1px; background:var(--rule); }
+  .leaderboard-card { background:var(--paper); padding:1.25rem 1.5rem; display:flex; gap:1.25rem; align-items:center; }
+  .leaderboard-rank { font-family:'Playfair Display',serif; font-size:1.75rem; color:var(--ink-4); min-width:2rem; text-align:center; }
+  .leaderboard-rank.gold-rank { color:var(--gold); }
+  .leaderboard-firm { flex:1; }
+  .leaderboard-firm-name { font-family:'Playfair Display',serif; font-size:1rem; color:var(--ink); margin-bottom:0.25rem; }
+  .leaderboard-badges { display:flex; gap:0.375rem; flex-wrap:wrap; margin-top:0.25rem; }
+  .trust-badge { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.08em; padding:0.15rem 0.5rem; border:1px solid rgba(26,122,74,0.3); color:var(--green); background:var(--green-bg); }
+  .leaderboard-count { text-align:right; }
+  .leaderboard-count-num { font-family:'Playfair Display',serif; font-size:1.5rem; color:var(--ink); }
+  .leaderboard-count-label { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; color:var(--ink-4); text-transform:uppercase; }
+  /* Billing gate */
+  .billing-gate-banner { border:1px solid var(--gold-rule); border-left:3px solid var(--gold); background:var(--gold-bg); padding:1rem 1.5rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .billing-gate-msg { font-size:0.875rem; color:var(--ink-2); }
+  .billing-setup-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem 1rem; }
+  .billing-option { border:1px solid var(--rule); padding:1.25rem; cursor:pointer; transition:border-color 0.1s; }
+  .billing-option:hover { border-color:var(--ink-3); }
+  .billing-option.selected { border-color:var(--ink); background:var(--paper-2); }
+  .billing-option-title { font-size:0.9rem; font-weight:500; color:var(--ink); margin-bottom:0.25rem; }
+  .billing-option-desc { font-size:0.75rem; color:var(--ink-4); line-height:1.5; }
+
 </style>
 </head>
 <body>
@@ -3375,7 +3442,235 @@ function parseJson(v) {
 }
 
 // ── DEMO BANNER ──────────────────────────────────────────────────────────────
-// ── MATCH SCORING UTILITY ────────────────────────────────────────────────────
+// ── LEADERBOARD SECTION ───────────────────────────────────────────────────────
+function LeaderboardSection() {
+  const [period, setPeriod]         = useState('12m');
+  const [data, setData]             = useState(null);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState(null);
+
+  useEffect(() => { fetchLeaderboard(period); }, [period]);
+
+  async function fetchLeaderboard(p) {
+    setLoading(true);
+    setError(null);
+    try {
+      const resp = await fetch(`/api/leaderboard?period=${p}`);
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Failed.');
+      setData(json);
+    } catch(e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  }
+
+  const PERIODS = [['30d','30 Days'],['90d','90 Days'],['12m','12 Months'],['all','All Time']];
+  const RANK_LABELS = ['','★','②','③','④','⑤'];
+
+  if (!data && !loading && !error) return null;
+  if (data?.leaderboard?.length === 0) return null; // hide if no verified placements yet
+
+  return (
+    <div className="leaderboard-section">
+      <div className="leaderboard-header">
+        <div>
+          <div className="leaderboard-title">Top Search Firms</div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
+            Verified platform placements only
+          </div>
+        </div>
+        <div className="leaderboard-filters">
+          {PERIODS.map(([v,l]) => (
+            <button key={v} className={`leaderboard-filter ${period===v?'active':''}`} onClick={()=>setPeriod(v)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{textAlign:'center',padding:'2rem',color:'var(--ink-4)'}}><span className="spinner"/></div>
+      ) : error ? null : (
+        <div className="leaderboard-grid">
+          {(data?.leaderboard || []).map((firm, idx) => (
+            <div key={idx} className="leaderboard-card">
+              <div className={`leaderboard-rank ${idx===0?'gold-rank':''}`}>
+                {idx === 0 ? '★' : `${idx+1}`}
+              </div>
+              <div className="leaderboard-firm">
+                <div className="leaderboard-firm-name">{firm.firm_name}</div>
+                {firm.industry_focus?.length > 0 && (
+                  <div style={{fontSize:'0.75rem',color:'var(--ink-4)'}}>
+                    {firm.industry_focus.join(' · ')}
+                  </div>
+                )}
+                <div className="leaderboard-badges">
+                  {firm.verified && <span className="trust-badge">Verified Firm</span>}
+                  <span className="trust-badge">Platform Placement</span>
+                </div>
+              </div>
+              <div className="leaderboard-count">
+                <div className="leaderboard-count-num">{firm.placement_count}</div>
+                <div className="leaderboard-count-label">placement{firm.placement_count!==1?'s':''}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PAYMENT GATE MODAL ────────────────────────────────────────────────────────
+function PaymentGateModal({ reason, onClose, onRequestInvoice }) {
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="workflow-modal">
+        <div className="workflow-modal-title">Billing Required</div>
+        <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'1rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.875rem',color:'var(--ink-2)',lineHeight:'1.6'}}>
+          {reason || 'Billing setup is required before publishing a job posting or accessing candidate matches.'}
+        </div>
+        <div style={{display:'grid',gap:'0.75rem',marginBottom:'1.5rem'}}>
+          {[
+            { label:'Select a Subscription', desc:'Monthly or annual plan. Subscriptions open January 2027. Join the waitlist.', action:null },
+            { label:'Request Invoice Billing', desc:'Net-30 invoicing for approved firms. Billing contact and company verification required.', action: onRequestInvoice },
+            { label:'Prepaid Posting Package', desc:'Purchase a block of job postings at a set rate. Available January 2027.', action:null },
+          ].map((opt,i) => (
+            <div key={i} className={`billing-option ${opt.action?'':'opacity-50'}`}
+              onClick={opt.action || undefined}
+              style={{cursor:opt.action?'pointer':'default',opacity:opt.action?1:0.55}}>
+              <div className="billing-option-title">{opt.label}</div>
+              <div className="billing-option-desc">{opt.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{fontSize:'0.78rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.5'}}>
+          Questions? <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+        </div>
+        <div className="workflow-actions">
+          <button className="workflow-close-btn" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── RECRUITER BILLING SETUP ───────────────────────────────────────────────────
+function RecruiterBillingSetup({ onClose, showToast, onSuccess }) {
+  const [step, setStep]     = useState('options'); // 'options' | 'invoice' | 'done'
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    invoice_company_name:'', invoice_company_address:'',
+    invoice_contact_name:'', invoice_contact_email:'',
+    invoice_po_required: false, invoice_billing_notes:'',
+  });
+  function set(k,v) { setForm(p => ({...p,[k]:v})); }
+
+  async function submitInvoiceRequest() {
+    if (!form.invoice_company_name || !form.invoice_contact_email) {
+      showToast('Company name and billing email required.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/recruiter-billing', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${session?.access_token||''}` },
+        body: JSON.stringify({ action:'request_invoice', ...form }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Submission failed.'); return; }
+      setStep('done');
+      if (onSuccess) onSuccess('invoice_billing_pending');
+    } catch(e) { showToast('Error submitting request.'); }
+    setLoading(false);
+  }
+
+  if (step === 'done') return (
+    <div className="modal-overlay">
+      <div className="workflow-modal" style={{textAlign:'center',padding:'3rem 2rem'}}>
+        <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
+        <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Invoice Billing Requested</div>
+        <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem',lineHeight:'1.6'}}>
+          The Fredheim team will review your request within 24 hours. You'll receive an email confirmation at your billing contact email.
+          In the meantime, if you are within the 2026 Founding Partner period, you can continue posting.
+        </div>
+        <button className="btn-primary" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="workflow-modal">
+        {step === 'options' && (
+          <div>
+            <div className="workflow-modal-title">Set Up Billing</div>
+            <div className="workflow-modal-sub">
+              Select how you'd like to handle billing for Fredheim Executive Desk.
+              Subscriptions and prepaid packages open January 2027.
+            </div>
+            <div style={{display:'grid',gap:'0.75rem',marginBottom:'1.5rem'}}>
+              <div className="billing-option" onClick={()=>setStep('invoice')} style={{cursor:'pointer'}}>
+                <div className="billing-option-title">Invoice Billing (Request Now)</div>
+                <div className="billing-option-desc">Net-30 invoicing for approved firms. Provide billing contact and company details. Admin review within 24 hours.</div>
+              </div>
+              <div className="billing-option" style={{opacity:0.5,cursor:'default'}}>
+                <div className="billing-option-title">Subscription — Available Jan 2027</div>
+                <div className="billing-option-desc">Monthly and annual plans. Founding partners receive preferred pricing.</div>
+              </div>
+              <div className="billing-option" style={{opacity:0.5,cursor:'default'}}>
+                <div className="billing-option-title">Prepaid Package — Available Jan 2027</div>
+                <div className="billing-option-desc">Purchase a posting block in advance.</div>
+              </div>
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={onClose}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {step === 'invoice' && (
+          <div>
+            <div className="workflow-modal-title">Invoice Billing Request</div>
+            <div className="workflow-modal-sub">
+              Provide your billing details. Admin will review and approve within 24 hours.
+            </div>
+            <div className="billing-setup-grid" style={{marginBottom:'1rem'}}>
+              {[
+                { k:'invoice_company_name',    label:'Company Legal Name *',  ph:'Company name as it appears on invoices' },
+                { k:'invoice_contact_name',    label:'Billing Contact Name',  ph:'Name for invoices' },
+                { k:'invoice_contact_email',   label:'Billing Email *',       ph:'billing@yourfirm.com' },
+                { k:'invoice_company_address', label:'Company Address',       ph:'Full billing address' },
+              ].map(f => (
+                <div key={f.k} className="form-group">
+                  <label className="form-label">{f.label}</label>
+                  <input className="form-input" placeholder={f.ph} value={form[f.k]} onChange={e=>set(f.k,e.target.value)} />
+                </div>
+              ))}
+            </div>
+            <label style={{display:'flex',alignItems:'flex-start',gap:'0.5rem',marginBottom:'1rem',cursor:'pointer',fontSize:'0.82rem'}}>
+              <input type="checkbox" checked={form.invoice_po_required} onChange={e=>set('invoice_po_required',e.target.checked)} style={{marginTop:'0.15rem'}} />
+              A purchase order number is required on invoices
+            </label>
+            <div className="form-group" style={{marginBottom:'1rem'}}>
+              <label className="form-label">Notes (optional)</label>
+              <textarea className="form-input" rows={2} value={form.invoice_billing_notes} onChange={e=>set('invoice_billing_notes',e.target.value)} style={{resize:'vertical'}} />
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={()=>setStep('options')}>← Back</button>
+              <button className="btn-primary" onClick={submitInvoiceRequest} disabled={loading}>
+                {loading ? 'Submitting…' : 'Submit Request'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DemoBanner({ onDismiss }) {
 function computeMatchScore(candidate, job) {
   let score = 0;
   const reasons = {};
@@ -3819,9 +4114,11 @@ function TosModal({ onAgree, onCancel }) {
 
 // ── RECRUITER MODAL ───────────────────────────────────────────────────────────
 function RecruiterModal({ onClose, showToast }) {
-  const [step, setStep]           = useState('tos'); // 'tos' | 'form'
+  const [step, setStep]           = useState('tos');
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
+  const [billingBlock, setBillingBlock] = useState(null);
+  const [showBillingSetup, setShowBillingSetup] = useState(false);
   const [form, setForm] = useState({
     firm_name:'', contact_name:'', email:'', role_title:'',
     industry:'', location:'', salary_range:'', role_level:'executive', notes:'',
@@ -3839,15 +4136,38 @@ function RecruiterModal({ onClose, showToast }) {
         tos_agreed: true,
         tos_agreed_at: new Date().toISOString(),
       });
-      // Notify admin and send confirmation to submitter
-      await fetch('/api/notify-posting', {
+      // Notify admin — billing gate is enforced server-side in notify-posting
+      const resp = await fetch('/api/notify-posting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
-      }).catch(() => {}); // non-blocking — submission already saved
+      });
+      const data = await resp.json();
+      if (!resp.ok && data.billing_required) {
+        // Billing gate triggered server-side
+        setBillingBlock(data.error);
+        setLoading(false);
+        return;
+      }
     } catch(e) {}
     setSubmitted(true);
     setLoading(false);
+  }
+
+  if (showBillingSetup) {
+    return <RecruiterBillingSetup
+      onClose={() => setShowBillingSetup(false)}
+      showToast={showToast}
+      onSuccess={() => { setShowBillingSetup(false); setBillingBlock(null); }}
+    />;
+  }
+
+  if (billingBlock) {
+    return <PaymentGateModal
+      reason={billingBlock}
+      onClose={() => setBillingBlock(null)}
+      onRequestInvoice={() => setShowBillingSetup(true)}
+    />;
   }
 
   return (
@@ -5381,6 +5701,463 @@ function PrivacyPage() {
 // ── ADMIN DASHBOARD ───────────────────────────────────────────────────────────
 // Admin password is validated server-side via /api/admin-auth — never exposed in client HTML
 
+// ── CLOSE JOB MODAL ──────────────────────────────────────────────────────────
+const CLOSE_REASONS = [
+  { value:'position_cancelled',      label:'Position cancelled' },
+  { value:'position_on_hold',        label:'Position put on hold' },
+  { value:'budget_removed',          label:'Budget removed' },
+  { value:'no_suitable_candidate',   label:'No suitable candidate found' },
+  { value:'filled_outside_platform', label:'Filled outside the platform' },
+  { value:'other',                   label:'Other' },
+];
+
+const CLOSE_CERT_TEXT =
+  'I certify that this position has not been filled through any candidate introduced, matched, viewed, unlocked, contacted, or engaged through Fredheim Executive Desk.';
+
+function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
+  const [reason, setReason]   = useState('');
+  const [certified, setCert]  = useState(false);
+  const [notes, setNotes]     = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function submit() {
+    if (!reason) { showToast('Please select a close reason.'); return; }
+    if (!certified) { showToast('You must confirm the certification to proceed.'); return; }
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/job-close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ job_id: job.id, close_reason: reason, certification_confirmed: true, notes }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Close failed.'); return; }
+      showToast(data.flagged
+        ? '⚠ Job closed and flagged for admin review — introductions on record.'
+        : '✓ Job closed. All candidate activity is preserved.');
+      onJobStatusChange(job.id, 'closed_unfilled');
+      onClose();
+    } catch(e) { showToast('Error submitting closure.'); }
+    setLoading(false);
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="workflow-modal">
+        <div className="workflow-modal-title">Close Job Posting</div>
+        <div className="workflow-modal-sub">
+          Use this when the position was not filled through the platform.
+          All candidate activity, matches, and interactions are preserved.
+        </div>
+
+        {job.has_introductions && (
+          <div className="warning-box">
+            <strong>⚠ Candidate introductions on record</strong>
+            This job has had candidate introductions via Fredheim. If you filled this role
+            using an introduced candidate, please use "Mark as Filled" instead.
+            The 12-month tail period applies to all introduced candidates.
+          </div>
+        )}
+
+        <div className="workflow-section">
+          <div className="workflow-section-title">Close Reason *</div>
+          <div className="workflow-radio-group">
+            {CLOSE_REASONS.map(r => (
+              <label key={r.value} className={`workflow-radio-item ${reason===r.value?'selected':''}`}>
+                <input type="radio" name="close_reason" value={r.value}
+                  checked={reason===r.value} onChange={()=>setReason(r.value)} />
+                <span className="workflow-radio-label">{r.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="workflow-section">
+          <div className="workflow-cert-box">
+            <div className="workflow-cert-text">{CLOSE_CERT_TEXT}</div>
+            <label className="workflow-cert-check">
+              <input type="checkbox" checked={certified} onChange={e=>setCert(e.target.checked)} />
+              <span className="workflow-cert-check-label">I agree to this certification</span>
+            </label>
+          </div>
+        </div>
+
+        <div className="workflow-section">
+          <label style={{fontSize:'0.78rem',color:'var(--ink-3)',display:'block',marginBottom:'0.375rem'}}>Notes (optional)</label>
+          <textarea className="form-input" rows={3} value={notes} onChange={e=>setNotes(e.target.value)}
+            placeholder="Any additional context for the admin team…" style={{resize:'vertical'}} />
+        </div>
+
+        <div className="workflow-actions">
+          <button className="workflow-close-btn" onClick={onClose}>Cancel</button>
+          <button className="btn-danger" onClick={submit} disabled={loading || !reason || !certified}>
+            {loading ? 'Submitting…' : 'Close Job Posting'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MARK AS FILLED MODAL ─────────────────────────────────────────────────────
+const EXTERNAL_CERT_TEXT =
+  'I certify that the selected candidate was not introduced, matched, viewed, unlocked, contacted, shortlisted, messaged, or engaged through Fredheim Executive Desk for this role or a substantially similar role.';
+
+function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
+  const [step, setStep]         = useState('source');  // 'source' | 'platform' | 'external' | 'done'
+  const [source, setSource]     = useState('');
+  const [certified, setCert]    = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [stars, setStars]       = useState({});
+
+  // Platform form fields
+  const [pf, setPf] = useState({
+    candidate_email:'', offer_date:'', start_date:'',
+    compensation_amount:'', hiring_company:'',
+    invoice_contact:'', invoice_email:'', purchase_order:'', notes:'',
+  });
+  function setPfField(k,v) { setPf(p => ({...p, [k]:v})); }
+
+  async function submitPlatform() {
+    if (!pf.candidate_email) { showToast('Candidate email required.'); return; }
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/job-fill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ job_id: job.id, fill_type: 'platform_candidate', ...pf }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Failed.'); return; }
+      showToast(`✓ Placement recorded. ${data.fee_amount ? `Estimated fee: $${data.fee_amount.toLocaleString()}.` : ''} Admin will be in touch.`);
+      onJobStatusChange(job.id, 'filled_platform');
+      setStep('done');
+    } catch(e) { showToast('Error.'); }
+    setLoading(false);
+  }
+
+  async function submitExternal() {
+    if (!certified) { showToast('Certification required.'); return; }
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/job-fill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ job_id: job.id, fill_type: 'external_candidate', external_certification_confirmed: true }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Failed.'); return; }
+      showToast(data.flagged ? '⚠ Submitted for admin review — introductions on record.' : '✓ Recorded. Admin will review.');
+      onJobStatusChange(job.id, 'filled_external');
+      setStep('done');
+    } catch(e) { showToast('Error.'); }
+    setLoading(false);
+  }
+
+  async function submitPending() {
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      await fetch('/api/job-fill', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ job_id: job.id, fill_type: 'pending_review' }),
+      });
+      showToast('✓ Submitted for admin review. Posting is paused from matching.');
+      onJobStatusChange(job.id, 'pending_fill_review');
+      setStep('done');
+    } catch(e) { showToast('Error.'); }
+    setLoading(false);
+  }
+
+  if (step === 'done') {
+    return (
+      <div className="modal-overlay">
+        <div className="workflow-modal" style={{textAlign:'center',padding:'3rem 2rem'}}>
+          <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
+          <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Submitted</div>
+          <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem'}}>
+            The Fredheim team has been notified and will follow up within 24 hours.
+          </div>
+          <button className="btn-primary" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="workflow-modal">
+        <div className="workflow-modal-title">Mark as Filled</div>
+
+        {step === 'source' && (
+          <div>
+            <div className="workflow-modal-sub">
+              Was the candidate who filled this role sourced through Fredheim Executive Desk?
+            </div>
+            <div className="workflow-radio-group" style={{gap:'0.75rem'}}>
+              {[
+                { v:'platform', label:'Yes — candidate was found or engaged through Fredheim',
+                  desc:'You will provide candidate and placement details. An invoice will be issued.' },
+                { v:'external', label:'No — candidate was sourced entirely outside the platform',
+                  desc:'You will certify that no introduced Fredheim candidate was involved.' },
+                { v:'pending', label:'Not sure / still being finalised',
+                  desc:'Admin will review and follow up to determine the correct status.' },
+              ].map(o => (
+                <label key={o.v} className={`workflow-radio-item ${source===o.v?'selected':''}`} style={{flexDirection:'column',alignItems:'flex-start'}}>
+                  <div style={{display:'flex',alignItems:'flex-start',gap:'0.625rem',width:'100%'}}>
+                    <input type="radio" name="source" value={o.v} checked={source===o.v} onChange={()=>setSource(o.v)} style={{marginTop:'0.15rem'}} />
+                    <div>
+                      <div className="workflow-radio-label">{o.label}</div>
+                      <div className="workflow-radio-desc">{o.desc}</div>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={onClose}>Cancel</button>
+              <button className="btn-primary" onClick={() => {
+                if (!source) { showToast('Please select an option.'); return; }
+                setStep(source === 'platform' ? 'platform' : source === 'external' ? 'external' : 'pending_confirm');
+              }}>Continue →</button>
+            </div>
+          </div>
+        )}
+
+        {step === 'platform' && (
+          <div>
+            <div className="workflow-modal-sub">Provide placement details. These are used to calculate and issue your invoice.</div>
+            <div className="placement-form-grid" style={{marginBottom:'1rem'}}>
+              {[
+                { k:'candidate_email',    label:'Candidate Email *', ph:'candidate@email.com', type:'email' },
+                { k:'hiring_company',     label:'Hiring Company',    ph:'Company name', type:'text' },
+                { k:'offer_date',         label:'Offer Date',        ph:'', type:'date' },
+                { k:'start_date',         label:'Start Date',        ph:'', type:'date' },
+                { k:'compensation_amount',label:'Compensation (USD)', ph:'e.g. 250000', type:'number' },
+                { k:'invoice_contact',    label:'Invoice Contact',   ph:'Name for invoice', type:'text' },
+                { k:'invoice_email',      label:'Invoice Email',     ph:'billing@firm.com', type:'email' },
+                { k:'purchase_order',     label:'PO # (optional)',   ph:'', type:'text' },
+              ].map(f => (
+                <div key={f.k} className="form-group">
+                  <label className="form-label">{f.label}</label>
+                  <input className="form-input" type={f.type} placeholder={f.ph}
+                    value={pf[f.k]} onChange={e=>setPfField(f.k,e.target.value)} />
+                </div>
+              ))}
+            </div>
+            <div className="form-group" style={{gridColumn:'1/-1'}}>
+              <label className="form-label">Notes</label>
+              <textarea className="form-input" rows={2} value={pf.notes} onChange={e=>setPfField('notes',e.target.value)} style={{resize:'vertical'}} />
+            </div>
+            <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1.25rem',marginTop:'1rem',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
+              The standard Fredheim placement fee applies at the rate confirmed in your terms.
+              Placement data is locked after admin approval and cannot be edited by the firm.
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={()=>setStep('source')}>← Back</button>
+              <button className="btn-primary" onClick={submitPlatform} disabled={loading}>
+                {loading ? 'Submitting…' : 'Submit Placement'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'external' && (
+          <div>
+            <div className="workflow-modal-sub">
+              Confirm the following before proceeding.
+            </div>
+            {job.has_introductions && (
+              <div className="warning-box">
+                <strong>⚠ Introductions on record</strong>
+                Fredheim has records of candidate introductions for this job posting.
+                If any introduced candidate was involved in this hire, a platform fee may be due.
+                This submission will be reviewed by admin before final acceptance.
+              </div>
+            )}
+            <div className="workflow-cert-box">
+              <div className="workflow-cert-text">{EXTERNAL_CERT_TEXT}</div>
+              <label className="workflow-cert-check">
+                <input type="checkbox" checked={certified} onChange={e=>setCert(e.target.checked)} />
+                <span className="workflow-cert-check-label">I agree to this certification</span>
+              </label>
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={()=>setStep('source')}>← Back</button>
+              <button className="btn-danger" onClick={submitExternal} disabled={loading || !certified}>
+                {loading ? 'Submitting…' : 'Confirm External Fill'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {step === 'pending_confirm' && (
+          <div>
+            <div className="workflow-modal-sub">
+              This job will be paused from active matching and queued for admin review.
+              The Fredheim team will follow up within 24 hours to clarify the sourcing status.
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={()=>setStep('source')}>← Back</button>
+              <button className="btn-primary" onClick={submitPending} disabled={loading}>
+                {loading ? 'Submitting…' : 'Submit for Review'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── STAR RATING WIDGET ───────────────────────────────────────────────────────
+function StarRating({ value, onChange }) {
+  const [hover, setHover] = useState(0);
+  return (
+    <div className="rating-stars">
+      {[1,2,3,4,5].map(n => (
+        <span key={n} className={`rating-star ${(hover||value)>=n?'filled':''}`}
+          onClick={()=>onChange(n)}
+          onMouseEnter={()=>setHover(n)}
+          onMouseLeave={()=>setHover(0)}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
+// ── FEEDBACK MODAL ───────────────────────────────────────────────────────────
+function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showToast }) {
+  const [ratings, setRatings] = useState({});
+  const [flags, setFlags]     = useState({ would_engage_again: null, respected_privacy: null, attempted_bypass: false, misrepresented_role: false });
+  const [comments, setComments] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [done, setDone]       = useState(false);
+
+  function setRating(k,v) { setRatings(p => ({...p, [k]:v})); }
+  function setFlag(k,v)   { setFlags(p => ({...p, [k]:v})); }
+
+  async function submit() {
+    setLoading(true);
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const resp = await fetch('/api/submit-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({
+          recruiter_email: recruiterEmail, job_id: jobId, match_id: matchId,
+          feedback_trigger: trigger || 'manual_report',
+          ...ratings, ...flags, comments,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Submission failed.'); return; }
+      setDone(true);
+    } catch(e) { showToast('Error submitting feedback.'); }
+    setLoading(false);
+  }
+
+  if (done) return (
+    <div className="modal-overlay">
+      <div className="workflow-modal" style={{textAlign:'center',padding:'3rem 2rem'}}>
+        <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
+        <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Thank you</div>
+        <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem'}}>
+          Your feedback helps us maintain a high-quality recruiter network. It is reviewed by the Fredheim team only.
+        </div>
+        <button className="btn-primary" onClick={onClose}>Close</button>
+      </div>
+    </div>
+  );
+
+  const ratingFields = [
+    { k:'rating_professionalism', label:'Professionalism' },
+    { k:'rating_responsiveness',  label:'Responsiveness' },
+    { k:'rating_accuracy',        label:'Role Accuracy' },
+    { k:'rating_transparency',    label:'Transparency' },
+    { k:'rating_confidentiality', label:'Confidentiality' },
+    { k:'rating_process',         label:'Process Quality' },
+    { k:'rating_overall',         label:'Overall Experience' },
+  ];
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="workflow-modal">
+        <div className="workflow-modal-title">Rate Your Experience</div>
+        <div className="workflow-modal-sub">
+          Your feedback is confidential and reviewed by Fredheim only. It helps us maintain a high-quality recruiter network.
+        </div>
+
+        <div className="workflow-section">
+          <div className="rating-grid">
+            {ratingFields.map(f => (
+              <div key={f.k} className="rating-item">
+                <label>{f.label}</label>
+                <StarRating value={ratings[f.k]||0} onChange={v=>setRating(f.k,v)} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="workflow-section">
+          <div className="workflow-section-title" style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.75rem'}}>
+            Additional Questions
+          </div>
+          {[
+            { k:'would_engage_again', label:'Would you engage with this recruiter again?' },
+            { k:'respected_privacy',  label:'Did the recruiter respect your privacy and confidentiality?' },
+          ].map(q => (
+            <div key={q.k} style={{marginBottom:'0.75rem'}}>
+              <div style={{fontSize:'0.82rem',color:'var(--ink)',marginBottom:'0.375rem'}}>{q.label}</div>
+              <div style={{display:'flex',gap:'0.5rem'}}>
+                {['Yes','No'].map(opt => (
+                  <button key={opt} onClick={()=>setFlag(q.k, opt==='Yes')}
+                    style={{padding:'0.375rem 1rem',border:'1px solid var(--rule)',background: flags[q.k]===(opt==='Yes')?'var(--ink)':'transparent',color:flags[q.k]===(opt==='Yes')?'#fff':'var(--ink)',cursor:'pointer',fontSize:'0.78rem'}}>
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="workflow-section">
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--red,#c0392b)',marginBottom:'0.75rem'}}>
+            Report Issues (admin review only)
+          </div>
+          {[
+            { k:'attempted_bypass',     label:'Did the recruiter attempt to bypass Fredheim for this engagement?' },
+            { k:'misrepresented_role',  label:'Did the recruiter misrepresent the role, compensation, company, or process?' },
+          ].map(q => (
+            <label key={q.k} style={{display:'flex',alignItems:'flex-start',gap:'0.5rem',marginBottom:'0.625rem',cursor:'pointer'}}>
+              <input type="checkbox" checked={!!flags[q.k]} onChange={e=>setFlag(q.k,e.target.checked)} style={{marginTop:'0.15rem'}} />
+              <span style={{fontSize:'0.82rem',color:'var(--ink)'}}>{q.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="workflow-section">
+          <label style={{fontSize:'0.78rem',color:'var(--ink-3)',display:'block',marginBottom:'0.375rem'}}>Comments (optional, not public)</label>
+          <textarea className="form-input" rows={3} value={comments} onChange={e=>setComments(e.target.value)}
+            placeholder="Describe your experience…" style={{resize:'vertical'}} />
+        </div>
+
+        <div className="workflow-actions">
+          <button className="workflow-close-btn" onClick={onClose}>Skip</button>
+          <button className="btn-primary" onClick={submit} disabled={loading}>
+            {loading ? 'Submitting…' : 'Submit Feedback'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   const [tab, setTab]           = useState('submissions');
   const [loading, setLoading]   = useState(true);
@@ -5599,6 +6376,18 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         <button className={`admin-tab ${tab==='interests'?'active':''}`} onClick={()=>setTab('interests')}>
           Interest Signals <span className="tab-count">{interests.length}</span>
         </button>
+        <button className={`admin-tab ${tab==='closures'?'active':''}`} onClick={()=>setTab('closures')}>
+          Closures &amp; Fills
+        </button>
+        <button className={`admin-tab ${tab==='feedback'?'active':''}`} onClick={()=>setTab('feedback')}>
+          Recruiter Feedback
+        </button>
+        <button className={`admin-tab ${tab==='billing'?'active':''}`} onClick={()=>setTab('billing')}>
+          Billing Approvals
+        </button>
+        <button className={`admin-tab ${tab==='leaderboard'?'active':''}`} onClick={()=>setTab('leaderboard')}>
+          Leaderboard
+        </button>
       </div>
 
       {/* ── SUBMISSIONS TAB ── */}
@@ -5767,23 +6556,49 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                     <td style={{whiteSpace:'nowrap'}}>{j.salary_display}</td>
                     <td style={{textAlign:'center'}}>{j.view_count||0}</td>
                     <td style={{textAlign:'center'}}>{j.interest_count||0}</td>
-                    <td><span className={`admin-pill ${j.status}`}>{j.status}</span></td>
+                    <td><span className={`admin-pill ${j.status}`}>{j.status?.replace(/_/g,' ')}</span>
+                      {j.admin_flagged && <span style={{marginLeft:'0.375rem',fontSize:'0.6rem',color:'#c0392b',fontFamily:"'DM Mono',monospace"}}>⚠ FLAGGED</span>}
+                    </td>
                     <td>{j.demo_post ? <span style={{color:'var(--gold)',fontSize:'0.72rem'}}>Demo</span> : '—'}</td>
                     <td>
-                      <div style={{display:'flex',gap:'0.375rem'}}>
+                      <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
                         {j.status === 'active' && (
                           <button className="admin-action-btn danger" onClick={async()=>{
+                            // Admin expires — still writes audit log
                             await sb.from('fed_jobs').update({status:'expired'}).eq('id',j.id);
+                            await sb.from('fed_job_status_history').insert({
+                              job_id: j.id, previous_status:'active', new_status:'expired',
+                              changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
+                              changed_by_role: 'admin', reason: 'admin_expired',
+                            });
                             setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'expired'}:x));
                             showToast('Posting expired.');
                           }}>Expire</button>
                         )}
-                        {j.status === 'expired' && (
+                        {['expired','closed_unfilled','filled_external','pending_fill_review'].includes(j.status) && (
                           <button className="admin-action-btn approve" onClick={async()=>{
-                            await sb.from('fed_jobs').update({status:'active'}).eq('id',j.id);
-                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'active'}:x));
+                            await sb.from('fed_jobs').update({status:'active',admin_flagged:false}).eq('id',j.id);
+                            await sb.from('fed_job_status_history').insert({
+                              job_id: j.id, previous_status: j.status, new_status:'active',
+                              changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
+                              changed_by_role: 'admin', reason: 'admin_reactivated',
+                            });
+                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'active',admin_flagged:false}:x));
                             showToast('Posting reactivated.');
                           }}>Reactivate</button>
+                        )}
+                        {j.admin_flagged && (
+                          <button className="admin-action-btn" style={{fontSize:'0.6rem',color:'#c0392b',borderColor:'#c0392b'}}
+                            onClick={()=>showToast('View Closures or Placements tab for full audit detail.')}>
+                            Review
+                          </button>
+                        )}
+                        {!['archived'].includes(j.status) && (
+                          <button className="admin-action-btn" style={{fontSize:'0.6rem'}} onClick={async()=>{
+                            await sb.from('fed_jobs').update({status:'archived',archived_at:new Date().toISOString()}).eq('id',j.id);
+                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'archived'}:x));
+                            showToast('Archived.');
+                          }}>Archive</button>
                         )}
                       </div>
                     </td>
@@ -5932,6 +6747,547 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
               </tbody>
             </table>
           )}
+        </div>
+      )}
+
+      {/* ── CLOSURES & FILLS TAB ── */}
+      {tab === 'closures' && (
+        <AdminClosuresTab jobs={jobs} showToast={showToast} reloadJobs={loadAll} />
+      )}
+
+      {/* ── RECRUITER FEEDBACK TAB ── */}
+      {tab === 'feedback' && (
+        <AdminFeedbackTab showToast={showToast} />
+      )}
+
+      {/* ── BILLING APPROVALS TAB ── */}
+      {tab === 'billing' && (
+        <AdminBillingTab showToast={showToast} />
+      )}
+
+      {/* ── LEADERBOARD MANAGEMENT TAB ── */}
+      {tab === 'leaderboard' && (
+        <AdminLeaderboardTab showToast={showToast} />
+      )}
+    </div>
+  );
+}
+
+// ── ADMIN BILLING TAB ────────────────────────────────────────────────────────
+function AdminBillingTab({ showToast }) {
+  const [billings, setBillings] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [filter, setFilter]     = useState('pending');
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const { data } = await sb.from('fed_recruiter_billing').select('*').order('created_at', {ascending:false});
+      setBillings(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function fmt(ts) { if (!ts) return '—'; return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+
+  const filtered = billings.filter(b => {
+    if (filter === 'pending') return b.admin_review_status === 'pending';
+    if (filter === 'invoice') return b.billing_status.startsWith('invoice');
+    if (filter === 'issues') return ['payment_failed','suspended'].includes(b.billing_status);
+    return true;
+  });
+
+  const pendingCount = billings.filter(b => b.admin_review_status === 'pending').length;
+
+  return (
+    <div>
+      <div style={{display:'flex',gap:'0.5rem',marginBottom:'1.5rem',flexWrap:'wrap'}}>
+        {[['all','All'],['pending',`Pending Review (${pendingCount})`],['invoice','Invoice Billing'],['issues','Issues']].map(([v,l]) => (
+          <button key={v} className={`admin-action-btn ${filter===v?'approve':''}`} onClick={()=>setFilter(v)}>{l}</button>
+        ))}
+      </div>
+
+      {loading ? <div className="admin-empty"><span className="spinner"/>Loading…</div> :
+      filtered.length === 0 ? <div className="admin-empty">No billing records matching this filter.</div> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Recruiter</th><th>Status</th><th>Company</th><th>Since</th><th>Admin Review</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(b => (
+                <tr key={b.recruiter_email} style={b.admin_review_status==='pending'?{background:'#fffbf0'}:{}}>
+                  <td style={{fontSize:'0.78rem'}}>{b.recruiter_email}</td>
+                  <td><span className={`admin-pill ${b.billing_status==='founding_partner'?'approved':b.billing_status==='invoice_billing_approved'?'posted':b.billing_status==='payment_failed'||b.billing_status==='suspended'?'danger':''}`}>
+                    {b.billing_status?.replace(/_/g,' ')}
+                  </span></td>
+                  <td style={{fontSize:'0.78rem'}}>{b.invoice_company_name || '—'}</td>
+                  <td style={{fontSize:'0.72rem'}}>{fmt(b.created_at)}</td>
+                  <td><span className={`admin-pill ${b.admin_review_status}`}>{b.admin_review_status?.replace(/_/g,' ')}</span></td>
+                  <td>
+                    <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
+                      {b.billing_status === 'invoice_billing_pending' && b.admin_review_status === 'pending' && (
+                        <>
+                          <button className="admin-action-btn approve" onClick={async()=>{
+                            const now = new Date().toISOString();
+                            await sb.from('fed_recruiter_billing').update({
+                              billing_status:'invoice_billing_approved',
+                              admin_review_status:'approved',
+                              admin_reviewed_at: now,
+                            }).eq('recruiter_email', b.recruiter_email);
+                            setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'invoice_billing_approved',admin_review_status:'approved'}:x));
+                            showToast('Invoice billing approved.');
+                          }}>Approve</button>
+                          <button className="admin-action-btn danger" onClick={async()=>{
+                            await sb.from('fed_recruiter_billing').update({
+                              billing_status:'no_billing_setup',
+                              admin_review_status:'rejected',
+                            }).eq('recruiter_email', b.recruiter_email);
+                            setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'no_billing_setup',admin_review_status:'rejected'}:x));
+                            showToast('Invoice billing rejected.');
+                          }}>Reject</button>
+                        </>
+                      )}
+                      {b.billing_status === 'payment_failed' && (
+                        <button className="admin-action-btn danger" onClick={async()=>{
+                          await sb.from('fed_recruiter_billing').update({billing_status:'suspended',suspended_at:new Date().toISOString()}).eq('recruiter_email',b.recruiter_email);
+                          setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'suspended'}:x));
+                          showToast('Account suspended.');
+                        }}>Suspend</button>
+                      )}
+                      {b.billing_status === 'suspended' && (
+                        <button className="admin-action-btn approve" onClick={async()=>{
+                          await sb.from('fed_recruiter_billing').update({billing_status:'payment_method_added',suspended_at:null}).eq('recruiter_email',b.recruiter_email);
+                          setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'payment_method_added'}:x));
+                          showToast('Account reinstated.');
+                        }}>Reinstate</button>
+                      )}
+                      {b.invoice_contact_email && (
+                        <a href={`mailto:${b.invoice_contact_email}`} style={{textDecoration:'none'}}>
+                          <button className="admin-action-btn" style={{fontSize:'0.65rem'}}>Email</button>
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ADMIN LEADERBOARD TAB ────────────────────────────────────────────────────
+function AdminLeaderboardTab({ showToast }) {
+  const [recruiterEmails, setRecruiterEmails] = useState([]);
+  const [overrides, setOverrides]             = useState({});
+  const [editEmail, setEditEmail]             = useState('');
+  const [editForm, setEditForm]               = useState({ approved:false, suppressed:false, suppression_reason:'', ineligible:false, ineligibility_reason:'', admin_notes:'' });
+  const [loading, setLoading]                 = useState(true);
+  const [liveData, setLiveData]               = useState(null);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const [{ data: bil }, { data: ov }, lbResp] = await Promise.all([
+        sb.from('fed_recruiter_billing').select('recruiter_email,billing_status').order('created_at',{ascending:false}),
+        sb.from('fed_leaderboard_overrides').select('*'),
+        fetch('/api/leaderboard?period=all').then(r=>r.json()).catch(()=>({leaderboard:[]})),
+      ]);
+      setRecruiterEmails((bil||[]).map(b=>b.recruiter_email));
+      const ovMap = {};
+      (ov||[]).forEach(o => { ovMap[o.recruiter_email] = o; });
+      setOverrides(ovMap);
+      setLiveData(lbResp);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function startEdit(email) {
+    const ov = overrides[email] || {};
+    setEditEmail(email);
+    setEditForm({ approved:ov.approved||false, suppressed:ov.suppressed||false, suppression_reason:ov.suppression_reason||'', ineligible:ov.ineligible||false, ineligibility_reason:ov.ineligibility_reason||'', admin_notes:ov.admin_notes||'' });
+  }
+
+  async function saveOverride() {
+    try {
+      const adminPwd = sessionStorage.getItem('fed_admin_pwd') || '';
+      const resp = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'X-Admin-Secret': adminPwd },
+        body: JSON.stringify({ action:'override', recruiter_email: editEmail, ...editForm }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error||'Override failed.'); return; }
+      setOverrides(p => ({...p, [editEmail]: {...editForm, recruiter_email: editEmail}}));
+      setEditEmail('');
+      showToast('Leaderboard override saved.');
+    } catch(e) { showToast('Error saving override.'); }
+  }
+
+  async function triggerSnapshot() {
+    try {
+      const adminPwd = sessionStorage.getItem('fed_admin_pwd') || '';
+      const resp = await fetch('/api/leaderboard', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Admin-Secret':adminPwd},
+        body:JSON.stringify({action:'snapshot'}),
+      });
+      const data = await resp.json();
+      if (resp.ok) showToast(`✓ Snapshot saved — ${data.snapshots} records.`);
+      else showToast(data.error||'Snapshot failed.');
+    } catch(e) { showToast('Snapshot error.'); }
+  }
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'0.75rem'}}>
+        <div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.1rem',color:'var(--ink)'}}>Leaderboard Management</div>
+          <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.2rem'}}>Approve or suppress recruiter leaderboard visibility. Only verified, approved recruiters appear publicly.</div>
+        </div>
+        <button className="admin-action-btn" onClick={triggerSnapshot}>Save Snapshot</button>
+      </div>
+
+      {/* Live leaderboard preview */}
+      {liveData?.leaderboard?.length > 0 && (
+        <div style={{marginBottom:'1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'1rem 1.25rem'}}>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.75rem'}}>
+            Current Public Leaderboard (All Time)
+          </div>
+          {liveData.leaderboard.map((r,i) => (
+            <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'0.375rem 0',borderBottom:'1px solid var(--rule-lt)',fontSize:'0.82rem'}}>
+              <span>#{r.rank} {r.firm_name}</span>
+              <span style={{color:'var(--gold)',fontWeight:700}}>{r.placement_count} placements</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {loading ? <div className="admin-empty"><span className="spinner"/>Loading…</div> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr><th>Recruiter</th><th>Approved</th><th>Suppressed</th><th>Ineligible</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {recruiterEmails.map(email => {
+                const ov = overrides[email];
+                return (
+                  <tr key={email}>
+                    <td style={{fontSize:'0.78rem'}}>{email}</td>
+                    <td style={{textAlign:'center'}}>{ov?.approved ? '✓' : '—'}</td>
+                    <td style={{textAlign:'center',color: ov?.suppressed ? '#c0392b':undefined}}>{ov?.suppressed ? '✗ '+ov.suppression_reason : '—'}</td>
+                    <td style={{textAlign:'center',color: ov?.ineligible ? '#c0392b':undefined}}>{ov?.ineligible ? '✗' : '—'}</td>
+                    <td>
+                      <button className="admin-action-btn" onClick={()=>startEdit(email)}>Edit Override</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {editEmail && (
+        <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setEditEmail('');}}>
+          <div className="workflow-modal">
+            <div className="workflow-modal-title">Leaderboard Override — {editEmail}</div>
+            <div style={{display:'grid',gap:'0.75rem',marginBottom:'1.25rem'}}>
+              {[
+                { k:'approved', label:'Approved for leaderboard display' },
+                { k:'suppressed', label:'Suppress from leaderboard' },
+                { k:'ineligible', label:'Mark as ineligible' },
+              ].map(f => (
+                <label key={f.k} style={{display:'flex',gap:'0.5rem',alignItems:'center',cursor:'pointer',fontSize:'0.875rem'}}>
+                  <input type="checkbox" checked={!!editForm[f.k]} onChange={e=>setEditForm(p=>({...p,[f.k]:e.target.checked}))} />
+                  {f.label}
+                </label>
+              ))}
+              {editForm.suppressed && (
+                <div className="form-group">
+                  <label className="form-label">Suppression Reason</label>
+                  <input className="form-input" value={editForm.suppression_reason} onChange={e=>setEditForm(p=>({...p,suppression_reason:e.target.value}))} />
+                </div>
+              )}
+              {editForm.ineligible && (
+                <div className="form-group">
+                  <label className="form-label">Ineligibility Reason</label>
+                  <input className="form-input" value={editForm.ineligibility_reason} onChange={e=>setEditForm(p=>({...p,ineligibility_reason:e.target.value}))} />
+                </div>
+              )}
+              <div className="form-group">
+                <label className="form-label">Admin Notes</label>
+                <textarea className="form-input" rows={2} value={editForm.admin_notes} onChange={e=>setEditForm(p=>({...p,admin_notes:e.target.value}))} style={{resize:'vertical'}} />
+              </div>
+            </div>
+            <div className="workflow-actions">
+              <button className="workflow-close-btn" onClick={()=>setEditEmail('')}>Cancel</button>
+              <button className="btn-primary" onClick={saveOverride}>Save Override</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ADMIN CLOSURES TAB ───────────────────────────────────────────────────────
+function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
+  const [closures, setClosures]     = useState([]);
+  const [placements, setPlacements] = useState([]);
+  const [ctab, setCtab]             = useState('closures');
+  const [loading, setLoading]       = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const [{ data: cl }, { data: pl }] = await Promise.all([
+        sb.from('fed_job_closures').select('*').order('created_at', {ascending:false}),
+        sb.from('fed_placements').select('*').order('created_at', {ascending:false}),
+      ]);
+      setClosures(cl || []);
+      setPlacements(pl || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function fmt(ts) { if (!ts) return '—'; return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+
+  const flaggedJobs = jobs.filter(j => j.admin_flagged);
+
+  return (
+    <div>
+      {flaggedJobs.length > 0 && (
+        <div className="warning-box" style={{marginBottom:'1.5rem'}}>
+          <strong>⚠ {flaggedJobs.length} Flagged Job{flaggedJobs.length>1?'s':''} Require Review</strong>
+          {flaggedJobs.map(j => (
+            <div key={j.id} style={{marginTop:'0.375rem'}}>
+              <strong>{j.title}</strong> — {j.admin_flag_reason}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{display:'flex',gap:0,borderBottom:'1px solid var(--rule)',marginBottom:'1.5rem'}}>
+        {[['closures','Closures'],['placements','Placements']].map(([v,l]) => (
+          <button key={v} className={`admin-tab ${ctab===v?'active':''}`} onClick={()=>setCtab(v)}>{l}</button>
+        ))}
+      </div>
+
+      {loading ? <div className="admin-empty"><span className="spinner"/>Loading…</div> : ctab === 'closures' ? (
+        <div className="admin-table-wrap">
+          {closures.length === 0 ? <div className="admin-empty">No closures yet.</div> : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Recruiter</th><th>Job</th><th>Reason</th>
+                  <th>Introductions</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {closures.map(c => {
+                  const job = jobs.find(j => j.id === c.job_id);
+                  return (
+                    <tr key={c.id} style={c.had_introductions ? {background:'#fff8f0'} : {}}>
+                      <td>{fmt(c.created_at)}</td>
+                      <td style={{fontSize:'0.78rem'}}>{c.recruiter_email}</td>
+                      <td><strong>{job?.title || c.job_id?.slice(0,8)}</strong></td>
+                      <td style={{fontSize:'0.78rem'}}>{c.close_reason_display}</td>
+                      <td style={{textAlign:'center'}}>
+                        {c.had_introductions
+                          ? <span style={{color:'#c0392b',fontWeight:700}}>{c.introduced_candidate_count} ⚠</span>
+                          : <span style={{color:'var(--ink-4)'}}>0</span>}
+                      </td>
+                      <td><span className={`admin-pill ${c.admin_review_status}`}>{c.admin_review_status}</span></td>
+                      <td>
+                        <div style={{display:'flex',gap:'0.375rem'}}>
+                          {c.admin_review_status === 'pending' && (
+                            <>
+                              <button className="admin-action-btn approve" onClick={async()=>{
+                                await sb.from('fed_job_closures').update({admin_review_status:'approved',admin_reviewed_at:new Date().toISOString()}).eq('id',c.id);
+                                setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'approved'}:x));
+                                showToast('Closure approved.');
+                              }}>Approve</button>
+                              <button className="admin-action-btn danger" onClick={async()=>{
+                                await sb.from('fed_job_closures').update({admin_review_status:'disputed'}).eq('id',c.id);
+                                await sb.from('fed_jobs').update({status:'active',admin_flagged:true}).eq('id',c.job_id);
+                                setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'disputed'}:x));
+                                showToast('Closure disputed. Job reopened for review.');
+                              }}>Dispute</button>
+                            </>
+                          )}
+                          {c.admin_review_status !== 'reopened' && (
+                            <button className="admin-action-btn" onClick={async()=>{
+                              await sb.from('fed_jobs').update({status:'active'}).eq('id',c.job_id);
+                              await sb.from('fed_job_closures').update({admin_review_status:'reopened'}).eq('id',c.id);
+                              showToast('Job reopened.');
+                            }}>Reopen</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ) : (
+        <div className="admin-table-wrap">
+          {placements.length === 0 ? <div className="admin-empty">No placement records yet.</div> : (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Recruiter</th><th>Type</th><th>Candidate</th>
+                  <th>Compensation</th><th>Fee</th><th>Invoice</th><th>Status</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {placements.map(p => {
+                  const job = jobs.find(j => j.id === p.job_id);
+                  return (
+                    <tr key={p.id} style={p.admin_review_status==='pending'?{background:'#fff8f0'}:{}}>
+                      <td>{fmt(p.created_at)}</td>
+                      <td style={{fontSize:'0.78rem'}}>{p.recruiter_email}</td>
+                      <td><span className={`admin-pill ${p.placement_type==='platform_candidate'?'posted':p.placement_type==='external_candidate'?'pending':''}`}
+                        style={{fontSize:'0.6rem'}}>{p.placement_type?.replace(/_/g,' ')}</span></td>
+                      <td style={{fontSize:'0.78rem'}}>{p.candidate_email || '—'}</td>
+                      <td>{p.compensation_amount ? `$${parseInt(p.compensation_amount).toLocaleString()}` : '—'}</td>
+                      <td style={{fontWeight:p.fee_amount?700:'normal',color:p.fee_amount?'var(--green)':'var(--ink-4)'}}>
+                        {p.fee_amount ? `$${parseInt(p.fee_amount).toLocaleString()}` : '—'}
+                      </td>
+                      <td><span className={`admin-pill ${p.invoice_status}`} style={{fontSize:'0.6rem'}}>{p.invoice_status?.replace(/_/g,' ')}</span></td>
+                      <td><span className={`admin-pill ${p.admin_review_status}`}>{p.admin_review_status}</span></td>
+                      <td>
+                        <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
+                          {p.admin_review_status === 'pending' && (
+                            <>
+                              <button className="admin-action-btn approve" onClick={async()=>{
+                                await sb.from('fed_placements').update({admin_review_status:'approved',admin_reviewed_at:new Date().toISOString(),locked_at:new Date().toISOString()}).eq('id',p.id);
+                                setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'approved'}:x));
+                                showToast('Placement approved and locked.');
+                              }}>Approve</button>
+                              <button className="admin-action-btn danger" onClick={async()=>{
+                                await sb.from('fed_placements').update({admin_review_status:'disputed'}).eq('id',p.id);
+                                setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'disputed'}:x));
+                                showToast('Placement disputed.');
+                              }}>Dispute</button>
+                            </>
+                          )}
+                          {p.placement_type === 'platform_candidate' && p.invoice_status === 'not_sent' && (
+                            <button className="admin-action-btn publish" onClick={()=>showToast('Invoice generation — configure your invoicing system and connect here.')}>
+                              Send Invoice
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── ADMIN FEEDBACK TAB ───────────────────────────────────────────────────────
+function AdminFeedbackTab({ showToast }) {
+  const [feedback, setFeedback] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [filter, setFilter]     = useState('all');  // all | flagged | pending
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const { data } = await sb.from('fed_recruiter_feedback')
+        .select('*').order('created_at', {ascending:false}).limit(200);
+      setFeedback(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function fmt(ts) { if (!ts) return '—'; return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+
+  const filtered = feedback.filter(f => {
+    if (filter === 'flagged') return f.attempted_bypass || f.misrepresented_role;
+    if (filter === 'pending') return f.admin_review_status === 'pending';
+    return true;
+  });
+
+  const flagCount = feedback.filter(f => f.attempted_bypass || f.misrepresented_role).length;
+
+  return (
+    <div>
+      <div style={{display:'flex',gap:'0.5rem',marginBottom:'1.5rem',flexWrap:'wrap',alignItems:'center'}}>
+        {[['all','All Feedback'],['flagged',`Flagged (${flagCount})`],['pending','Pending Review']].map(([v,l]) => (
+          <button key={v} className={`admin-action-btn ${filter===v?'approve':''}`} onClick={()=>setFilter(v)}
+            style={v==='flagged'&&flagCount>0?{color:'#c0392b',borderColor:'#c0392b'}:{}}>{l}</button>
+        ))}
+      </div>
+
+      {loading ? <div className="admin-empty"><span className="spinner"/>Loading…</div> :
+      filtered.length === 0 ? <div className="admin-empty">No feedback records.</div> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Recruiter</th><th>Trigger</th>
+                <th>Overall</th><th>Engage Again</th><th>Flags</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(f => (
+                <tr key={f.id} style={(f.attempted_bypass||f.misrepresented_role)?{background:'#fff8f0'}:{}}>
+                  <td>{fmt(f.created_at)}</td>
+                  <td style={{fontSize:'0.78rem'}}>{f.recruiter_email}</td>
+                  <td style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{f.feedback_trigger?.replace(/_/g,' ')}</td>
+                  <td style={{textAlign:'center'}}>
+                    {f.rating_overall ? '★'.repeat(f.rating_overall) + '☆'.repeat(5-f.rating_overall) : '—'}
+                  </td>
+                  <td style={{textAlign:'center',fontSize:'0.78rem'}}>
+                    {f.would_engage_again === true ? '✓ Yes' : f.would_engage_again === false ? '✗ No' : '—'}
+                  </td>
+                  <td>
+                    {f.attempted_bypass && <span style={{color:'#c0392b',fontSize:'0.72rem',display:'block'}}>⚠ Bypass attempt</span>}
+                    {f.misrepresented_role && <span style={{color:'#c0392b',fontSize:'0.72rem',display:'block'}}>⚠ Misrepresentation</span>}
+                    {!f.attempted_bypass && !f.misrepresented_role && <span style={{color:'var(--ink-4)',fontSize:'0.72rem'}}>None</span>}
+                  </td>
+                  <td><span className={`admin-pill ${f.admin_review_status}`}>{f.admin_review_status}</span></td>
+                  <td>
+                    <div style={{display:'flex',gap:'0.375rem'}}>
+                      {f.admin_review_status !== 'reviewed' && (
+                        <button className="admin-action-btn approve" onClick={async()=>{
+                          await sb.from('fed_recruiter_feedback').update({admin_review_status:'reviewed',admin_reviewed_at:new Date().toISOString()}).eq('id',f.id);
+                          setFeedback(p=>p.map(x=>x.id===f.id?{...x,admin_review_status:'reviewed'}:x));
+                          showToast('Feedback marked reviewed.');
+                        }}>Mark Reviewed</button>
+                      )}
+                      {f.admin_review_status !== 'dismissed' && (
+                        <button className="admin-action-btn" onClick={async()=>{
+                          await sb.from('fed_recruiter_feedback').update({admin_review_status:'dismissed',admin_dismissed_at:new Date().toISOString()}).eq('id',f.id);
+                          setFeedback(p=>p.map(x=>x.id===f.id?{...x,admin_review_status:'dismissed'}:x));
+                          showToast('Feedback dismissed.');
+                        }}>Dismiss</button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
@@ -7321,9 +8677,15 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   const [interests, setInterests]     = useState([]);
   const [matches, setMatches]         = useState([]);
   const [loading, setLoading]         = useState(true);
-  const [dashTab, setDashTab]         = useState('overview'); // 'overview' | 'matches'
+  const [dashTab, setDashTab]         = useState('overview');
+  const [closeModal, setCloseModal]   = useState(null);
+  const [fillModal, setFillModal]     = useState(null);
 
   const userEmail = user.email;
+
+  function handleJobStatusChange(jobId, newStatus) {
+    setJobs(prev => prev.map(j => j.id === jobId ? {...j, status: newStatus} : j));
+  }
 
   useEffect(() => { loadData(); }, []);
 
@@ -7542,7 +8904,17 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                       <div className="posting-card-title">{job.title}</div>
                       <div className="posting-card-meta">{job.location} · {job.industry} · {job.salary_display}</div>
                     </div>
-                    <span className="admin-pill active">Live</span>
+                    <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap'}}>
+                      <span className="admin-pill active">Live</span>
+                      <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
+                        onClick={() => setFillModal(job)}>
+                        Mark as Filled
+                      </button>
+                      <button className="admin-action-btn danger" style={{fontSize:'0.65rem'}}
+                        onClick={() => setCloseModal(job)}>
+                        Close Job
+                      </button>
+                    </div>
                   </div>
                   <div className="posting-card-stats">
                     <div className="posting-stat">
@@ -7627,6 +8999,15 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
         <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
       </div>
       </div>
+      )}
+
+      {closeModal && (
+        <CloseJobModal job={closeModal} onClose={()=>setCloseModal(null)}
+          showToast={showToast} onJobStatusChange={handleJobStatusChange} />
+      )}
+      {fillModal && (
+        <MarkFilledModal job={fillModal} onClose={()=>setFillModal(null)}
+          showToast={showToast} onJobStatusChange={handleJobStatusChange} />
       )}
     </div>
   );
