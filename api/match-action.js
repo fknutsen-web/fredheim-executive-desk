@@ -50,6 +50,26 @@ module.exports = async function handler(req, res) {
 
   try {
 
+    // ── BILLING GATE — checked before all recruiter-gated actions ────────────
+    // Recruiters without valid billing cannot indicate interest or access candidates.
+    const RECRUITER_GATED = ['recruiter_interest', 'recruiter_withdraw'];
+    if (RECRUITER_GATED.includes(action)) {
+      const FOUNDING_DEADLINE = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
+      const isFounding = new Date() <= FOUNDING_DEADLINE;
+      const { data: billing } = await db
+        .from('fed_recruiter_billing')
+        .select('billing_status, founding_expires_at')
+        .eq('recruiter_email', callerEmail)
+        .maybeSingle();
+
+      const isValid = billing ? checkBillingValid(billing, FOUNDING_DEADLINE) : isFounding;
+      if (!isValid) {
+        const reason = billing ? blockReason(billing, FOUNDING_DEADLINE)
+          : 'Billing setup is required to indicate interest in candidates.';
+        return res.status(402).json({ error: reason, billing_required: true });
+      }
+    }
+
     // ── RECRUITER: Indicate Interest ──────────────────────────
     if (action === 'recruiter_interest') {
       if (!match_id) return res.status(400).json({ error: 'match_id required.' });
@@ -314,4 +334,36 @@ function computeMatchScore(candidate, job) {
 async function loadCandidateProfile(db, email) {
   const { data } = await db.from('fed_profiles').select('industry,function,location,salary_min').eq('email', email).maybeSingle();
   return data || {};
+}
+
+// ── BILLING HELPER FUNCTIONS ──────────────────────────────────────────────────
+function checkBillingValid(billing, deadline) {
+  switch (billing.billing_status) {
+    case 'founding_partner': {
+      const exp = billing.founding_expires_at ? new Date(billing.founding_expires_at) : deadline;
+      return new Date() <= exp;
+    }
+    case 'active_subscription':
+    case 'invoice_billing_approved':
+    case 'prepaid_package_active':
+    case 'payment_method_added':
+      return true;
+    default:
+      return false;
+  }
+}
+
+function blockReason(billing, deadline) {
+  switch (billing.billing_status) {
+    case 'founding_partner':
+      return 'Founding Partner access has ended. Please set up billing to continue.';
+    case 'invoice_billing_pending':
+      return 'Invoice billing approval is pending. You will be notified when approved.';
+    case 'payment_failed':
+      return 'Your last payment failed. Please update your payment method.';
+    case 'suspended':
+      return 'Account suspended. Contact desk@fredheimtech.com.';
+    default:
+      return 'Billing setup required to indicate interest in candidates.';
+  }
 }
