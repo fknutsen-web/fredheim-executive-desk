@@ -508,7 +508,7 @@ const INDUSTRY_OPTIONS = ['Maritime & Shipping','Ports & Terminals','Energy & Of
 const FUNCTION_OPTIONS = ['Commercial','Operations','Finance','Engineering','Technology','Strategy','Legal','Other'];
 const AUTH_OPTIONS     = Object.entries(INTERN_AUTH);
 
-function InternProfileForm({ authUser, showToast, onComplete }) {
+function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
   const [step, setStep]   = useState(1);
   const [loading, setLoading] = useState(false);
   const [tier, setTier]   = useState('free');
@@ -653,13 +653,10 @@ function InternProfileForm({ authUser, showToast, onComplete }) {
         <button
           className="btn-primary"
           onClick={() => {
-            // Carry the intent through the auth round-trip so the post-login
-            // router brings the user back to the profile form.
-            const target = `${window.location.origin}${window.location.pathname}?view=intern-profile`;
-            window.history.replaceState({}, '', target);
-            // Trigger a reload through the sign-in view so the magic-link
-            // flow knows where to send the user.
-            window.location.href = `${window.location.origin}${window.location.pathname}?view=signin`;
+            // App's requestSignIn navigates to the SignInPage AND records the
+            // return destination so the magic-link emailRedirectTo brings the
+            // user back here after authenticating.
+            if (requestSignIn) requestSignIn('intern-profile');
           }}
         >
           Sign In to Continue
@@ -6578,8 +6575,18 @@ function IndustryMultiSelect({ value, onChange, placeholder }) {
 }
 
 // ── AUTH HELPERS ──────────────────────────────────────────────────────────────
-async function sendMagicLink(email) {
-  const redirectUrl = `${window.location.origin}?view=myprofile`;
+// Views that the post-auth router (applyRouting in App) knows how to land on.
+// Used to validate the optional returnView arg so we don't redirect to a view
+// that doesn't exist.
+const KNOWN_RETURN_VIEWS = new Set([
+  'jobs','early-careers','intern-profile','intern-myprofile','consulting','pricing',
+  'profile','myprofile','recruiter-dash','recruiter-signin','signin',
+  'about','terms','privacy',
+]);
+
+async function sendMagicLink(email, returnView) {
+  const view = returnView && KNOWN_RETURN_VIEWS.has(returnView) ? returnView : 'myprofile';
+  const redirectUrl = `${window.location.origin}?view=${encodeURIComponent(view)}`;
 
   const { error } = await sb.auth.signInWithOtp({
     email,
@@ -6592,7 +6599,7 @@ async function sendMagicLink(email) {
 }
 
 // ── SIGN IN PAGE ──────────────────────────────────────────────────────────────
-function SignInPage({ onBack }) {
+function SignInPage({ onBack, returnView }) {
   const [email, setEmail]     = useState('');
   const [sent, setSent]       = useState(false);
   const [loading, setLoading] = useState(false);
@@ -6602,7 +6609,7 @@ function SignInPage({ onBack }) {
     if (!email || !email.includes('@')) { setError('Please enter a valid email address.'); return; }
     setLoading(true);
     setError('');
-    const err = await sendMagicLink(email);
+    const err = await sendMagicLink(email, returnView);
     if (err) {
       setError('Could not send link. Please try again or email desk@fredheimtech.com.');
     } else {
@@ -9948,10 +9955,30 @@ function AboutPage({ setActiveView }) {
 
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
-  const [activeView, setActiveView]   = useState('jobs');
+  // Initial view is driven by URL ?view=X so deep links work for visitors who
+  // haven't signed in yet (applyRouting only fires on SIGNED_IN, so without
+  // this an unauthenticated visitor following e.g. ?view=consulting would
+  // land on the default 'jobs' view).
+  const [activeView, setActiveView]   = useState(() => {
+    const v = new URLSearchParams(window.location.search).get('view');
+    return v && KNOWN_RETURN_VIEWS.has(v) ? v : 'jobs';
+  });
+  // pendingReturnView: where to land the user after a magic-link round-trip.
+  // Set by components that need to gate an action behind sign-in (e.g. the
+  // InternProfileForm auth gate). Consumed by SignInPage which passes it to
+  // sendMagicLink as the emailRedirectTo view param.
+  const [pendingReturnView, setPendingReturnView] = useState(null);
   const [briefModal, setBriefModal]   = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
   const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
+
+  // Helper: navigate to the sign-in view and remember where to send the user
+  // after they authenticate. Pass null/undefined to use the default destination.
+  function requestSignIn(targetView) {
+    setPendingReturnView(targetView && KNOWN_RETURN_VIEWS.has(targetView) ? targetView : null);
+    setActiveView('signin');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // Auth state
   const [authUser, setAuthUser]       = useState(null);
@@ -10135,6 +10162,7 @@ function App() {
       await sb.auth.signOut();
       setAuthUser(null);
       setUserType(null);
+      setPendingReturnView(null);
       setActiveView('jobs');
       window.history.replaceState({}, '', window.location.origin);
       showToast('Signed out.');
@@ -10241,7 +10269,7 @@ function App() {
           openRecruiterModal={() => setRecruiterModal(true)}
           authUser={authUser}
           userType={userType}
-          onSignIn={() => setActiveView('signin')}
+          onSignIn={() => { setPendingReturnView(null); setActiveView('signin'); }}
           onSignOut={handleSignOut}
         />
 
@@ -10362,6 +10390,7 @@ function App() {
               authUser={authUser}
               showToast={showToast}
               onComplete={() => setActiveView('intern-myprofile')}
+              requestSignIn={requestSignIn}
             />
           </div>
         )}
@@ -10375,7 +10404,7 @@ function App() {
         {activeView === 'intern-myprofile' && !authUser && (
           <div style={{maxWidth:600,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center'}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'1rem'}}>Sign in to view your student profile</div>
-            <button className="btn-primary" onClick={() => setActiveView('signin')}>Sign In</button>
+            <button className="btn-primary" onClick={() => requestSignIn('intern-myprofile')}>Sign In</button>
           </div>
         )}
 
@@ -10499,7 +10528,7 @@ function App() {
         )}
 
         {activeView === 'signin' && (
-          <SignInPage onBack={() => setActiveView('profile')} />
+          <SignInPage onBack={() => setActiveView('profile')} returnView={pendingReturnView} />
         )}
 
         {activeView === 'myprofile' && authUser && (
@@ -10514,7 +10543,7 @@ function App() {
         )}
 
         {activeView === 'myprofile' && !authUser && (
-          <SignInPage onBack={() => setActiveView('profile')} />
+          <SignInPage onBack={() => setActiveView('profile')} returnView="myprofile" />
         )}
 
         {activeView === 'recruiter-signin' && (
@@ -10579,7 +10608,6 @@ function App() {
             <ul className="footer-links">
               {['Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'].map(v => (
               <li key={v} style={{cursor:'pointer'}} onClick={()=>{
-                goToView('jobs');
                 setTimeout(()=>window.dispatchEvent(new CustomEvent('filterIndustry',{detail:v})),100);
               }}>{v}</li>
             ))}
