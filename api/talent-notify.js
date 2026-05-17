@@ -11,7 +11,12 @@ const supabase = createClient(
 
 // Send via Zapier webhook — handles email + SMS routing
 async function sendViaZapier(webhookUrl, payload) {
-  if (!webhookUrl) return { skipped: true };
+  if (!webhookUrl) {
+    // CRITICAL: callers used to treat `skipped: true` as success which marked
+    // the notification as delivered=true in the DB. That made misconfigured
+    // production environments look healthy while no emails actually fired.
+    return { ok: false, skipped: true, error: 'Zapier webhook URL not configured' };
+  }
   const resp = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -74,8 +79,8 @@ async function dispatchRealtimeAlerts() {
 
     try {
       const result = await sendViaZapier(process.env.ZAPIER_TALENT_WEBHOOK, payload);
-      await markSent(n.id, result.ok || result.skipped);
-      sent++;
+      await markSent(n.id, result.ok, result.error || (result.ok ? null : `HTTP ${result.status}`));
+      if (result.ok) sent++;
     } catch (e) {
       await markSent(n.id, false, e.message);
     }
@@ -85,7 +90,6 @@ async function dispatchRealtimeAlerts() {
 
 // ── DAILY DIGEST ───────────────────────────────────────────────
 async function dispatchDailyDigests() {
-  // Get all recruiters with daily digest enabled
   const { data: recruiters } = await supabase
     .from('talent_recruiters')
     .select('id, email, firm_name, contact_name')
@@ -96,7 +100,6 @@ async function dispatchDailyDigests() {
   let sent = 0;
 
   for (const recruiter of recruiters || []) {
-    // Get new matches since yesterday above min threshold
     const { data: matches } = await supabase
       .from('talent_matches')
       .select(`
@@ -111,7 +114,6 @@ async function dispatchDailyDigests() {
 
     if (!matches || matches.length === 0) continue;
 
-    // Build digest summary
     const candidateRows = matches.map(m => ({
       name: m.talent_candidates?.first_name,
       match_pct: m.match_pct,
@@ -142,9 +144,10 @@ async function dispatchDailyDigests() {
         subject: payload.subject,
         body_preview: `${matches.length} new matches`,
         sent_at: new Date().toISOString(),
-        delivered: result.ok || result.skipped,
+        delivered: result.ok,
+        error: result.error || (result.ok ? null : `HTTP ${result.status}`),
       });
-      sent++;
+      if (result.ok) sent++;
     } catch (e) {
       console.error('Daily digest error for', recruiter.email, e.message);
     }
@@ -211,9 +214,10 @@ async function dispatchWeeklySummaries() {
         subject: payload.subject,
         body_preview: `${total} matches this week, ${unreviewed} unreviewed`,
         sent_at: new Date().toISOString(),
-        delivered: result.ok || result.skipped,
+        delivered: result.ok,
+        error: result.error || (result.ok ? null : `HTTP ${result.status}`),
       });
-      sent++;
+      if (result.ok) sent++;
     } catch (e) {
       console.error('Weekly summary error for', recruiter.email, e.message);
     }
@@ -241,7 +245,6 @@ async function dispatchCandidateNotifications() {
 
   let sent = 0;
   for (const n of pending || []) {
-    // Build confirm/reactivate link
     const confirmUrl = `https://desk.fredheimtech.com?view=talent-confirm&cid=${n.candidate_id}`;
 
     const payload = {
@@ -255,8 +258,8 @@ async function dispatchCandidateNotifications() {
 
     try {
       const result = await sendViaZapier(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, payload);
-      await markSent(n.id, result.ok || result.skipped);
-      sent++;
+      await markSent(n.id, result.ok, result.error || (result.ok ? null : `HTTP ${result.status}`));
+      if (result.ok) sent++;
     } catch (e) {
       await markSent(n.id, false, e.message);
     }

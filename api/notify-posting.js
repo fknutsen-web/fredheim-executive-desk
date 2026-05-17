@@ -1,117 +1,103 @@
 // api/notify-posting.js
-// Fires when a new search posting is submitted.
-// BILLING GATE: validates recruiter billing status before accepting.
-// During founding period (≤ 2026-12-31): auto-grants founding_partner status.
-// After founding period: requires active billing.
-
-const { createClient } = require('@supabase/supabase-js');
-const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-const FOUNDING_DEADLINE = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
+// Fires when a new search posting is submitted via the Post a Search modal,
+// or when an internship is submitted via the Early Careers InternEmployerModal.
+// Sends two notifications via Zapier:
+//   1. Admin alert with full submission details
+//   2. Confirmation email to the submitting firm/employer
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
-  const {
-    firm_name, contact_name, email, role_title, role_level,
-    industry, location, salary_range, notes,
-  } = req.body || {};
+  const body = req.body || {};
+  const isIntern = body.type === 'intern_posting';
 
-  if (!email) return res.status(400).json({ error: 'Submitter email required.' });
+  // Field-name normalization. The Executive Desk recruiter modal sends
+  // {firm_name, contact_name, email, role_title, ...}. The Early Careers
+  // InternEmployerModal spreads its own form object which uses
+  // {employer_name, employer_email, title, compensation_display, ...} and
+  // passes role_title as a convenience alias. Without this mapping the
+  // notifications fired with all-undefined fields.
+  const firm_name    = body.firm_name    || body.employer_name        || null;
+  const contact_name = body.contact_name || body.employer_name        || null;
+  const email        = body.email        || body.employer_email       || null;
+  const role_title   = body.role_title   || body.title                || null;
+  const role_level   = body.role_level   || null;
+  const industry     = body.industry     || null;
+  const location     = body.location     || null;
+  const salary_range = body.salary_range || body.compensation_display || null;
+  const notes        = body.notes        || body.role_summary         || null;
 
-  const recruiterEmail = email.toLowerCase();
-  const isFounding = new Date() <= FOUNDING_DEADLINE;
-
-  // ── BILLING GATE ───────────────────────────────────────────────────────────
-  const { data: billing } = await db
-    .from('fed_recruiter_billing')
-    .select('billing_status, founding_expires_at, suspended_at')
-    .eq('recruiter_email', recruiterEmail)
-    .maybeSingle();
-
-  if (billing) {
-    // Existing record — check status
-    const blocked = isBlocked(billing, isFounding);
-    if (blocked) {
-      return res.status(402).json({
-        error: blocked,
-        billing_status: billing.billing_status,
-        billing_required: true,
-      });
-    }
-  } else if (isFounding) {
-    // No record + founding period = auto-grant founding_partner
-    await db.from('fed_recruiter_billing').insert({
-      recruiter_email:     recruiterEmail,
-      billing_status:      'founding_partner',
-      founding_granted_at: new Date().toISOString(),
-      founding_expires_at: FOUNDING_DEADLINE.toISOString(),
-    });
-  } else {
-    // No record + after founding = block
-    return res.status(402).json({
-      error: 'Billing setup is required before publishing a job posting. Please add a payment method, select a plan, or request invoice billing approval.',
-      billing_status: 'no_billing_setup',
-      billing_required: true,
-    });
-  }
-
-  // ── SEND NOTIFICATIONS ─────────────────────────────────────────────────────
-  const adminEmail = process.env.ADMIN_EMAIL || 'desk@fredheimtech.com';
-  const zapierUrl  = process.env.ZAPIER_DESK_WEBHOOK;
+  const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimtech.com';
+  const zapierUrl   = process.env.ZAPIER_DESK_WEBHOOK;
 
   async function send(payload) {
-    if (!zapierUrl) return;
+    if (!zapierUrl) {
+      // Caller used to silently drop notifications when the env var was
+      // missing. Now we surface that in the response so production misconfig
+      // is visible rather than hidden behind a green check.
+      console.warn('ZAPIER_DESK_WEBHOOK not set — notification skipped:', payload.type);
+      return { skipped: true, error: 'ZAPIER_DESK_WEBHOOK not set' };
+    }
     try {
-      await fetch(zapierUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-    } catch(e) { console.error('Zapier notify failed:', e.message); }
+      const resp = await fetch(zapierUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      return { ok: resp.ok, status: resp.status };
+    } catch(e) {
+      console.error('Zapier notify failed:', e.message);
+      return { ok: false, error: e.message };
+    }
   }
 
-  await send({
-    type: 'new_posting_admin_alert', to_email: adminEmail,
-    subject: `New search posting — ${firm_name || 'Unknown firm'}: ${role_title || 'Untitled'}`,
-    firm_name, contact_name, submitter_email: email, role_title, role_level,
-    industry, location, salary_range, notes,
+  // ── 1. Admin alert ────────────────────────────────────────────
+  const adminResult = await send({
+    type:         isIntern ? 'new_intern_posting_admin_alert' : 'new_posting_admin_alert',
+    to_email:     adminEmail,
+    subject:      isIntern
+      ? `New internship posting — ${firm_name || 'Unknown employer'}: ${role_title || 'Untitled'}`
+      : `New search posting — ${firm_name || 'Unknown firm'}: ${role_title || 'Untitled'}`,
+    firm_name,
+    contact_name,
+    submitter_email: email,
+    role_title,
+    role_level,
+    industry,
+    location,
+    salary_range,
+    notes,
     submitted_at: new Date().toISOString(),
-    billing_status: billing?.billing_status || 'founding_partner',
-    review_url: 'https://desk.fredheimtech.com?admin=true',
+    review_url:   'https://desk.fredheimtech.com?admin=true',
   });
 
+  // ── 2. Submitter confirmation ─────────────────────────────────
+  let submitterResult = null;
   if (email) {
-    await send({
-      type: 'new_posting_confirmation', to_email: email, subject: 'Fredheim Executive Desk — Submission received',
-      firm_name, contact_name, role_title,
-      body: `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received and is under review. We'll confirm within 24 hours.${isFounding ? '\n\nAs a Founding Partner, this counts as your complimentary posting for the month.' : ''}\n\nQuestions? desk@fredheimtech.com\n\nFredheim Executive Desk`,
+    submitterResult = await send({
+      type:       isIntern ? 'new_intern_posting_confirmation' : 'new_posting_confirmation',
+      to_email:   email,
+      subject:    isIntern
+        ? 'Fredheim Early Careers — Internship submission received'
+        : 'Fredheim Executive Desk — Submission received',
+      firm_name,
+      contact_name,
+      role_title,
+      body: isIntern
+        ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Early Careers\ndesk@fredheimtech.com`
+        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`,
     });
   }
 
-  return res.status(200).json({ ok: true, billing_status: billing?.billing_status || 'founding_partner' });
+  return res.status(200).json({
+    ok: true,
+    type: isIntern ? 'intern_posting' : 'search_posting',
+    admin_notified: !!adminResult?.ok,
+    submitter_notified: !!submitterResult?.ok,
+    zapier_configured: !!zapierUrl,
+  });
 };
-
-function isBlocked(billing, isFounding) {
-  switch (billing.billing_status) {
-    case 'founding_partner':
-      if (isFounding) return null; // founding period still active
-      const expires = billing.founding_expires_at ? new Date(billing.founding_expires_at) : FOUNDING_DEADLINE;
-      if (new Date() > expires) return 'Founding Partner access has ended. Please set up billing to continue.';
-      return null;
-    case 'active_subscription':
-    case 'invoice_billing_approved':
-    case 'prepaid_package_active':
-    case 'payment_method_added':
-      return null; // valid
-    case 'invoice_billing_pending':
-      return 'Invoice billing approval is pending. You will be notified once approved.';
-    case 'payment_failed':
-      return 'Your last payment failed. Please update your payment method.';
-    case 'suspended':
-      return 'Your account has been suspended. Contact desk@fredheimtech.com.';
-    case 'no_billing_setup':
-    default:
-      return 'Billing setup is required before publishing a job posting. Please add a payment method, select a plan, or request invoice billing approval.';
-  }
-}

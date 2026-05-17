@@ -63,6 +63,13 @@ function isEngagementPrice(priceId) {
   ].includes(priceId);
 }
 
+// ── INTERN TIER FROM PRICE ID ─────────────────────────────────
+// Only one paid student tier: featured ($49/yr)
+function internTierFromPrice(priceId) {
+  if (priceId === process.env.PRICE_INTERN_FEATURED) return 'featured';
+  return null;
+}
+
 // ── SEND ZAPIER NOTIFICATION ──────────────────────────────────
 async function notify(webhookUrl, payload) {
   if (!webhookUrl) return;
@@ -110,24 +117,6 @@ module.exports = async function handler(req, res) {
         // Get price ID from line items
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
         const priceId   = lineItems.data[0]?.price?.id;
-
-        // ── INTERN FEATURED STUDENT PROFILE ───────────────
-        if (meta.type === 'intern_featured') {
-          const expiry = new Date();
-          expiry.setFullYear(expiry.getFullYear() + 1);
-          const { error } = await supabase
-            .from('fed_intern_profiles')
-            .update({
-              tier:                   'featured',
-              tier_expires_at:        expiry.toISOString(),
-              stripe_customer_id:     custId,
-              stripe_subscription_id: subId,
-            })
-            .eq('email', email);
-          if (error) console.error('intern featured tier update failed:', error);
-          else console.log(`✓ Intern profile upgraded to featured: ${email}`);
-          break;
-        }
 
         // ── CANDIDATE CONFIDENTIAL SUBSCRIPTION ───────────
         const candidateTier = meta.type === 'candidate'
@@ -225,6 +214,39 @@ module.exports = async function handler(req, res) {
           break;
         }
 
+        // ── EARLY CAREERS — FEATURED STUDENT PROFILE ─────
+        // $49/yr subscription. Profile was written to fed_intern_profiles
+        // with tier='free' before redirect; webhook promotes to 'featured'.
+        const internTier = meta.type === 'intern_featured'
+          ? 'featured'
+          : internTierFromPrice(priceId);
+
+        if (internTier === 'featured' && email) {
+          const expiry = new Date();
+          expiry.setFullYear(expiry.getFullYear() + 1);
+          const { error } = await supabase
+            .from('fed_intern_profiles')
+            .update({
+              tier:                    'featured',
+              tier_expires_at:         expiry.toISOString(),
+              stripe_customer_id:      custId,
+              stripe_subscription_id:  subId,
+            })
+            .eq('email', email);
+
+          if (error) console.error('fed_intern_profiles tier update failed:', error);
+          else console.log(`✓ Student profile upgraded to featured: ${email}`);
+
+          await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
+            type:    'intern_featured_active',
+            to_email: email,
+            tier:    'featured',
+            subject: 'Your Fredheim Featured Student Profile is now active',
+            body:    'Your Featured Student Profile is active. You now have priority placement in employer matches, profile analytics, and the optimization checklist. The subscription renews annually at $49/yr until cancelled.',
+          });
+          break;
+        }
+
         console.log('checkout.session.completed — unmatched metadata:', meta);
         break;
       }
@@ -257,6 +279,15 @@ module.exports = async function handler(req, res) {
           break;
         }
 
+        // Student featured renewal — extend one year in fed_intern_profiles
+        if (internTierFromPrice(priceId)) {
+          await supabase.from('fed_intern_profiles')
+            .update({ tier_expires_at: expiryOneYear() })
+            .eq('stripe_customer_id', custId);
+          console.log(`✓ Student featured subscription renewed: ${custId}`);
+          break;
+        }
+
         break;
       }
 
@@ -275,6 +306,17 @@ module.exports = async function handler(req, res) {
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
           console.log(`✓ Candidate downgraded to free: ${custId}`);
+          break;
+        }
+
+        // Downgrade student featured to free in fed_intern_profiles
+        if (internTierFromPrice(priceId)) {
+          await supabase.from('fed_intern_profiles').update({
+            tier:                   'free',
+            tier_expires_at:        null,
+            stripe_subscription_id: null,
+          }).eq('stripe_customer_id', custId);
+          console.log(`✓ Student featured downgraded to free: ${custId}`);
           break;
         }
 

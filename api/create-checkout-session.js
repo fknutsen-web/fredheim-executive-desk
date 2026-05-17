@@ -4,6 +4,7 @@
 //   Recruiter tiers:   pro ($499/mo) | founding ($7,500/yr — limited intake, annual lock-in)
 //   Engagement unlock: one-time fee at point of introduction, amount determined by match age
 //                      0–30 days = $500 | 31–60 days = $350 | 61–90 days = $200 | 90+ days = free
+//   Intern featured:   $49/yr — Featured Student Profile (Early Careers)
 
 module.exports = async function handler(req, res) {
   try {
@@ -63,8 +64,6 @@ module.exports = async function handler(req, res) {
     }
 
     // ── MATCH AGE BRACKET ──────────────────────────────────────
-    // Returns the engagement price ID and display amount based on how many days
-    // have elapsed since the match was created.
     async function resolveEngagementPrice(matchId) {
       const { data: match, error } = await supabase
         .from('talent_matches')
@@ -86,19 +85,19 @@ module.exports = async function handler(req, res) {
       if (ageDays <= 90) {
         return { priceId: process.env.PRICE_ENGAGE_AGING, bracket: 'aging', amount: '$200', ageDays };
       }
-      // 90+ days: complimentary unlock — no Stripe charge required
       return { priceId: null, bracket: 'complimentary', amount: '$0', ageDays };
     }
 
     // ── CANDIDATE CONFIDENTIAL SUBSCRIPTION ───────────────────
-    // Free candidates: no checkout needed — profile created via talent-candidates.js
-    // Confidential upgrade: anonymous executive profile at $299/yr
     if (type === 'candidate') {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: process.env.PRICE_CANDIDATE_CONFIDENTIAL, quantity: 1 }],
-        success_url: `${baseUrl}?view=talent-match&checkout=success&tier=confidential`,
+        // Return param drives App.applyUpgradeFromReturn so the user sees an
+        // immediate UI confirmation; the webhook is the source of truth for
+        // the DB tier update (both run independently, both are idempotent).
+        success_url: `${baseUrl}?upgradeSuccess=confidential`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'candidate', tier: 'confidential', email: email || '' },
       });
@@ -114,7 +113,6 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: `Invalid recruiter tier: ${rawTier}. Use 'pro' or 'founding'.` });
       }
 
-      // Founding partner eligibility gate
       if (rawTier === 'founding') {
         const check = await foundingEligible();
         if (!check.eligible) {
@@ -131,7 +129,6 @@ module.exports = async function handler(req, res) {
         ? process.env.PRICE_RECRUITER_FOUNDING
         : process.env.PRICE_RECRUITER_PRO;
 
-      // Founding is annual ($7,500/yr); Pro is monthly ($499/mo)
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email || undefined,
@@ -145,9 +142,6 @@ module.exports = async function handler(req, res) {
     }
 
     // ── ENGAGEMENT UNLOCK FEE ──────────────────────────────────
-    // Triggered when a recruiter clicks Express Interest and the candidate accepts.
-    // Fee is determined by match age at the moment of unlock — not by candidate tier.
-    // 0–30 days: $500 | 31–60 days: $350 | 61–90 days: $200 | 90+ days: complimentary
     if (type === 'engagement') {
       if (!match_id) {
         return res.status(400).json({ error: 'match_id is required for engagement unlock.' });
@@ -156,7 +150,6 @@ module.exports = async function handler(req, res) {
       const resolved = await resolveEngagementPrice(match_id);
       if (resolved.error) return res.status(400).json({ error: resolved.error });
 
-      // 90+ day matches — no payment required; signal complimentary unlock to caller
       if (resolved.bracket === 'complimentary') {
         return res.status(200).json({
           complimentary: true,
@@ -190,7 +183,6 @@ module.exports = async function handler(req, res) {
     }
 
     // ── FOUNDING PARTNER AVAILABILITY CHECK ────────────────────
-    // Called by the pricing page to show remaining spots in real time
     if (type === 'founding-check') {
       const check = await foundingEligible();
       return res.status(200).json(check);
@@ -198,10 +190,7 @@ module.exports = async function handler(req, res) {
 
     // ── EARLY CAREERS — FEATURED STUDENT PROFILE ───────────────
     // $49/yr subscription. Profile is saved as 'free' before redirect; the
-    // webhook flips it to 'featured' on checkout.session.completed. The
-    // success_url also uses ?upgradeSuccess=intern_featured so the App
-    // can apply the tier change immediately on return (defence-in-depth
-    // in case the webhook is delayed).
+    // webhook flips it to 'featured' on checkout.session.completed.
     if (type === 'intern_featured') {
       if (!email) {
         return res.status(400).json({ error: 'email is required for intern_featured.' });
