@@ -512,6 +512,8 @@ function InternProfileForm({ authUser, showToast, onComplete }) {
   const [step, setStep]   = useState(1);
   const [loading, setLoading] = useState(false);
   const [tier, setTier]   = useState('free');
+  const [isUpdate, setIsUpdate] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(!!authUser?.email);
   const [form, setForm] = useState({
     school_university:'', degree_type:'', major:'', minor:'', graduation_year:'',
     graduation_semester:'spring', gpa:'', gpa_disclosed: false,
@@ -528,6 +530,40 @@ function InternProfileForm({ authUser, showToast, onComplete }) {
     privacy_anonymous_until_accepted: false,
     project_experience: [],
   });
+
+  // Load existing profile so an authenticated user editing their profile
+  // doesn't lose data on save (upsert would otherwise overwrite all fields
+  // with the default blanks above).
+  useEffect(() => {
+    if (!authUser?.email) { setLoadingProfile(false); return; }
+    const emailLc = authUser.email.toLowerCase();
+    sb.from('fed_intern_profiles').select('*').eq('email', emailLc).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setIsUpdate(true);
+          setTier(data.tier === 'featured' ? 'featured' : 'free');
+          setForm(prev => ({
+            ...prev,
+            ...Object.fromEntries(Object.entries(data).filter(([k]) => k in prev)),
+            // Re-stringify arrays that the form edits as comma-separated strings
+            technical_skills: Array.isArray(data.technical_skills) ? data.technical_skills.join(', ') : (data.technical_skills || ''),
+            software_skills:  Array.isArray(data.software_skills)  ? data.software_skills.join(', ')  : (data.software_skills  || ''),
+            certifications:   Array.isArray(data.certifications)   ? data.certifications.join(', ')   : (data.certifications   || ''),
+            preferred_work_locations: Array.isArray(data.preferred_work_locations)
+              ? data.preferred_work_locations.join(', ')
+              : (data.preferred_work_locations || ''),
+            project_experience: Array.isArray(data.project_experience) ? data.project_experience : [],
+            preferred_industries: Array.isArray(data.preferred_industries) ? data.preferred_industries : [],
+            preferred_functions:  Array.isArray(data.preferred_functions)  ? data.preferred_functions  : [],
+            internship_seasons:   Array.isArray(data.internship_seasons)   ? data.internship_seasons   : [],
+            graduation_year: data.graduation_year ? String(data.graduation_year) : '',
+            gpa: data.gpa != null ? String(data.gpa) : '',
+          }));
+        }
+        setLoadingProfile(false);
+      })
+      .catch(() => setLoadingProfile(false));
+  }, [authUser?.email]);
 
   function set(k, v) { setForm(p => ({ ...p, [k]: v })); }
   function toggleArr(k, v) { const a = form[k]||[]; set(k, a.includes(v) ? a.filter(x=>x!==v) : [...a,v]); }
@@ -557,29 +593,42 @@ function InternProfileForm({ authUser, showToast, onComplete }) {
   async function submit() {
     if (!authUser?.email) { showToast('Please sign in to save your profile.'); return; }
     setLoading(true);
+    const emailLc = authUser.email.toLowerCase();
     const profileData = {
-      email: authUser.email,
+      email: emailLc,
       ...form,
       gpa: form.gpa_disclosed && form.gpa ? parseFloat(form.gpa) : null,
       graduation_year: form.graduation_year ? parseInt(form.graduation_year) : null,
       technical_skills: form.technical_skills ? form.technical_skills.split(',').map(s=>s.trim()).filter(Boolean) : [],
       software_skills:  form.software_skills  ? form.software_skills.split(',').map(s=>s.trim()).filter(Boolean) : [],
       certifications:   form.certifications   ? form.certifications.split(',').map(s=>s.trim()).filter(Boolean) : [],
-      preferred_work_locations: form.preferred_work_locations ? [form.preferred_work_locations] : [],
-      tier: 'free',
+      preferred_work_locations: form.preferred_work_locations
+        ? form.preferred_work_locations.split(',').map(s=>s.trim()).filter(Boolean)
+        : [],
+      // Preserve current tier on update — webhook is the single source of truth
+      // for promoting to 'featured' after a successful Stripe checkout.
+      tier: isUpdate ? undefined : 'free',
     };
+    // Drop undefined tier so it doesn't overwrite an existing 'featured' tier
+    if (profileData.tier === undefined) delete profileData.tier;
+
     const { error } = await sb.from('fed_intern_profiles').upsert(profileData, { onConflict:'email' });
     if (error) { showToast('Error saving profile. Please try again.'); setLoading(false); return; }
     if (tier === 'featured') {
-      const resp = await fetch('/api/create-checkout-session', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ type:'intern_featured', email: authUser.email, origin: window.location.origin }),
-      });
-      const data = await resp.json();
-      if (data.url) { window.location.href = data.url; return; }
-      showToast('Checkout error. Profile saved as free.');
+      try {
+        const resp = await fetch('/api/create-checkout-session', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ type:'intern_featured', email: emailLc, origin: window.location.origin }),
+        });
+        const data = await resp.json();
+        if (data.url) { window.location.href = data.url; return; }
+        showToast(data.error || 'Checkout unavailable. Profile saved — you can upgrade from your profile later.');
+      } catch (e) {
+        showToast('Checkout request failed. Profile saved — try upgrading again later.');
+      }
+      if (onComplete) onComplete();
     } else {
-      showToast('✓ Profile saved. You\'ll be matched as opportunities post.');
+      showToast(isUpdate ? '✓ Profile updated.' : '✓ Profile saved. You\'ll be matched as opportunities post.');
       if (onComplete) onComplete();
     }
     setLoading(false);
@@ -589,12 +638,53 @@ function InternProfileForm({ authUser, showToast, onComplete }) {
   const yearNow = new Date().getFullYear();
   const GRAD_YEARS = Array.from({length:8}, (_,i) => yearNow + i - 1);
 
+  // Auth gate — saving the profile requires an authenticated email. Without
+  // this gate, a user could complete the 5-step form and only discover they
+  // need to sign in at submit, losing all entered data.
+  if (!authUser?.email) {
+    return (
+      <div style={{maxWidth:600,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center'}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'0.75rem'}}>
+          Sign in to build your Student Profile
+        </div>
+        <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.6'}}>
+          Profiles are tied to your email so we can save your progress, match you to internships, and notify you when an employer is interested. You'll be returned to your profile after signing in.
+        </div>
+        <button
+          className="btn-primary"
+          onClick={() => {
+            // Carry the intent through the auth round-trip so the post-login
+            // router brings the user back to the profile form.
+            const target = `${window.location.origin}${window.location.pathname}?view=intern-profile`;
+            window.history.replaceState({}, '', target);
+            // Trigger a reload through the sign-in view so the magic-link
+            // flow knows where to send the user.
+            window.location.href = `${window.location.origin}${window.location.pathname}?view=signin`;
+          }}
+        >
+          Sign In to Continue
+        </button>
+      </div>
+    );
+  }
+
+  if (loadingProfile) {
+    return (
+      <div style={{maxWidth:640,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center',color:'var(--ink-4)'}}>
+        <span className="spinner" />
+      </div>
+    );
+  }
+
   return (
     <div style={{maxWidth:640,margin:'0 auto',padding:'2rem 1.5rem'}}>
       {/* Platform notice */}
       <div className="intern-form-policy">
         <strong>Fredheim Desk does not require resume uploads.</strong> Your structured profile is used for matching.
         If you choose to engage with an employer, you may share additional materials directly — at your discretion.
+        {isUpdate && (
+          <><br/><br/><strong>Updating your existing profile.</strong> Your current information has been loaded — change only what you need.</>
+        )}
       </div>
 
       {/* Step dots */}
@@ -1325,9 +1415,10 @@ function InternCandidateSection({ authUser, showToast, goToView }) {
 
   useEffect(() => {
     if (!authUser?.email) return;
+    const emailLc = authUser.email.toLowerCase();
     Promise.all([
-      sb.from('fed_intern_profiles').select('*').eq('email',authUser.email).maybeSingle(),
-      sb.from('fed_intern_interests').select('*, fed_intern_jobs(*)').eq('candidate_email',authUser.email.toLowerCase()).not('status','in','("candidate_hidden","expired")').order('created_at',{ascending:false}),
+      sb.from('fed_intern_profiles').select('*').eq('email', emailLc).maybeSingle(),
+      sb.from('fed_intern_interests').select('*, fed_intern_jobs(*)').eq('candidate_email', emailLc).not('status','in','("candidate_hidden","expired")').order('created_at',{ascending:false}),
     ]).then(([{data:p},{data:m}]) => {
       setProfile(p);
       setMatches(m||[]);
@@ -10514,5 +10605,6 @@ function App() {
     </>
   );
 }
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
