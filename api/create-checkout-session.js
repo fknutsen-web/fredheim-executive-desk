@@ -24,6 +24,8 @@ module.exports = async function handler(req, res) {
       'PRICE_ENGAGE_WARM',              // $350 — match is 31–60 days old
       'PRICE_ENGAGE_AGING',             // $200 — match is 61–90 days old
       // 90+ days: no charge (complimentary unlock)
+      // Early Careers — Featured Student Profile
+      'PRICE_INTERN_FEATURED',          // $49/yr — featured student profile (Early Careers)
     ];
 
     for (const key of required) {
@@ -96,7 +98,7 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: process.env.PRICE_CANDIDATE_CONFIDENTIAL, quantity: 1 }],
-        success_url: `${baseUrl}?upgradeSuccess=confidential`,
+        success_url: `${baseUrl}?view=talent-match&checkout=success&tier=confidential`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'candidate', tier: 'confidential', email: email || '' },
       });
@@ -134,7 +136,7 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-dash&checkout=success&tier=${rawTier}`,
+        success_url: `${baseUrl}?view=recruiter-talent&checkout=success&tier=${rawTier}`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'recruiter', tier: rawTier, email: email || '', recruiter_id: recruiter_id || '' },
       });
@@ -168,8 +170,8 @@ module.exports = async function handler(req, res) {
         mode: 'payment',
         customer_email: email || undefined,
         line_items: [{ price: resolved.priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-dash&checkout=engaged&match=${match_id}`,
-        cancel_url:  `${baseUrl}?view=recruiter-dash&checkout=cancelled`,
+        success_url: `${baseUrl}?view=recruiter-talent&checkout=engaged&match=${match_id}`,
+        cancel_url:  `${baseUrl}?view=recruiter-talent&checkout=cancelled`,
         metadata: {
           type:       'engagement',
           match_id,
@@ -194,17 +196,23 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(check);
     }
 
-    // ── INTERN FEATURED STUDENT PROFILE ($49/yr) ────────────────────────────
+    // ── EARLY CAREERS — FEATURED STUDENT PROFILE ───────────────
+    // $49/yr subscription. Profile is saved as 'free' before redirect; the
+    // webhook flips it to 'featured' on checkout.session.completed. The
+    // success_url also uses ?upgradeSuccess=intern_featured so the App
+    // can apply the tier change immediately on return (defence-in-depth
+    // in case the webhook is delayed).
     if (type === 'intern_featured') {
-      if (!email) return res.status(400).json({ error: 'email required for intern checkout.' });
+      if (!email) {
+        return res.status(400).json({ error: 'email is required for intern_featured.' });
+      }
       const session = await stripe.checkout.sessions.create({
-        mode:               'subscription',
-        customer_email:     email,
+        mode: 'subscription',
+        customer_email: email,
         line_items: [{ price: process.env.PRICE_INTERN_FEATURED, quantity: 1 }],
         success_url: `${baseUrl}?upgradeSuccess=intern_featured`,
-        cancel_url:  `${baseUrl}?view=intern-profile&checkout=cancelled`,
-        metadata:    { type: 'intern_featured', email },
-        allow_promotion_codes: true,
+        cancel_url:  `${baseUrl}?view=intern-myprofile&checkout=cancelled`,
+        metadata: { type: 'intern_featured', tier: 'featured', email },
       });
       return res.status(200).json({ url: session.url });
     }
