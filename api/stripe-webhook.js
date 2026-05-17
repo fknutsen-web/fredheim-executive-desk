@@ -111,6 +111,24 @@ module.exports = async function handler(req, res) {
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 1 });
         const priceId   = lineItems.data[0]?.price?.id;
 
+        // ── INTERN FEATURED STUDENT PROFILE ───────────────
+        if (meta.type === 'intern_featured') {
+          const expiry = new Date();
+          expiry.setFullYear(expiry.getFullYear() + 1);
+          const { error } = await supabase
+            .from('fed_intern_profiles')
+            .update({
+              tier:                   'featured',
+              tier_expires_at:        expiry.toISOString(),
+              stripe_customer_id:     custId,
+              stripe_subscription_id: subId,
+            })
+            .eq('email', email);
+          if (error) console.error('intern featured tier update failed:', error);
+          else console.log(`✓ Intern profile upgraded to featured: ${email}`);
+          break;
+        }
+
         // ── CANDIDATE CONFIDENTIAL SUBSCRIPTION ───────────
         const candidateTier = meta.type === 'candidate'
           ? meta.tier

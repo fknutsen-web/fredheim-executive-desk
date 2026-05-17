@@ -96,7 +96,7 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: process.env.PRICE_CANDIDATE_CONFIDENTIAL, quantity: 1 }],
-        success_url: `${baseUrl}?view=talent-match&checkout=success&tier=confidential`,
+        success_url: `${baseUrl}?upgradeSuccess=confidential`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'candidate', tier: 'confidential', email: email || '' },
       });
@@ -134,7 +134,7 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-talent&checkout=success&tier=${rawTier}`,
+        success_url: `${baseUrl}?view=recruiter-dash&checkout=success&tier=${rawTier}`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'recruiter', tier: rawTier, email: email || '', recruiter_id: recruiter_id || '' },
       });
@@ -168,8 +168,8 @@ module.exports = async function handler(req, res) {
         mode: 'payment',
         customer_email: email || undefined,
         line_items: [{ price: resolved.priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-talent&checkout=engaged&match=${match_id}`,
-        cancel_url:  `${baseUrl}?view=recruiter-talent&checkout=cancelled`,
+        success_url: `${baseUrl}?view=recruiter-dash&checkout=engaged&match=${match_id}`,
+        cancel_url:  `${baseUrl}?view=recruiter-dash&checkout=cancelled`,
         metadata: {
           type:       'engagement',
           match_id,
@@ -194,7 +194,22 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(check);
     }
 
-    return res.status(400).json({ error: `Unknown checkout type: ${type}. Use: candidate | recruiter | engagement | founding-check` });
+    // ── INTERN FEATURED STUDENT PROFILE ($49/yr) ────────────────────────────
+    if (type === 'intern_featured') {
+      if (!email) return res.status(400).json({ error: 'email required for intern checkout.' });
+      const session = await stripe.checkout.sessions.create({
+        mode:               'subscription',
+        customer_email:     email,
+        line_items: [{ price: process.env.PRICE_INTERN_FEATURED, quantity: 1 }],
+        success_url: `${baseUrl}?upgradeSuccess=intern_featured`,
+        cancel_url:  `${baseUrl}?view=intern-profile&checkout=cancelled`,
+        metadata:    { type: 'intern_featured', email },
+        allow_promotion_codes: true,
+      });
+      return res.status(200).json({ url: session.url });
+    }
+
+    return res.status(400).json({ error: `Unknown checkout type: ${type}. Use: candidate | recruiter | engagement | founding-check | intern_featured` });
 
   } catch (err) {
     console.error('create-checkout-session error:', err);
