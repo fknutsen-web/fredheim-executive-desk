@@ -73,7 +73,7 @@ module.exports = async function handler(req, res) {
     // Load all candidate profiles, including derived scope classification
     const { data: candidates, error: cErr } = await db
       .from('fed_profiles')
-      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private, candidate_scope, scope_score, complexity_score, strategic_score, leadership_class, complexity_class, equivalent_label')
+      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private, candidate_scope, scope_score, complexity_score, strategic_score, commercial_score, leadership_class, complexity_class, equivalent_label, industrial_translator')
       .not('email', 'is', null);
 
     if (cErr) throw cErr;
@@ -282,10 +282,67 @@ function computeMatchScore(candidate, job) {
     if (candidate.strategic_score >= 50) reasons.strategic = true;
   }
 
-  // ── HARD GUARD ─────────────────────────────────────────────────────────
-  // Block matches where the candidate is more than two leadership tiers
-  // below requirement — these introductions destroy recruiter trust more
-  // than they create candidate optionality.
+  // ── 8. COMMERCIAL & TECHNICAL FLUENCY (up to 10 pts, conditional) ──────
+  // Only meaningful when the role is in an industrial-technology vertical
+  // OR when the role explicitly requires revenue-model / sales-motion /
+  // technical-fluency attributes. For traditional operational roles this
+  // dimension is silent — we don't want to reward SaaS background on a
+  // terminal-operations role where it doesn't matter.
+  const TECH_VERTICAL_KEYWORDS = [
+    'technology','saas','intelligence','automation','ai',
+    'analytics','digital','platform','software',
+  ];
+  const jobIndustryLower = (job.industry || '').toLowerCase();
+  const isTechVertical   = TECH_VERTICAL_KEYWORDS.some(kw => jobIndustryLower.includes(kw));
+
+  const roleReqs        = job.role_scope_requirements || {};
+  const reqRevenue      = Array.isArray(roleReqs.required_revenue_models)    ? roleReqs.required_revenue_models    : [];
+  const reqMotion       = Array.isArray(roleReqs.required_sales_motions)     ? roleReqs.required_sales_motions     : [];
+  const reqTech         = Array.isArray(roleReqs.required_technical_fluency) ? roleReqs.required_technical_fluency : [];
+  const hasCommercialRequirements = reqRevenue.length || reqMotion.length || reqTech.length;
+
+  if (isTechVertical || hasCommercialRequirements) {
+    const candScope      = candidate.candidate_scope || {};
+    const candCommercial = candScope.commercial || {};
+    const candRev        = Array.isArray(candCommercial.revenue_models)    ? candCommercial.revenue_models    : [];
+    const candMotion     = Array.isArray(candCommercial.sales_motions)     ? candCommercial.sales_motions     : [];
+    const candTech       = Array.isArray(candCommercial.technical_fluency) ? candCommercial.technical_fluency : [];
+
+    let commercialPts = 0;
+
+    // Industrial-translator bonus. The cross-functional pattern that
+    // industrial-tech companies cannot find through generic SaaS recruiters.
+    if (candidate.industrial_translator && isTechVertical) {
+      commercialPts += 5;
+      reasons.industrial_translator = true;
+    }
+
+    // Requirement overlap. Proportional credit up to 5 pts when the role
+    // specifies required commercial attributes and the candidate satisfies them.
+    if (hasCommercialRequirements) {
+      const tally = (req, cand) => req.length === 0 ? null
+        : req.filter(r => cand.includes(r)).length / req.length;
+      const revOverlap    = tally(reqRevenue, candRev);
+      const motionOverlap = tally(reqMotion,  candMotion);
+      const techOverlap   = tally(reqTech,    candTech);
+      const overlaps      = [revOverlap, motionOverlap, techOverlap].filter(v => v !== null);
+      const avgOverlap    = overlaps.length ? overlaps.reduce((a,b)=>a+b,0) / overlaps.length : 0;
+      commercialPts += Math.round(avgOverlap * 5);
+      reasons.commercial_fit = avgOverlap >= 0.6 ? true : avgOverlap > 0 ? 'partial' : false;
+    } else if (isTechVertical) {
+      // Tech vertical but no explicit requirements. Award credit for
+      // having any meaningful commercial signal at all (commercial_score).
+      const cs = typeof candidate.commercial_score === 'number' ? candidate.commercial_score : 0;
+      commercialPts += Math.round((cs / 100) * 5);
+      if (cs >= 40) reasons.commercial_fit = true;
+    }
+
+    score += Math.min(10, commercialPts);
+  }
+
+  // HARD GUARD: Block matches where candidate is more than two leadership
+  // tiers below requirement. These introductions destroy recruiter trust
+  // more than they create candidate optionality.
   if (job.required_leadership_class && candidate.leadership_class) {
     const cIdx = classIndex(LEADERSHIP_ORDER, candidate.leadership_class);
     const rIdx = classIndex(LEADERSHIP_ORDER, job.required_leadership_class);
