@@ -5220,14 +5220,14 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       name: 'Standard',
       price: String(cfg.recruiter_subscription_monthly || 199),
       period: 'per month',
-      desc: 'Full access to the curated marketplace. Post searches, review qualified candidates, and confirm curated introductions when mutual interest exists.',
+      desc: 'Access the curated executive talent infrastructure for industrial, maritime, logistics, and operational-technology hiring. Built for precision and discretion, not volume.',
       features: [
-        'Unlimited active searches',
-        'Curated candidate matches based on scope and complexity',
-        'Mutual-interest workflow - no cold outreach',
-        'Salary transparency required on all postings',
+        'Reduce executive hiring risk through scope-based compatibility matching',
+        'Access operationally aligned executive talent beyond titles and keywords',
+        'Controlled introductions built around confidentiality and mutual alignment',
+        'Focused, high-quality active searches - up to five concurrent mandates',
+        'Compensation transparency encouraged for priority visibility and match quality',
         'Standard posting review within 24 hours',
-        'Email support',
       ],
       muted: [],
       cta: 'Get Started',
@@ -5235,22 +5235,23 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       recommended: true,
     },
     {
-      name: 'Founding Partner',
-      price: '0',
-      period: 'through Dec 31, 2026',
-      desc: 'Limited founding window. One posting per month at no charge, and no introduction fees during the founding period. Subscriptions open after the window closes.',
+      name: 'Founding Access',
+      // Founding Partner status is positioned as exclusivity, not free access.
+      // No "$0" display - it would unintentionally cheapen the positioning.
+      priceDisplay: 'By Application',
+      period: 'Limited founding cohort through ' + (cfg.founding_partner_window_end || '2026-12-31'),
+      desc: 'A small, vetted founding cohort of search firms shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
       features: [
-        String((cfg.founding_partner_monthly_postings || 1)) +
-          ' free posting' + ((cfg.founding_partner_monthly_postings || 1) === 1 ? '' : 's') + ' per month',
+        'Limited initial partner group - admission by review',
+        'Subscription fees waived through ' + (cfg.founding_partner_window_end || '2026-12-31'),
         'No introduction fees during the founding window',
-        'Direct access to the Fredheim team',
-        'Preferred pricing offered when the window closes',
-        'Status, not a SKU - you can also subscribe at any time',
+        String(cfg.founding_partner_monthly_postings || 1) +
+          ' posting' + ((cfg.founding_partner_monthly_postings || 1) === 1 ? '' : 's') + ' per month at no charge',
+        'Direct access to the Fredheim team and product roadmap input',
+        'Preferred pricing offered when the founding window closes',
       ],
-      muted: [
-        'Window closes ' + (cfg.founding_partner_window_end || '2026-12-31'),
-      ],
-      cta: 'Apply for Founding Partner',
+      muted: [],
+      cta: 'Apply for Founding Access',
       ctaStyle: '',
       recommended: false,
     },
@@ -5299,18 +5300,19 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
     },
     {
       name: 'Executive Concierge',
-      price: 'By invitation',
-      period: '',
-      desc: 'For executives who want a controlled, discreet market process with personal oversight at every step.',
+      priceDisplay: 'By Invitation',
+      period: 'Private rollout beginning 2027',
+      desc: 'For senior executives who want a controlled, discreet market process with personal oversight at every step. Selectively offered.',
       features: [
         'Private consultation before profile activation',
         'Manual review of all recruiter access requests',
-        'Controlled introduction workflow',
+        'Controlled introduction workflow with personal oversight',
         'Compensation positioning support',
         'Quarterly market feedback and search activity report',
       ],
       muted: [],
-      cta: 'Coming Soon',
+      // CTA omitted intentionally - communicates exclusivity over availability.
+      cta: null,
       ctaStyle: 'muted',
       recommended: false,
     },
@@ -5320,7 +5322,8 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
 
   async function handlePlanCta(plan) {
     if (plan.cta === 'Contact Us' || plan.cta === 'Apply for Concierge' ||
-        plan.cta === 'Get Started' || plan.cta === 'Request Concierge Access') {
+        plan.cta === 'Get Started' || plan.cta === 'Request Concierge Access' ||
+        plan.cta === 'Apply for Founding Access' || plan.cta === 'Apply for Founding Partner') {
       openRecruiterModal();
       return;
     }
@@ -5362,6 +5365,46 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         </p>
       </div>
 
+      {/* Platform differentiator. Sets the frame before pricing is read.
+          The platform's economic model only makes sense once a recruiter
+          understands that the matching signal is operational scope, not
+          title - which is why this statement leads. */}
+      <div className="pricing-differentiator">
+        <div className="pricing-differentiator-eyebrow">What Makes Fredheim Desk Different</div>
+        <div className="pricing-differentiator-headline">
+          Fredheim Desk evaluates operational scope, leadership complexity,
+          and organizational fit - not just titles and keywords.
+        </div>
+        <p className="pricing-differentiator-body">
+          Titles in maritime, ports and terminals, energy, offshore, industrial
+          commodities and logistics, and the industrial-technology companies serving
+          those industries are inconsistent and frequently misleading indicators of
+          actual capability. A "Supply Chain Manager" at one operator may run a
+          larger P&amp;L, more sites, and more direct reports than a "VP Operations"
+          at another. The platform classifies what a candidate actually does -
+          operational responsibility, organizational complexity, transformation
+          experience, leadership scope, and business impact - and matches on that.
+        </p>
+        <div className="pricing-differentiator-pillars">
+          <div className="pricing-pillar">
+            <div className="pricing-pillar-title">Precision over volume</div>
+            <div className="pricing-pillar-body">Fewer, higher-confidence introductions. The platform actively discourages low-fit applications.</div>
+          </div>
+          <div className="pricing-pillar">
+            <div className="pricing-pillar-title">Compatibility over keywords</div>
+            <div className="pricing-pillar-body">Match Confidence labels (High, Moderate, Stretch, Low) replace raw resume parsing.</div>
+          </div>
+          <div className="pricing-pillar">
+            <div className="pricing-pillar-title">Discretion over reach</div>
+            <div className="pricing-pillar-body">Candidate identity is protected until the candidate personally approves a curated introduction.</div>
+          </div>
+          <div className="pricing-pillar">
+            <div className="pricing-pillar-title">Reduced hiring risk</div>
+            <div className="pricing-pillar-body">Scope-based evaluation surfaces the "industrial-commercial translator" profile that generic platforms miss.</div>
+          </div>
+        </div>
+      </div>
+
       {/* Audience toggle */}
       <div className="pricing-tabs">
         <button className={`pricing-tab ${audience==='recruiters'?'active':''}`} onClick={()=>setAudience('recruiters')}>
@@ -5372,14 +5415,21 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         </button>
       </div>
 
-      {/* Plan cards */}
+      {/* Plan cards. Plans may provide a numeric `price` (rendered with the
+          $ prefix) or a `priceDisplay` string (rendered verbatim, used for
+          status-style tiers like "By Application" and "By Invitation").
+          A null `cta` suppresses the action button entirely - used for
+          tiers that communicate exclusivity over availability. */}
       <div className="plans-grid">
         {plans.map(plan => (
           <div key={plan.name} className={`plan-card ${plan.recommended?'recommended':''}`}>
             {plan.recommended && <div className="recommended-badge">Most Popular</div>}
             <div className="plan-name">{plan.name}</div>
             <div className="plan-price">
-              <sup>$</sup>{plan.price}
+              {plan.priceDisplay
+                ? <span style={{fontSize:'1.5rem',fontFamily:"'Playfair Display',serif",fontStyle:'italic',color:'var(--ink-2)',fontWeight:500}}>{plan.priceDisplay}</span>
+                : <><sup>$</sup>{plan.price}</>
+              }
             </div>
             <div className="plan-period">{plan.period}</div>
             <div className="plan-desc">{plan.desc}</div>
@@ -5391,14 +5441,14 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
                 <li key={'m'+i} className="plan-feature muted">{f}</li>
               ))}
             </ul>
-            <button
-              className={`plan-cta ${plan.ctaStyle}`}
-              onClick={() => plan.cta !== 'Coming Soon' && handlePlanCta(plan)}
-              disabled={plan.cta === 'Coming Soon'}
-              style={plan.cta === 'Coming Soon' ? {opacity:0.45,cursor:'default',pointerEvents:'none'} : {}}
-            >
-              {plan.cta}
-            </button>
+            {plan.cta && (
+              <button
+                className={`plan-cta ${plan.ctaStyle}`}
+                onClick={() => handlePlanCta(plan)}
+              >
+                {plan.cta}
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -11953,7 +12003,6 @@ function App() {
             <div className="recruiter-title">Reach the right executives.</div>
             <div className="recruiter-desc">
               The only curated platform where retained search firms reach qualified senior leaders
-              in maritime, ports and terminals, energy, offshore, and industrial logistics. No noise. Salary transparency required.
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
