@@ -18,6 +18,119 @@ const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// ── PLATFORM PHASE ──────────────────────────────────────────────────────────
+// Phase 1: the economic event is the CURATED INTRODUCTION, not the final hire.
+// Placement-fee workflows (certification, tail-period monitoring, hire-close
+// revenue tracking, invoice/collection tied to completed placements) are
+// disabled in Phase 1 - the UI hides them behind the feature flag below.
+// Phase 2 may revisit pricing once marketplace liquidity is proven; values
+// are loaded from fed_pricing_config so they can be adjusted without code
+// changes.
+const PLATFORM_PHASE              = 'phase_1';
+const PLACEMENT_FEE_FLOW_ENABLED  = false;
+
+// ── PRICING CONFIG (Phase 1 defaults) ───────────────────────────────────────
+// Hardcoded defaults used until fed_pricing_config is loaded from the API.
+// On mount the app calls /api/pricing-config and merges DB values over
+// these defaults via loadPricingConfig(). Phase 2 can change values via SQL
+// or a future admin UI; this constant exists so the page renders correctly
+// when the API is unavailable.
+const PRICING_CONFIG_DEFAULTS = {
+  recruiter_subscription_monthly:    199,
+  introduction_csuite:               495,
+  introduction_vp_svp:               295,
+  introduction_director:             149,
+  introduction_consultant:            79,
+  introduction_early_career:           0,
+  candidate_executive_tier:          299,
+  intern_featured_tier:               49,
+  founding_partner_window_end:    '2026-12-31',
+  founding_partner_monthly_postings:  1,
+};
+
+// Mapping leadership_class -> introduction fee config key. Mirrors
+// fed_introduction_fee_by_class in the database.
+const INTRODUCTION_FEE_BY_CLASS_DEFAULTS = {
+  c_suite:         'introduction_csuite',
+  evp:             'introduction_csuite',
+  svp:             'introduction_vp_svp',
+  vp:              'introduction_vp_svp',
+  senior_director: 'introduction_director',
+  director:        'introduction_director',
+  senior_manager:  'introduction_consultant',
+  manager:         'introduction_consultant',
+};
+
+// Returns true if today's date is on or before the Founding Partner window
+// end date. Founding Partners get one free posting per month and pay no
+// introduction fees during this window. Called at posting submission and
+// at introduction-confirmation billing time.
+//
+// Phase 1 integration points - these still need to be wired up in the
+// posting submission flow and the introduction-confirmation billing flow:
+//   - RecruiterModal handleSubmit should skip Stripe + warn if monthly
+//     posting count >= founding_partner_monthly_postings
+//   - create-checkout-session.js should return complimentary=true for
+//     introduction fees when isFoundingWindowActive() && recruiter is a
+//     Founding Partner.
+function isFoundingWindowActive(cfg) {
+  const endStr = (cfg && cfg.founding_partner_window_end) || PRICING_CONFIG_DEFAULTS.founding_partner_window_end;
+  if (!endStr) return false;
+  try {
+    const end = new Date(endStr + 'T23:59:59Z');
+    return Date.now() <= end.getTime();
+  } catch (e) {
+    return false;
+  }
+}
+
+// Format an integer USD amount as a display string, e.g. 495 -> "$495".
+// Free is rendered as "Free".
+function fmtPrice(amount, opts) {
+  const o = opts || {};
+  if (amount === 0 || amount === null || amount === undefined) return o.zeroLabel || 'Free';
+  if (typeof amount !== 'number') return String(amount);
+  return '$' + amount.toLocaleString('en-US');
+}
+
+// Async loader - fetched once on mount and merged into the live config.
+// Returns the merged config object. Defaults are preserved if the API fails.
+async function loadPricingConfig() {
+  const merged   = Object.assign({}, PRICING_CONFIG_DEFAULTS);
+  const feeClass = Object.assign({}, INTRODUCTION_FEE_BY_CLASS_DEFAULTS);
+  try {
+    const resp = await fetch('/api/pricing-config');
+    if (!resp.ok) return { config: merged, fee_by_class: feeClass };
+    const data = await resp.json();
+    if (data && data.config) {
+      for (const k of Object.keys(data.config)) {
+        const entry = data.config[k];
+        if (entry && entry.value !== undefined && entry.value !== null) {
+          merged[k] = entry.value;
+        }
+      }
+    }
+    if (data && data.fee_by_class) {
+      // The API returns leadership_class -> amount directly; preserve that
+      // shape on `fee_by_class` for direct lookup.
+      return { config: merged, fee_by_class: data.fee_by_class };
+    }
+    // Build fee-by-class from defaults if API didn't return it.
+    const builtFee = {};
+    for (const cls of Object.keys(feeClass)) {
+      builtFee[cls] = merged[feeClass[cls]];
+    }
+    return { config: merged, fee_by_class: builtFee };
+  } catch (e) {
+    console.error('loadPricingConfig failed - using defaults:', e);
+    const builtFee = {};
+    for (const cls of Object.keys(feeClass)) {
+      builtFee[cls] = merged[feeClass[cls]];
+    }
+    return { config: merged, fee_by_class: builtFee };
+  }
+}
+
 // Checkout is created server-side through Vercel API: /api/create-checkout-session.
 // Do not load Stripe.js or expose Stripe price IDs in this HTML file.
 
@@ -3514,6 +3627,9 @@ function RecruiterModal({ onClose, showToast }) {
   const [billingBlock, setBillingBlock] = useState(null);
   const [showBillingSetup, setShowBillingSetup] = useState(false);
   const [jobReqs, setJobReqs]     = useState({}); // advanced job requirements
+  const [pricingCfg, setPricingCfg] = useState(PRICING_CONFIG_DEFAULTS);
+  useEffect(() => { loadPricingConfig().then(r => setPricingCfg(r.config)); }, []);
+
   const [form, setForm] = useState({
     firm_name:'', contact_name:'', email:'', role_title:'',
     industry:'', location:'', salary_range:'', role_level:'executive', notes:'',
@@ -3521,14 +3637,49 @@ function RecruiterModal({ onClose, showToast }) {
   });
   function set(k,v) { setForm(p=>({...p,[k]:v})); }
 
+  // Structured recruiter brief - the 10 Phase 1 required intake fields. These
+  // are the inputs the matcher needs to produce a high-confidence introduction
+  // rather than a resume-keyword match. Stored on fed_recruiter_submissions
+  // (and propagated to fed_jobs.role_scope_requirements on approval).
+  const [brief, setBrief] = useState({
+    company_environment:    '',       // text - culture, stage, ownership type
+    leadership_style:       '',       // chip - directive | collaborative | coach | transformative | steady
+    commercial_environment: '',       // chip - high-growth | mature | turnaround | regulated | greenfield
+    must_have:              '',       // text - must-have requirements (deal-breakers)
+    preferred:              '',       // text - preferred requirements
+    nice_to_have:           '',       // text - nice-to-have requirements
+    location_remote:        '',       // chip - onsite | hybrid_office | hybrid_remote | fully_remote | flexible
+    travel_expectation:     '',       // chip - minimal | up_to_25 | up_to_50 | extensive
+    urgency:                '',       // chip - exploratory | active | urgent | critical
+  });
+  function setBriefField(k, v) { setBrief(p => ({ ...p, [k]: v })); }
+
   async function handleSubmit() {
     if (!form.firm_name || !form.email || !form.role_title) { showToast('Please complete firm name, email, and role title.'); return; }
-    if (!form.salary_range) { showToast('Salary range is required — platform standard.'); return; }
+    if (!form.salary_range) { showToast('Compensation range is required - platform standard.'); return; }
+    // Phase 1: require the structured brief so matches are based on
+    // compatibility, not keyword overlap.
+    const missingBrief = [];
+    if (!brief.company_environment.trim()) missingBrief.push('company environment');
+    if (!brief.leadership_style)           missingBrief.push('leadership style');
+    if (!brief.commercial_environment)     missingBrief.push('commercial environment');
+    if (!brief.must_have.trim())           missingBrief.push('must-have requirements');
+    if (!brief.location_remote)            missingBrief.push('location / remote expectations');
+    if (!brief.travel_expectation)         missingBrief.push('travel expectations');
+    if (!brief.urgency)                    missingBrief.push('urgency level');
+    if (missingBrief.length > 0) {
+      showToast('Please complete: ' + missingBrief.slice(0, 3).join(', ') + (missingBrief.length > 3 ? '...' : ''));
+      return;
+    }
     setLoading(true);
     try {
       await sb.from('fed_recruiter_submissions').insert({
         ...form,
-        job_requirements: jobReqs,
+        // Store the advanced job requirements alongside the new structured
+        // brief. The brief is the Phase 1 matching input; jobReqs are the
+        // Phase 0 advanced fields (work arrangement, authority, mandate)
+        // kept for backward compatibility.
+        job_requirements: { ...jobReqs, brief },
         tos_agreed: true,
         tos_agreed_at: new Date().toISOString(),
       });
@@ -3587,7 +3738,7 @@ function RecruiterModal({ onClose, showToast }) {
               Salary transparency is required on every posting.
             </p>
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
-              ✦ Founding Partner Program 2026 — one search per month, complimentary through December 31, 2026. Introduction fee terms agreed ✓
+              ✦ Founding Partner Program {pricingCfg.founding_partner_monthly_postings || 1} search{(pricingCfg.founding_partner_monthly_postings || 1) === 1 ? '' : 'es'} per month, complimentary through {pricingCfg.founding_partner_window_end || '2026-12-31'}. No curated-introduction fees during the founding window.
             </div>
 
             {submitted ? (
@@ -3628,15 +3779,20 @@ function RecruiterModal({ onClose, showToast }) {
                         className={`toggle-opt ${form.role_level==='executive'?'active':''}`}
                         onClick={()=>set('role_level','executive')}
                       >
-                        Executive — C-Suite / VP
-                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>Intro fee $3,500</span>
+                        Executive - C-Suite / VP
+                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>
+                          Curated Introduction {fmtPrice(pricingCfg.introduction_csuite)} (C-Suite) /
+                          {' '}{fmtPrice(pricingCfg.introduction_vp_svp)} (VP)
+                        </span>
                       </button>
                       <button
                         className={`toggle-opt ${form.role_level==='senior'?'active':''}`}
                         onClick={()=>set('role_level','senior')}
                       >
                         Director / Senior Manager
-                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>Intro fee $1,500</span>
+                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>
+                          Curated Introduction {fmtPrice(pricingCfg.introduction_director)}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -3710,8 +3866,136 @@ function RecruiterModal({ onClose, showToast }) {
                     </div>
                   </div>
                 </div>
-<hr className="modal-divider" />
-                {/* Advanced job requirements — executive matching */}
+
+                {/* ── STRUCTURED SEARCH BRIEF ────────────────────────────────
+                    Phase 1 required inputs. The matcher uses these to prioritize
+                    compatibility and hiring-risk reduction over keyword overlap. */}
+                <hr className="modal-divider" />
+                <div className="modal-section-title">Search Brief</div>
+                <p style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.55',marginBottom:'1rem'}}>
+                  These inputs drive the matcher. Vague briefs produce sub-par matches; specific
+                  briefs produce high-conversion introductions. Required before submission.
+                </p>
+                <div className="form" style={{gap:'0.75rem'}}>
+
+                  <div className="form-group">
+                    <label className="form-label">Company Environment *</label>
+                    <textarea className="form-input" rows={2}
+                      placeholder="e.g. PE-backed mid-market industrial, post-acquisition integration; family-owned terminal operator; growth-stage maritime SaaS."
+                      value={brief.company_environment}
+                      onChange={e=>setBriefField('company_environment', e.target.value)}
+                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Leadership Style Needed *</label>
+                    <div className="tap-options-row">
+                      {[
+                        {v:'directive',     l:'Directive'},
+                        {v:'collaborative', l:'Collaborative'},
+                        {v:'coach',         l:'Coach / Developer'},
+                        {v:'transformative',l:'Transformative'},
+                        {v:'steady',        l:'Steady / Operator'},
+                      ].map(o => (
+                        <div key={o.v} className={`tap-chip ${brief.leadership_style===o.v?'selected':''}`}
+                             onClick={()=>setBriefField('leadership_style', o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Commercial Environment *</label>
+                    <div className="tap-options-row">
+                      {[
+                        {v:'high_growth', l:'High growth'},
+                        {v:'mature',      l:'Mature / stable'},
+                        {v:'turnaround',  l:'Turnaround'},
+                        {v:'regulated',   l:'Heavily regulated'},
+                        {v:'greenfield',  l:'Greenfield / startup'},
+                      ].map(o => (
+                        <div key={o.v} className={`tap-chip ${brief.commercial_environment===o.v?'selected':''}`}
+                             onClick={()=>setBriefField('commercial_environment', o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Must-Have Requirements * (deal-breakers)</label>
+                    <textarea className="form-input" rows={2}
+                      placeholder="e.g. P&amp;L ownership >$50M; multi-site operations experience; greenfield startup record."
+                      value={brief.must_have}
+                      onChange={e=>setBriefField('must_have', e.target.value)}
+                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Preferred Requirements</label>
+                    <textarea className="form-input" rows={2}
+                      placeholder="e.g. ERP implementation lead; M&amp;A integration experience; international supply chain exposure."
+                      value={brief.preferred}
+                      onChange={e=>setBriefField('preferred', e.target.value)}
+                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Nice-to-Have</label>
+                    <textarea className="form-input" rows={2}
+                      placeholder="e.g. Industry conference visibility; board exposure; multilingual."
+                      value={brief.nice_to_have}
+                      onChange={e=>setBriefField('nice_to_have', e.target.value)}
+                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Location / Remote Expectations *</label>
+                    <div className="tap-options-row">
+                      {[
+                        {v:'onsite',         l:'Onsite required'},
+                        {v:'hybrid_office',  l:'Hybrid - office majority'},
+                        {v:'hybrid_remote',  l:'Hybrid - remote majority'},
+                        {v:'fully_remote',   l:'Fully remote'},
+                        {v:'flexible',       l:'Flexible'},
+                      ].map(o => (
+                        <div key={o.v} className={`tap-chip ${brief.location_remote===o.v?'selected':''}`}
+                             onClick={()=>setBriefField('location_remote', o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Travel Expectation *</label>
+                    <div className="tap-options-row">
+                      {[
+                        {v:'minimal',   l:'Minimal'},
+                        {v:'up_to_25',  l:'Up to 25%'},
+                        {v:'up_to_50',  l:'Up to 50%'},
+                        {v:'extensive', l:'Extensive'},
+                      ].map(o => (
+                        <div key={o.v} className={`tap-chip ${brief.travel_expectation===o.v?'selected':''}`}
+                             onClick={()=>setBriefField('travel_expectation', o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label className="form-label">Urgency *</label>
+                    <div className="tap-options-row">
+                      {[
+                        {v:'exploratory', l:'Exploratory (no deadline)'},
+                        {v:'active',      l:'Active (12-16 weeks)'},
+                        {v:'urgent',      l:'Urgent (8-12 weeks)'},
+                        {v:'critical',    l:'Critical (under 8 weeks)'},
+                      ].map(o => (
+                        <div key={o.v} className={`tap-chip ${brief.urgency===o.v?'selected':''}`}
+                             onClick={()=>setBriefField('urgency', o.v)}>{o.l}</div>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+                <hr className="modal-divider" />
+                {/* Advanced job requirements - executive matching */}
                 <details style={{marginBottom:'1rem'}}>
                   <summary style={{cursor:'pointer',fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)',padding:'0.5rem 0',userSelect:'none'}}>
                     Advanced Requirements (Work Arrangement, Authority, Compensation Detail, Mandate)
@@ -3801,6 +4085,11 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
     travel_tolerance: '',
     comp_structure: '',
     market_presence: '',
+    // Phase 1 compatibility fields - symmetric with the recruiter brief.
+    // The matcher pairs these against the role's leadership_style needed
+    // and engagement_type required to surface high-confidence fits.
+    leadership_style:       '',   // directive | collaborative | coach | transformative | steady
+    engagement_status:      '',   // permanent | interim | consultant | early_career
   });
   function setV(k,v) { setVetting(p=>({...p,[k]:v})); }
 
@@ -4681,6 +4970,43 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
                 ))}
               </div>
             </div>
+
+            {/* Phase 1 compatibility fields - symmetric with the recruiter brief. */}
+            <div className="form-row" style={{marginBottom:'0.875rem'}}>
+              <div className="form-group">
+                <label className="form-label">Engagement Type</label>
+                <div className="tap-options-row">
+                  {[
+                    {v:'permanent',     l:'Permanent'},
+                    {v:'interim',       l:'Interim'},
+                    {v:'consultant',    l:'Consultant'},
+                    {v:'early_career',  l:'Early career'},
+                  ].map(o => (
+                    <div key={o.v} className={`tap-chip ${vetting.engagement_status===o.v?'selected':''}`}
+                         onClick={()=>setV('engagement_status', o.v)}>{o.l}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="form-group" style={{marginBottom:'0.875rem'}}>
+              <label className="form-label">Leadership Style</label>
+              <div className="tap-options-row">
+                {[
+                  {v:'directive',     l:'Directive'},
+                  {v:'collaborative', l:'Collaborative'},
+                  {v:'coach',         l:'Coach / Developer'},
+                  {v:'transformative',l:'Transformative'},
+                  {v:'steady',        l:'Steady / Operator'},
+                ].map(o => (
+                  <div key={o.v} className={`tap-chip ${vetting.leadership_style===o.v?'selected':''}`}
+                       onClick={()=>setV('leadership_style', o.v)}>{o.l}</div>
+                ))}
+              </div>
+              <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.375rem',lineHeight:'1.5'}}>
+                Used by the matcher to pair you with roles whose leadership style needs match yours.
+              </p>
+            </div>
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Notice Period</label>
@@ -4873,41 +5199,35 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
 }
 
 // ── PRICING PAGE ─────────────────────────────────────────────────────────────
+// Phase 1 pricing. All values read from PRICING_CONFIG_DEFAULTS and are
+// optionally overridden by /api/pricing-config at runtime. The economic
+// event is the curated introduction, not the final hire. Placement-fee
+// language has been removed from this page in Phase 1.
 function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast }) {
   const [audience, setAudience] = useState('recruiters');
+  const [cfg, setCfg]           = useState(PRICING_CONFIG_DEFAULTS);
 
+  // Load live pricing on mount so admin updates appear without redeploy.
+  useEffect(() => {
+    loadPricingConfig().then(r => setCfg(r.config));
+  }, []);
+
+  // Phase 1 recruiter offering is a single Standard subscription. Founding
+  // Partners are surfaced as a separate callout rather than a plan tier so
+  // that "Founding Partner" remains a status, not a SKU.
   const recruiterPlans = [
     {
-      name: 'Boutique',
-      price: '400',
-      period: 'per month — billed annually',
-      desc: 'Ideal for independent search consultants and boutique firms. Free through Dec 2026 under Founding Partner Program. Subscriptions open Jan 2027.',
+      name: 'Standard',
+      price: String(cfg.recruiter_subscription_monthly || 199),
+      period: 'per month',
+      desc: 'Full access to the curated marketplace. Post searches, review qualified candidates, and confirm curated introductions when mutual interest exists.',
       features: [
-        '3 active postings per month',
-        'Standard placement in search feed',
-        'Candidate interest signals (aggregate count)',
-        'Posting analytics — views and engagement',
+        'Unlimited active searches',
+        'Curated candidate matches based on scope and complexity',
+        'Mutual-interest workflow - no cold outreach',
+        'Salary transparency required on all postings',
+        'Standard posting review within 24 hours',
         'Email support',
-        'Salary transparency required on all posts',
-      ],
-      muted: [],
-      cta: 'Get Started',
-      ctaStyle: '',
-      recommended: false,
-    },
-    {
-      name: 'Professional',
-      price: '1,000',
-      period: 'per month — billed annually',
-      desc: 'For active search practices running multiple mandates. Includes candidate interest data and featured placement.',
-      features: [
-        '10 active postings per month',
-        'Featured placement — top of search feed',
-        'Full candidate interest data — who, when, compensation target',
-        'Open executive profile browsing',
-        'Priority posting review — 4-hour turnaround',
-        'Monthly performance report',
-        'Dedicated account contact',
       ],
       muted: [],
       cta: 'Get Started',
@@ -4915,20 +5235,22 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       recommended: true,
     },
     {
-      name: 'Enterprise',
-      price: '2,500',
-      period: 'per month — billed annually',
-      desc: 'For global search firms running high-volume executive mandates across maritime, energy, and logistics.',
+      name: 'Founding Partner',
+      price: '0',
+      period: 'through Dec 31, 2026',
+      desc: 'Limited founding window. One posting per month at no charge, and no introduction fees during the founding period. Subscriptions open after the window closes.',
       features: [
-        'Unlimited active postings',
-        'Premium featured placement + firm branding',
-        'Full candidate profile access — Open profiles',
-        'Custom posting templates',
-        'Quarterly strategy review with Fredheim team',
-        'API access for ATS integration',
+        String((cfg.founding_partner_monthly_postings || 1)) +
+          ' free posting' + ((cfg.founding_partner_monthly_postings || 1) === 1 ? '' : 's') + ' per month',
+        'No introduction fees during the founding window',
+        'Direct access to the Fredheim team',
+        'Preferred pricing offered when the window closes',
+        'Status, not a SKU - you can also subscribe at any time',
       ],
-      muted: [],
-      cta: 'Contact Us',
+      muted: [
+        'Window closes ' + (cfg.founding_partner_window_end || '2026-12-31'),
+      ],
+      cta: 'Apply for Founding Partner',
       ctaStyle: '',
       recommended: false,
     },
@@ -4943,10 +5265,10 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       features: [
         'Browse all active searches',
         'Filter by industry, function, and salary range',
-        'Confidential interest signaling — email only, not your identity',
+        'Confidential interest signaling - email only, not your identity',
         'Email alerts for new matching searches',
-        'Set compensation floor — hide searches below your range',
-        'Complete executive assessment — get matched by talent search firms',
+        'Set compensation floor - hide searches below your range',
+        'Complete executive assessment - get matched by talent search firms',
       ],
       muted: [
         'Recruiters cannot find or contact you directly',
@@ -4958,17 +5280,17 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
     },
     {
       name: 'Confidential',
-      price: '299',
+      price: String(cfg.candidate_executive_tier || 299),
       period: 'per year',
-      desc: 'Your name, employer, and location are hidden from all recruiters until you personally approve a connection. You control every reveal.',
+      desc: 'Your name, employer, and location are hidden from all recruiters until you personally approve a curated introduction. You control every reveal.',
       features: [
         'Includes all Free access features',
-        'Anonymous executive profile — identity hidden by default',
+        'Anonymous executive profile - identity hidden by default',
         'Employer, location, and age-identifying details hidden by default',
-        'Recruiter approval workflow — you decide who sees you',
+        'Recruiter approval workflow - you decide who sees you',
         'Priority placement in relevant search results',
         'Visible to approved search firms running relevant searches',
-        'No placement fee charged to you — ever',
+        'Executives are never charged any fee on a hire - ever',
       ],
       muted: [],
       cta: 'Create Confidential Profile',
@@ -5030,11 +5352,13 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           <span className="eyebrow-text">Transparent Pricing</span>
         </div>
         <h1 className="pricing-hero-title">
-          Simple pricing.<br />No placement fees. No surprises.
+          Pay per curated introduction.<br />No placement fees. No surprises.
         </h1>
         <p className="pricing-hero-desc">
-          Fredheim Executive Desk charges flat platform fees — not commissions.
-          We make introductions. You own the relationship.
+          Fredheim Executive Desk charges a fee when a curated introduction is confirmed -
+          not on speculative outreach, and never on the eventual hire. Subscription gives
+          you access to the marketplace; introductions are billed individually so the
+          economics stay aligned with match quality.
         </p>
       </div>
 
@@ -5079,25 +5403,56 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         ))}
       </div>
 
-      {/* Introduction fee callout */}
+      {/* Curated Introduction fee schedule.
+          The economic event is the confirmed introduction, not the final hire.
+          The recruiter pays once mutual interest has been established and the
+          introduction is confirmed - never on speculative or unilateral outreach. */}
       <div className="intro-fee-box">
         <div>
-          <div className="intro-fee-eyebrow">Platform Introduction Fee</div>
-          <div className="intro-fee-title">When the introduction leads to a hire</div>
+          <div className="intro-fee-eyebrow">Curated Introduction Fees</div>
+          <div className="intro-fee-title">Pay per confirmed introduction</div>
           <p className="intro-fee-desc">
-            Fredheim Executive Desk charges a flat platform introduction fee when a hire is confirmed
-            through the platform — regardless of compensation level. <strong>Candidates are never charged a placement fee.</strong> No percentage. No sliding scale.
-            One flat fee, invoiced to the search firm upon placement confirmation.
-            We make the introduction. You own the search.
+            The fee is triggered when a recruiter confirms a curated introduction to a
+            qualified, mutually interested candidate. No placement fees. No commission.
+            No tail-period monitoring. Candidates are never charged any fee, ever.
+            Founding Partners are exempt from introduction fees through {cfg.founding_partner_window_end || '2026-12-31'}.
           </p>
         </div>
         <div className="intro-fee-amount">
-          <div className="intro-fee-num">$3,500</div>
-          <div className="intro-fee-label">C-Suite / VP placement</div>
-          <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid var(--gold-rule)'}}>
-            <div className="intro-fee-num" style={{fontSize:'2rem'}}>$1,500</div>
-            <div className="intro-fee-label">Director / Senior Manager placement</div>
-          </div>
+          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
+            <tbody>
+              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
+                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>C-Suite</td>
+                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
+                  {fmtPrice(cfg.introduction_csuite)}
+                </td>
+              </tr>
+              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
+                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>VP / SVP</td>
+                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
+                  {fmtPrice(cfg.introduction_vp_svp)}
+                </td>
+              </tr>
+              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
+                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Director</td>
+                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
+                  {fmtPrice(cfg.introduction_director)}
+                </td>
+              </tr>
+              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
+                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Consultant / Interim</td>
+                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
+                  {fmtPrice(cfg.introduction_consultant)}
+                </td>
+              </tr>
+              <tr>
+                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Early Career</td>
+                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--green)',fontWeight:500}}>
+                  {fmtPrice(cfg.introduction_early_career)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -5108,51 +5463,51 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         {audience === 'recruiters' ? (
           <>
             <div className="faq-item">
-              <div className="faq-q">Is salary transparency really required?</div>
-              <div className="faq-a">Yes, without exception. Every posting must include a published compensation range. This is the reason executives trust the platform — and why your searches attract higher-quality candidates than generalist job boards.</div>
+              <div className="faq-q">When am I charged the introduction fee?</div>
+              <div className="faq-a">The fee is triggered when you confirm a curated introduction to a qualified candidate after mutual interest has been established. You are not charged for matches you do not act on, for candidates you decline, or for any speculative outreach. The price tier is set by the candidate's leadership classification, not by their title.</div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">What counts as a "confirmed placement" for the introduction fee?</div>
-              <div className="faq-a">A placement is confirmed when a candidate who first expressed interest via Fredheim Executive Desk accepts an offer for the posted role. The introduction fee ($3,500 for C-Suite/VP, $1,500 for Director level) is invoiced to the search firm at that point. There is no introduction fee on postings where the hire came from outside the platform.</div>
+              <div className="faq-q">Is there a placement fee on the eventual hire?</div>
+              <div className="faq-a">No. Phase 1 economics are built around the curated introduction itself - not the downstream hire. There is no certification, tail-period monitoring, or hire-close invoice. Once an introduction is confirmed, the relationship is yours to run.</div>
+            </div>
+            <div className="faq-item">
+              <div className="faq-q">Is salary transparency really required?</div>
+              <div className="faq-a">Yes, without exception. Every posting must include a published compensation range. This is the reason executives trust the platform - and why your searches attract higher-quality candidates than generalist job boards.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Can I post roles that are already live on other job boards?</div>
-              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Executive Desk is not exclusive — it's a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
+              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Executive Desk is not exclusive - it is a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">What is the Founding Partner Program?</div>
-              <div className="faq-a">Founding partners post one search per month at no charge through December 31, 2026 — no subscription required. This gives you a full year of real engagement data, candidate interest signals, and placement opportunities before any payment is requested. Subscriptions open January 2027. Founding partners receive preferred pricing as a reward for early adoption. Introduction fees apply on confirmed placements throughout the program period.</div>
-            </div>
-            <div className="faq-item">
-              <div className="faq-q">What happens in January 2027?</div>
-              <div className="faq-a">Subscriptions open January 1, 2027. Founding partners will receive a personal outreach from the Fredheim team in November/December 2026 with their engagement data and preferred pricing options. There is no obligation to subscribe — but active searches and profile access require a subscription after the founding period ends.</div>
+              <div className="faq-a">Founding Partners post one search per month at no charge and pay no introduction fees through {cfg.founding_partner_window_end || '2026-12-31'}. This gives you a full window of real engagement data, candidate interest signals, and curated introductions before any payment is requested. Founding Partners receive preferred pricing as a reward for early adoption.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">How quickly are postings reviewed and published?</div>
-              <div className="faq-a">Standard postings are reviewed within 24 hours. Professional plan subscribers receive 4-hour turnaround. Enterprise subscribers receive same-day publishing.</div>
+              <div className="faq-a">Standard postings are reviewed within 24 hours. Founding Partners receive priority review and direct access to the Fredheim team.</div>
             </div>
           </>
         ) : (
           <>
             <div className="faq-item">
               <div className="faq-q">Will my current employer ever know I'm on the platform?</div>
-              <div className="faq-a">No. Your current employer is never displayed — not on your profile, not in search results, not to any recruiter. The platform is designed from the ground up for confidential passive search.</div>
+              <div className="faq-a">No. Your current employer is never displayed - not on your profile, not in search results, not to any recruiter. The platform is designed from the ground up for confidential passive search.</div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">What's the difference between Free and Confidential?</div>
-              <div className="faq-a">Free members can browse every search and signal interest anonymously. Confidential members ($299/yr) have an anonymous executive profile — name, employer, location, and graduation year are hidden from all recruiters until you personally approve a connection request.</div>
+              <div className="faq-q">What is the difference between Free and Confidential?</div>
+              <div className="faq-a">Free members can browse every search and signal interest anonymously. Confidential members ({fmtPrice(cfg.candidate_executive_tier)}/yr) have an anonymous executive profile - name, employer, location, and graduation year are hidden from all recruiters until you personally approve a curated introduction.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Who controls when my identity is revealed?</div>
-              <div className="faq-a">You do, always. When a search firm expresses interest, you receive a notification and decide whether to accept the connection. Only after you accept is your identity and contact information shared. You can decline any connection without explanation.</div>
+              <div className="faq-a">You do, always. When a search firm expresses interest, you receive a notification and decide whether to accept the curated introduction. Only after you accept is your identity and contact information shared. You can decline any introduction without explanation.</div>
             </div>
             <div className="faq-item">
-              <div className="faq-q">Do I pay anything if I get placed through the platform?</div>
-              <div className="faq-a">No. The introduction fee is paid by the search firm, not the executive. There are no success fees, commissions, or hidden charges on the executive side — ever.</div>
+              <div className="faq-q">Do I pay anything if I am hired through the platform?</div>
+              <div className="faq-a">No. Executives never pay any fee - not for introductions, not on hire, not ever. Search firms pay the introduction fee at the moment they confirm a curated introduction.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">What industries does the platform cover?</div>
-              <div className="faq-a">Maritime, energy, industrial logistics, port & terminal, offshore, bulk commodities, and trading & freight. This focus is intentional — it means every search on the platform is relevant to your background, and every executive profile is relevant to posting search firms.</div>
+              <div className="faq-a">Maritime, ports and terminals, energy and offshore, industrial commodities and logistics - plus the industrial-technology companies serving those industries (maritime SaaS, port technology, operational AI, supply-chain technology, compliance and safety tech).</div>
             </div>
           </>
         )}
@@ -9789,14 +10144,21 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                     </div>
                     <div style={{display:'flex',gap:'0.5rem',alignItems:'center',flexWrap:'wrap'}}>
                       <span className="admin-pill active">Live</span>
-                      <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
-                        onClick={() => setFillModal(job)}>
-                        Mark as Filled
-                      </button>
-                      <button className="admin-action-btn danger" style={{fontSize:'0.65rem'}}
-                        onClick={() => setCloseModal(job)}>
-                        Close Job
-                      </button>
+                      {/* Phase 1: placement-fee workflow (certification, hire-close
+                          tracking, tail-period monitoring) is gated off. The economic
+                          event is the curated introduction, not the final hire. */}
+                      {PLACEMENT_FEE_FLOW_ENABLED && (
+                        <>
+                          <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
+                            onClick={() => setFillModal(job)}>
+                            Mark as Filled
+                          </button>
+                          <button className="admin-action-btn danger" style={{fontSize:'0.65rem'}}
+                            onClick={() => setCloseModal(job)}>
+                            Close Job
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                   <div className="posting-card-stats">
@@ -9884,11 +10246,13 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
       </div>
       )}
 
-      {closeModal && (
+      {/* Phase 1: placement-fee modals are gated off entirely. Keeping the
+          code in place so Phase 2 can re-enable if the economic model changes. */}
+      {PLACEMENT_FEE_FLOW_ENABLED && closeModal && (
         <CloseJobModal job={closeModal} onClose={()=>setCloseModal(null)}
           showToast={showToast} onJobStatusChange={handleJobStatusChange} />
       )}
-      {fillModal && (
+      {PLACEMENT_FEE_FLOW_ENABLED && fillModal && (
         <MarkFilledModal job={fillModal} onClose={()=>setFillModal(null)}
           showToast={showToast} onJobStatusChange={handleJobStatusChange} />
       )}
