@@ -200,7 +200,7 @@ module.exports = async function handler(req, res) {
             subject:       `Welcome to Fredheim Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
             body:          recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
-              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and engagement unlocks.`,
+              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`,
             dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-dash',
           });
           break;
@@ -400,9 +400,9 @@ async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruit
     recruiter_email:      rEmail,
     unlock_bracket:       bracket,
     unlock_fee:           feeAmount,
-    subject_recruiter:    `Fredheim Introduction — ${cName} is ready to connect`,
-    subject_candidate:    `A search firm wants to connect with you`,
-    body_recruiter:       `Your engagement unlock has been processed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`,
+    subject_recruiter:    `Curated Introduction confirmed — ${cName}`,
+    subject_candidate:    `A search firm has been introduced to you`,
+    body_recruiter:       `Your curated introduction has been confirmed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`,
     body_candidate:       `A retained search firm has expressed interest in your profile and you have accepted. Their contact: ${rEmail}. All further communication is between you directly.`,
     match_id:             matchId,
   });

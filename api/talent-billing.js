@@ -104,7 +104,7 @@ async function runAutoArchive() {
       recruiter_name: eng.talent_recruiters?.contact_name,
       candidate_name: eng.talent_candidates?.first_name,
       subject:        `Fredheim engagement archived — ${eng.talent_candidates?.first_name}`,
-      body:           `This engagement has reached its 90-day window and has been archived. If a placement was made, reporting it earns a credit toward your next engagement unlock.`,
+      body:           `This engagement has reached its 90-day window and has been archived. If a placement was made, reporting it earns a credit toward a future curated introduction.`,
       report_url:     `https://desk.fredheimtech.com?view=recruiter-talent&report=${eng.id}`,
     });
 
@@ -230,7 +230,7 @@ async function handlePlacementReport(matchId, recruiterId) {
     recruiter_name: match.talent_recruiters?.contact_name,
     credit_amount:  `$${creditAmount}`,
     subject:        `Placement confirmed — $${creditAmount} credit applied to your account`,
-    body:           `Thank you for reporting this placement. A $${creditAmount} credit has been applied to your account and will be deducted from your next engagement unlock fee.`,
+    body:           `Thank you for reporting this placement. A $${creditAmount} credit has been applied to your account and will be applied to a future curated introduction.`,
     dashboard_url:  'https://desk.fredheimtech.com?view=recruiter-talent&tab=billing',
   });
 

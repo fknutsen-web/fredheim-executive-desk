@@ -12,21 +12,15 @@ module.exports = async function handler(req, res) {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // ── ENV CHECKS ─────────────────────────────────────────────
     const required = [
       'STRIPE_SECRET_KEY',
-      // Candidate confidential subscription
-      'PRICE_CANDIDATE_CONFIDENTIAL',   // $299/yr — anonymous executive profile
-      // Recruiter subscriptions
-      'PRICE_RECRUITER_PRO',            // $499/mo — standard recruiter access
-      'PRICE_RECRUITER_FOUNDING',       // $7,500/yr — founding partner (annual, limited intake)
-      // Engagement unlock fees (one-time, match-age-tiered)
-      'PRICE_ENGAGE_FRESH',             // $500 — match is 0–30 days old
-      'PRICE_ENGAGE_WARM',              // $350 — match is 31–60 days old
-      'PRICE_ENGAGE_AGING',             // $200 — match is 61–90 days old
-      // 90+ days: no charge (complimentary unlock)
-      // Early Careers — Featured Student Profile
-      'PRICE_INTERN_FEATURED',          // $49/yr — featured student profile (Early Careers)
+      'PRICE_CANDIDATE_CONFIDENTIAL',
+      'PRICE_RECRUITER_PRO',
+      'PRICE_RECRUITER_FOUNDING',
+      'PRICE_ENGAGE_FRESH',
+      'PRICE_ENGAGE_WARM',
+      'PRICE_ENGAGE_AGING',
+      'PRICE_INTERN_FEATURED',
     ];
 
     for (const key of required) {
@@ -45,9 +39,6 @@ module.exports = async function handler(req, res) {
     const { type, email, recruiter_id, match_id } = req.body || {};
     const baseUrl = req.headers.origin || 'https://desk.fredheimtech.com';
 
-    // ── FOUNDING PARTNER ELIGIBILITY CHECK ─────────────────────
-    // Cap is configurable via FOUNDING_CAP env var (default: 25)
-    // Deadline is configurable via FOUNDING_DEADLINE env var (default: 2026-12-31)
     async function foundingEligible() {
       const FOUNDING_CAP      = parseInt(process.env.FOUNDING_CAP || '25', 10);
       const FOUNDING_DEADLINE = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
@@ -63,7 +54,6 @@ module.exports = async function handler(req, res) {
       return { eligible: true, remaining: FOUNDING_CAP - (count || 0) };
     }
 
-    // ── MATCH AGE BRACKET ──────────────────────────────────────
     async function resolveEngagementPrice(matchId) {
       const { data: match, error } = await supabase
         .from('talent_matches')
@@ -76,15 +66,9 @@ module.exports = async function handler(req, res) {
       const ageMs   = Date.now() - new Date(match.created_at).getTime();
       const ageDays = Math.floor(ageMs / 86400000);
 
-      if (ageDays <= 30) {
-        return { priceId: process.env.PRICE_ENGAGE_FRESH, bracket: 'fresh', amount: '$500', ageDays };
-      }
-      if (ageDays <= 60) {
-        return { priceId: process.env.PRICE_ENGAGE_WARM,  bracket: 'warm',  amount: '$350', ageDays };
-      }
-      if (ageDays <= 90) {
-        return { priceId: process.env.PRICE_ENGAGE_AGING, bracket: 'aging', amount: '$200', ageDays };
-      }
+      if (ageDays <= 30) return { priceId: process.env.PRICE_ENGAGE_FRESH, bracket: 'fresh', amount: '$500', ageDays };
+      if (ageDays <= 60) return { priceId: process.env.PRICE_ENGAGE_WARM,  bracket: 'warm',  amount: '$350', ageDays };
+      if (ageDays <= 90) return { priceId: process.env.PRICE_ENGAGE_AGING, bracket: 'aging', amount: '$200', ageDays };
       return { priceId: null, bracket: 'complimentary', amount: '$0', ageDays };
     }
 
@@ -94,25 +78,22 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: process.env.PRICE_CANDIDATE_CONFIDENTIAL, quantity: 1 }],
-        // Return param drives App.applyUpgradeFromReturn so the user sees an
+        // ?upgradeSuccess drives App.applyUpgradeFromReturn so the user sees
         // immediate UI confirmation; the webhook is the source of truth for
         // the DB tier update (both run independently, both are idempotent).
         success_url: `${baseUrl}?upgradeSuccess=confidential`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'candidate', tier: 'confidential', email: email || '' },
       });
-
       return res.status(200).json({ url: session.url });
     }
 
-    // ── RECRUITER SUBSCRIPTION ─────────────────────────────────
+    // ── RECRUITER SUBSCRIPTION (talent product) ────────────────
     if (type === 'recruiter') {
       const rawTier = String(req.body.tier || '').trim().toLowerCase();
-
       if (!['pro', 'founding'].includes(rawTier)) {
         return res.status(400).json({ error: `Invalid recruiter tier: ${rawTier}. Use 'pro' or 'founding'.` });
       }
-
       if (rawTier === 'founding') {
         const check = await foundingEligible();
         if (!check.eligible) {
@@ -124,7 +105,6 @@ module.exports = async function handler(req, res) {
           });
         }
       }
-
       const priceId = rawTier === 'founding'
         ? process.env.PRICE_RECRUITER_FOUNDING
         : process.env.PRICE_RECRUITER_PRO;
@@ -133,19 +113,19 @@ module.exports = async function handler(req, res) {
         mode: 'subscription',
         customer_email: email || undefined,
         line_items: [{ price: priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-talent&checkout=success&tier=${rawTier}`,
+        // recruiter-talent.html is a separate Vite entry point — the Vercel
+        // SPA rewrite excludes *.html so this URL serves the standalone
+        // recruiter dashboard, not index.html.
+        success_url: `${baseUrl}/recruiter-talent.html?checkout=success&tier=${rawTier}`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'recruiter', tier: rawTier, email: email || '', recruiter_id: recruiter_id || '' },
       });
-
       return res.status(200).json({ url: session.url });
     }
 
     // ── ENGAGEMENT UNLOCK FEE ──────────────────────────────────
     if (type === 'engagement') {
-      if (!match_id) {
-        return res.status(400).json({ error: 'match_id is required for engagement unlock.' });
-      }
+      if (!match_id) return res.status(400).json({ error: 'match_id is required for engagement unlock.' });
 
       const resolved = await resolveEngagementPrice(match_id);
       if (resolved.error) return res.status(400).json({ error: resolved.error });
@@ -155,7 +135,7 @@ module.exports = async function handler(req, res) {
           complimentary: true,
           bracket: 'complimentary',
           age_days: resolved.ageDays,
-          message: 'This match is 90+ days old. No unlock fee applies — proceed to introduction.',
+          message: 'This match is 90+ days old. No fee applies — proceed to curated introduction.',
         });
       }
 
@@ -163,8 +143,8 @@ module.exports = async function handler(req, res) {
         mode: 'payment',
         customer_email: email || undefined,
         line_items: [{ price: resolved.priceId, quantity: 1 }],
-        success_url: `${baseUrl}?view=recruiter-talent&checkout=engaged&match=${match_id}`,
-        cancel_url:  `${baseUrl}?view=recruiter-talent&checkout=cancelled`,
+        success_url: `${baseUrl}/recruiter-talent.html?checkout=engaged&match=${match_id}`,
+        cancel_url:  `${baseUrl}/recruiter-talent.html?checkout=cancelled`,
         metadata: {
           type:       'engagement',
           match_id,
@@ -182,19 +162,14 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // ── FOUNDING PARTNER AVAILABILITY CHECK ────────────────────
     if (type === 'founding-check') {
       const check = await foundingEligible();
       return res.status(200).json(check);
     }
 
     // ── EARLY CAREERS — FEATURED STUDENT PROFILE ───────────────
-    // $49/yr subscription. Profile is saved as 'free' before redirect; the
-    // webhook flips it to 'featured' on checkout.session.completed.
     if (type === 'intern_featured') {
-      if (!email) {
-        return res.status(400).json({ error: 'email is required for intern_featured.' });
-      }
+      if (!email) return res.status(400).json({ error: 'email is required for intern_featured.' });
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email,
