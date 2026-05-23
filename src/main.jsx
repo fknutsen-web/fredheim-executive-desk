@@ -51,7 +51,29 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
 }
 
 // ── CONSTANTS ───────────────────────────────────────────────────────────────
-const INDUSTRIES  = ['All Industries','Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'];
+// Top-level industry verticals. Operational verticals come first; industrial-
+// technology verticals come second. The technology verticals capture the
+// growing class of SaaS/IoT/AI companies serving maritime, logistics, and
+// industrial operations — a hiring market that generic SaaS recruiters can't
+// serve well because they don't understand the operational domain.
+const INDUSTRIES  = [
+  'All Industries',
+  // Operational verticals
+  'Maritime & Shipping',
+  'Ports & Terminals',
+  'Energy & Offshore',
+  'Industrial Commodities & Logistics',
+  // Industrial-technology verticals
+  'Maritime Technology',
+  'Port Technology',
+  'Logistics Technology',
+  'Industrial SaaS',
+  'Fleet Intelligence',
+  'Operational AI',
+  'Industrial Automation',
+  'Supply Chain Technology',
+  'Compliance & Safety Tech',
+];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
 const SALARY_BANDS = [
   { label: 'Any Range', min: 0 },
@@ -2705,6 +2727,47 @@ const TRANSPORT_MODES = [
   { key:'pipeline', label:'Pipeline / fixed conveyance' },
 ];
 
+// ── COMMERCIAL & TECHNICAL FLUENCY DIMENSIONS ────────────────────────────────
+// These capture the cross-functional fluency that the industrial-technology
+// hiring market actually pays for: people who can sell, build, or operate
+// software for industrial buyers. A generic SaaS recruiter can't evaluate
+// this; a traditional maritime recruiter can't either. Capturing it
+// explicitly is the moat against both.
+
+const REVENUE_MODELS = [
+  { key:'saas',                 label:'SaaS / subscription' },
+  { key:'recurring_revenue',    label:'Recurring revenue (ARR)' },
+  { key:'enterprise_licensing', label:'Enterprise licensing' },
+  { key:'services_revenue',     label:'Services / consulting revenue' },
+  { key:'commodity_trading',    label:'Commodity trading P&L' },
+  { key:'asset_based_logistics',label:'Asset-based logistics' },
+  { key:'transactional',        label:'Transactional / per-move pricing' },
+];
+
+const SALES_MOTIONS = [
+  { key:'enterprise',           label:'Enterprise sales (6-figure+ ACV)' },
+  { key:'consultative_long_cycle', label:'Long-cycle consultative' },
+  { key:'operational_sales',    label:'Operational / industrial sales' },
+  { key:'technical_sales',      label:'Technical sales / solutions engineering' },
+  { key:'multi_stakeholder',    label:'Multi-stakeholder / committee selling' },
+  { key:'channel',              label:'Channel / partner sales' },
+  { key:'strategic_accounts',   label:'Strategic / named accounts' },
+  { key:'plg',                  label:'Product-led growth' },
+];
+
+const TECHNICAL_FLUENCY = [
+  { key:'ai_platforms',         label:'AI / ML platforms' },
+  { key:'analytics_systems',    label:'Analytics / BI systems' },
+  { key:'erp_wms_tms',          label:'ERP / WMS / TMS systems' },
+  { key:'industrial_systems',   label:'Industrial control systems' },
+  { key:'operational_tech',     label:'Operational technology (OT)' },
+  { key:'maritime_systems',     label:'Maritime systems (IMOS, Veson, etc.)' },
+  { key:'fleet_management',     label:'Fleet management platforms' },
+  { key:'iot',                  label:'Industrial IoT / sensors' },
+  { key:'compliance_software',  label:'Compliance / audit software' },
+  { key:'port_systems',         label:'Port / terminal operating systems' },
+];
+
 const LEADERSHIP_CLASSES = {
   manager:         'Manager',
   senior_manager:  'Senior Manager',
@@ -2731,19 +2794,22 @@ function tierPts(tierKey, dimension) {
   return hit ? hit.pts : 0;
 }
 
-// Derive scope_score, complexity_score, strategic_score, leadership_class,
-// complexity_class, and equivalent_label from a candidate_scope object.
+// Derive scope_score, complexity_score, strategic_score, commercial_score,
+// leadership_class, complexity_class, industrial_translator flag, and
+// equivalent_label from a candidate_scope object.
 // Used at form save time (client) and on every match recompute (server).
 function deriveScopeMetrics(scope) {
   if (!scope || typeof scope !== 'object') {
     return {
-      scope_score:0, complexity_score:0, strategic_score:0,
+      scope_score:0, complexity_score:0, strategic_score:0, commercial_score:0,
       leadership_class:null, complexity_class:null, equivalent_label:null,
+      industrial_translator: false,
     };
   }
   const o = scope.org_scope    || {};
   const c = scope.complexity   || {};
   const s = scope.strategic    || {};
+  const cm = scope.commercial  || {};
 
   // Scope score (0–100)
   let scopeScore = 0;
@@ -2795,16 +2861,48 @@ function deriveScopeMetrics(scope) {
   else if (complexityScore >= 30) complexity_class = 'moderate';
   else                            complexity_class = 'low';
 
+  // Commercial & technical fluency score (0–100)
+  // Multi-select arrays — each selected item contributes a flat weight.
+  // The score reflects breadth of fluency, not depth on any single dimension.
+  const revModels   = Array.isArray(cm.revenue_models)    ? cm.revenue_models    : [];
+  const salesModels = Array.isArray(cm.sales_motions)     ? cm.sales_motions     : [];
+  const techFluency = Array.isArray(cm.technical_fluency) ? cm.technical_fluency : [];
+
+  let commercialScore = 0;
+  commercialScore += Math.min(28, revModels.length   * 4);
+  commercialScore += Math.min(32, salesModels.length * 4);
+  commercialScore += Math.min(40, techFluency.length * 4);
+  commercialScore = Math.min(100, commercialScore);
+
+  // Industrial-commercial translator pattern — the cross-functional profile
+  // industrial-technology companies actively hunt for. Triggered when a
+  // candidate combines a recurring-revenue commercial background with
+  // industrial domain technical fluency. This is the moat against generic
+  // SaaS recruiters who can't recognize this pattern.
+  const SAAS_REVENUE     = new Set(['saas','recurring_revenue','enterprise_licensing']);
+  const INDUSTRIAL_TECH  = new Set(['maritime_systems','port_systems','fleet_management','erp_wms_tms','operational_tech','industrial_systems','iot','compliance_software']);
+  const hasSaasRevenue   = revModels.some(r => SAAS_REVENUE.has(r));
+  const hasIndustrialTech= techFluency.some(t => INDUSTRIAL_TECH.has(t));
+  const industrial_translator = hasSaasRevenue && hasIndustrialTech;
+
   // Equivalent leadership label — the platform's signature output.
-  // Format: "Director-level scope · High-level complexity"
-  const equivalent_label =
+  // Format: "Director-level scope · High complexity"
+  // When the candidate is an industrial-commercial translator, the label
+  // surfaces that pattern explicitly — it is the highest-signal differentiator
+  // for industrial-tech hires.
+  let equivalent_label =
     `${LEADERSHIP_CLASSES[leadership_class]}-level scope · ${COMPLEXITY_CLASSES[complexity_class]} complexity`;
+  if (industrial_translator) {
+    equivalent_label += ' · Industrial-commercial translator';
+  }
 
   return {
     scope_score:      scopeScore,
     complexity_score: complexityScore,
     strategic_score:  strategicScore,
+    commercial_score: commercialScore,
     leadership_class, complexity_class, equivalent_label,
+    industrial_translator,
   };
 }
 
@@ -2833,6 +2931,14 @@ function emptyCandidateScope() {
       commercial_negotiations: false, board_executive_exposure: false,
       customer_ownership: false, procurement_authority: false,
       transformation_leadership: false, strategic_planning: false,
+    },
+    // Commercial & technical fluency — multi-select. Captures the
+    // industrial-commercial-translation profile that industrial-tech
+    // companies hire for and that generic SaaS recruiters can't evaluate.
+    commercial: {
+      revenue_models:    [],
+      sales_motions:     [],
+      technical_fluency: [],
     },
   };
 }
@@ -3539,10 +3645,23 @@ function RecruiterModal({ onClose, showToast }) {
                       <label className="form-label">Industry</label>
                       <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
                         <option value="">Select</option>
-                        <option>Maritime &amp; Shipping</option>
-                        <option>Ports &amp; Terminals</option>
-                        <option>Energy &amp; Offshore</option>
-                        <option>Industrial Commodities &amp; Logistics</option>
+                        <optgroup label="Operational">
+                          <option>Maritime &amp; Shipping</option>
+                          <option>Ports &amp; Terminals</option>
+                          <option>Energy &amp; Offshore</option>
+                          <option>Industrial Commodities &amp; Logistics</option>
+                        </optgroup>
+                        <optgroup label="Industrial Technology">
+                          <option>Maritime Technology</option>
+                          <option>Port Technology</option>
+                          <option>Logistics Technology</option>
+                          <option>Industrial SaaS</option>
+                          <option>Fleet Intelligence</option>
+                          <option>Operational AI</option>
+                          <option>Industrial Automation</option>
+                          <option>Supply Chain Technology</option>
+                          <option>Compliance &amp; Safety Tech</option>
+                        </optgroup>
                       </select>
                     </div>
                     <div className="form-group">
@@ -3700,6 +3819,15 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       return { ...p, complexity: { ...p.complexity, transport_modes: [...current] } };
     });
   }
+  // Generic toggle for commercial multi-select arrays (revenue_models,
+  // sales_motions, technical_fluency).
+  function toggleCommercial(arrayKey, optionKey) {
+    setScope(p => {
+      const current = new Set((p.commercial && p.commercial[arrayKey]) || []);
+      if (current.has(optionKey)) current.delete(optionKey); else current.add(optionKey);
+      return { ...p, commercial: { ...(p.commercial || {}), [arrayKey]: [...current] } };
+    });
+  }
   const scopeMetrics = useMemo(() => deriveScopeMetrics(scope), [scope]);
 
   // Prefill scope data when an existing profile is loaded
@@ -3721,6 +3849,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             org_scope:  { ...blank.org_scope,  ...(stored.org_scope  || {}) },
             complexity: { ...blank.complexity, ...(stored.complexity || {}) },
             strategic:  { ...blank.strategic,  ...(stored.strategic  || {}) },
+            commercial: { ...blank.commercial, ...(stored.commercial || {}) },
           });
         }
       });
@@ -3823,14 +3952,16 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       achievements: JSON.stringify(achievements.filter(a=>a.trim())),
       big_five: shareBigFive ? JSON.stringify(bigFive) : null,
       big_five_shared: shareBigFive,
-      candidate_scope:   scope,
-      scope_score:       metrics.scope_score,
-      complexity_score:  metrics.complexity_score,
-      strategic_score:   metrics.strategic_score,
-      leadership_class:  metrics.leadership_class,
-      complexity_class:  metrics.complexity_class,
-      equivalent_label:  metrics.equivalent_label,
-      scope_updated_at:  new Date().toISOString(),
+      candidate_scope:       scope,
+      scope_score:           metrics.scope_score,
+      complexity_score:      metrics.complexity_score,
+      strategic_score:       metrics.strategic_score,
+      commercial_score:      metrics.commercial_score,
+      leadership_class:      metrics.leadership_class,
+      complexity_class:      metrics.complexity_class,
+      equivalent_label:      metrics.equivalent_label,
+      industrial_translator: metrics.industrial_translator,
+      scope_updated_at:      new Date().toISOString(),
     };
 
     // C1 FIX: Never downgrade a paid tier via form re-submission.
@@ -4078,6 +4209,12 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             <div className="scope-derivation-label">
               {scopeMetrics.equivalent_label || 'Complete the inputs below to generate your mapping.'}
             </div>
+            {scopeMetrics.industrial_translator && (
+              <div className="scope-translator-badge">
+                Industrial-commercial translator — recurring-revenue commercial profile
+                combined with industrial domain fluency.
+              </div>
+            )}
             <div className="scope-derivation-meters">
               <div className="scope-meter">
                 <div className="scope-meter-label">Scope</div>
@@ -4093,6 +4230,11 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
                 <div className="scope-meter-label">Strategic</div>
                 <div className="scope-meter-bar"><div className="scope-meter-fill strategic" style={{width:`${scopeMetrics.strategic_score}%`}} /></div>
                 <div className="scope-meter-num">{scopeMetrics.strategic_score}</div>
+              </div>
+              <div className="scope-meter">
+                <div className="scope-meter-label">Commercial</div>
+                <div className="scope-meter-bar"><div className="scope-meter-fill commercial" style={{width:`${scopeMetrics.commercial_score}%`}} /></div>
+                <div className="scope-meter-num">{scopeMetrics.commercial_score}</div>
               </div>
             </div>
           </div>
@@ -4287,6 +4429,67 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
                   <div className="scope-flag-label">{def.label}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* ── COMMERCIAL & TECHNICAL FLUENCY ──────────────────────────────
+              The dimension that matters for industrial-technology and
+              maritime-SaaS roles. A profile with both an industrial revenue
+              model and industrial technical fluency is the "industrial-
+              commercial translator" — the hire that generic SaaS recruiters
+              cannot find and traditional maritime recruiters cannot evaluate. */}
+          <div className="scope-section">
+            <div className="scope-section-title">Commercial &amp; Technical Fluency</div>
+            <p className="scope-section-desc">
+              How you've made money and what systems you've worked with. Especially relevant for
+              industrial-technology, maritime-SaaS, port-tech, and operational-AI roles where
+              hires need to translate between commercial and operational worlds. Optional —
+              skip if it doesn't apply to your background.
+            </p>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Revenue Model Experience</label>
+              <div className="scope-tier-row">
+                {REVENUE_MODELS.map(opt => (
+                  <div key={opt.key}
+                       className={`scope-tier-chip ${(scope.commercial?.revenue_models||[]).includes(opt.key)?'selected':''}`}
+                       onClick={() => toggleCommercial('revenue_models', opt.key)}>
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+              <p className="scope-field-hint">
+                Select every model you have direct experience driving — not just exposure to.
+              </p>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Sales Motion</label>
+              <div className="scope-tier-row">
+                {SALES_MOTIONS.map(opt => (
+                  <div key={opt.key}
+                       className={`scope-tier-chip ${(scope.commercial?.sales_motions||[]).includes(opt.key)?'selected':''}`}
+                       onClick={() => toggleCommercial('sales_motions', opt.key)}>
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Technical Fluency</label>
+              <div className="scope-tier-row">
+                {TECHNICAL_FLUENCY.map(opt => (
+                  <div key={opt.key}
+                       className={`scope-tier-chip ${(scope.commercial?.technical_fluency||[]).includes(opt.key)?'selected':''}`}
+                       onClick={() => toggleCommercial('technical_fluency', opt.key)}>
+                    {opt.label}
+                  </div>
+                ))}
+              </div>
+              <p className="scope-field-hint">
+                Select systems and categories you've operated, sold, or implemented at a working level.
+              </p>
             </div>
           </div>
 
@@ -7276,7 +7479,12 @@ function AdminLogin({ onLogin }) {
 
 // ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
 const ALL_INDUSTRY_OPTIONS = [
-  'Maritime & Shipping', 'Ports & Terminals', 'Energy & Offshore', 'Industrial Commodities & Logistics'
+  // Operational verticals
+  'Maritime & Shipping', 'Ports & Terminals', 'Energy & Offshore', 'Industrial Commodities & Logistics',
+  // Industrial-technology verticals
+  'Maritime Technology', 'Port Technology', 'Logistics Technology', 'Industrial SaaS',
+  'Fleet Intelligence', 'Operational AI', 'Industrial Automation', 'Supply Chain Technology',
+  'Compliance & Safety Tech',
 ];
 
 function IndustryMultiSelect({ value, onChange, placeholder }) {
@@ -8297,6 +8505,9 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                     {reasons.pnl     === true && <span className="match-reason-tag match">P&amp;L</span>}
                     {reasons.mandate === true && <span className="match-reason-tag match">Mandate</span>}
                     {reasons.complexity === true && <span className="match-reason-tag match">Complexity</span>}
+                    {reasons.commercial_fit === true && <span className="match-reason-tag match">Commercial fit</span>}
+                    {reasons.commercial_fit === 'partial' && <span className="match-reason-tag partial">Commercial ~</span>}
+                    {reasons.industrial_translator === true && <span className="match-reason-tag match" style={{background:'#e3f2fd',borderColor:'rgba(21,101,192,0.3)',color:'#0d3f7a'}}>Industrial translator</span>}
                     {reasons.tech    === true && <span className="match-reason-tag match">Technical</span>}
                     {reasons.salary  === false && <span className="match-reason-tag" style={{color:'var(--red,#c0392b)'}}>Salary gap</span>}
                   </div>
@@ -9268,6 +9479,9 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                         {reasons.work_arrangement === 'partial' && <span className="match-reason-tag partial">Arrangement ~</span>}
                         {reasons.pnl     === true && <span className="match-reason-tag match">P&amp;L ✓</span>}
                         {reasons.mandate === true && <span className="match-reason-tag match">Mandate ✓</span>}
+                        {reasons.commercial_fit === true && <span className="match-reason-tag match">Commercial ✓</span>}
+                        {reasons.commercial_fit === 'partial' && <span className="match-reason-tag partial">Commercial ~</span>}
+                        {reasons.industrial_translator === true && <span className="match-reason-tag match" style={{background:'#e3f2fd',borderColor:'rgba(21,101,192,0.3)',color:'#0d3f7a'}}>Industrial translator ✓</span>}
                         {reasons.tech    === true && <span className="match-reason-tag match">Technical ✓</span>}
                         {reasons.tech    === 'partial' && <span className="match-reason-tag partial">Technical ~</span>}
                         {reasons.salary  === false && <span className="match-reason-tag" style={{color:'var(--red,#c0392b)'}}>Salary gap</span>}
@@ -10709,12 +10923,22 @@ function AboutPage({ setActiveView }) {
         </p>
 
         <h2>Our Verticals</h2>
+        <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:'1.7',marginBottom:'0.875rem'}}>
+          Operational industries and the industrial-technology companies serving them. We do not
+          recruit for generic SaaS or horizontal tech — only for technology built around
+          maritime, logistics, terminals, and industrial operations, where domain fluency matters
+          as much as commercial chops.
+        </p>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem',marginBottom:'1rem'}}>
           {[
             {name:'Maritime & Shipping', desc:'Vessel operators, shipowners, chartering, freight, agency, marine services'},
             {name:'Ports & Terminals', desc:'Terminal operators, stevedoring, storage, infrastructure, intermodal interfaces'},
             {name:'Energy & Offshore', desc:'Offshore services, energy logistics, renewables, marine energy, oil and gas adjacencies'},
             {name:'Industrial Commodities & Logistics', desc:'Bulk commodities, industrial supply chains, trading, project cargo, heavy logistics'},
+            {name:'Maritime & Port Technology', desc:'Vessel intelligence, port operating systems, maritime SaaS, fleet optimization, OT for marine and terminal environments'},
+            {name:'Logistics & Supply Chain Technology', desc:'TMS, WMS, freight visibility, supply-chain analytics, industrial logistics platforms'},
+            {name:'Industrial SaaS & Operational AI', desc:'Operational technology platforms, industrial AI, IoT, automation, and analytics for industrial workflows'},
+            {name:'Compliance & Safety Tech', desc:'Regulated-environment compliance software, marine and industrial safety platforms, audit and incident systems'},
           ].map(v => (
             <div key={v.name} style={{
               background:'var(--paper-2)',border:'1px solid var(--rule)',
