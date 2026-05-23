@@ -1053,7 +1053,7 @@ function InternJobCard({ job, onClick }) {
 }
 
 // ── EARLY CAREERS LANDING PAGE ────────────────────────────────────────────────
-function EarlyCareersLanding({ authUser, goToView, showToast }) {
+function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
   const [jobs, setJobs]             = useState([]);
   const [loading, setLoading]       = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
@@ -1062,6 +1062,12 @@ function EarlyCareersLanding({ authUser, goToView, showToast }) {
     sponsorship_available:'', search:''
   });
   const [showEmployerModal, setShowEmployerModal] = useState(false);
+  // Student matching state — used by the Indicate Interest CTA on the job
+  // detail modal. We load the student profile (to gate behind profile
+  // completion) and existing interests (to disable double-submission).
+  const [studentProfile, setStudentProfile] = useState(null);
+  const [interestedJobIds, setInterestedJobIds] = useState(new Set());
+  const [indicating, setIndicating] = useState(false);
 
   useEffect(() => {
     sb.from('fed_intern_jobs').select('*').eq('status','active').eq('demo_post',false)
@@ -1070,6 +1076,49 @@ function EarlyCareersLanding({ authUser, goToView, showToast }) {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!authUser?.email) { setStudentProfile(null); setInterestedJobIds(new Set()); return; }
+    const emailLc = authUser.email.toLowerCase();
+    Promise.all([
+      sb.from('fed_intern_profiles').select('email,school_university,major').eq('email', emailLc).maybeSingle(),
+      sb.from('fed_intern_interests').select('job_id').eq('candidate_email', emailLc),
+    ]).then(([{data:p},{data:ints}]) => {
+      setStudentProfile(p || null);
+      setInterestedJobIds(new Set((ints || []).map(r => r.job_id)));
+    });
+  }, [authUser?.email]);
+
+  async function indicateInterest(job) {
+    if (!authUser?.email) {
+      if (requestSignIn) requestSignIn('early-careers');
+      else goToView('intern-profile');
+      return;
+    }
+    if (!studentProfile) {
+      showToast('Complete your student profile first — takes about 3 minutes.');
+      goToView('intern-profile');
+      return;
+    }
+    if (interestedJobIds.has(job.id)) {
+      showToast('You already expressed interest in this role.');
+      return;
+    }
+    setIndicating(true);
+    const emailLc = authUser.email.toLowerCase();
+    const { error } = await sb.from('fed_intern_interests').insert({
+      candidate_email: emailLc,
+      job_id:          job.id,
+      status:          'candidate_interested',
+    });
+    if (error) {
+      showToast('Could not record interest. Please try again.');
+    } else {
+      setInterestedJobIds(prev => new Set([...prev, job.id]));
+      showToast('✓ Interest recorded. The employer is notified without your contact details until mutual interest.');
+    }
+    setIndicating(false);
+  }
 
   const filtered = jobs.filter(j => {
     if (filters.search && !j.title?.toLowerCase().includes(filters.search.toLowerCase()) && !j.role_summary?.toLowerCase().includes(filters.search.toLowerCase())) return false;
@@ -1223,13 +1272,27 @@ function EarlyCareersLanding({ authUser, goToView, showToast }) {
               </div>
             )}
             <div style={{fontSize:'0.75rem',color:'var(--ink-4)',background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.75rem 1rem',marginBottom:'1.25rem',lineHeight:'1.6'}}>
-              To indicate interest in this role, complete your matching profile. Employers do not receive your contact details until mutual interest is confirmed.
+              Indicate interest below. Employers do not receive your contact details until mutual interest is confirmed.
             </div>
             <div className="workflow-actions">
               <button className="workflow-close-btn" onClick={()=>setSelectedJob(null)}>Close</button>
-              <button className="btn-primary" onClick={()=>{setSelectedJob(null); goToView(authUser?'intern-myprofile':'intern-profile');}}>
-                {authUser ? 'Go to My Profile' : 'Complete Matching Profile'}
-              </button>
+              {interestedJobIds.has(selectedJob.id) ? (
+                <button className="btn-outline" disabled style={{opacity:0.6,cursor:'default'}}>
+                  ✓ Interest Sent
+                </button>
+              ) : !authUser ? (
+                <button className="btn-primary" onClick={()=>{setSelectedJob(null); if(requestSignIn) requestSignIn('early-careers'); else goToView('intern-profile');}}>
+                  Sign In to Indicate Interest
+                </button>
+              ) : !studentProfile ? (
+                <button className="btn-primary" onClick={()=>{setSelectedJob(null); goToView('intern-profile');}}>
+                  Complete Profile to Indicate Interest
+                </button>
+              ) : (
+                <button className="btn-primary" disabled={indicating} onClick={()=>indicateInterest(selectedJob)}>
+                  {indicating ? 'Recording…' : 'Indicate Interest'}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -2545,6 +2608,373 @@ function computeMatchScore(candidate, job) {
 }
 
 
+// ── SCOPE-BASED EVALUATION ─────────────────────────────────────────────────
+// Implements the platform's core moat: classification of operational scope,
+// complexity, and strategic responsibility — independent of job title.
+//
+// All tier values are stored as stable string keys so the database, the
+// matching engine, and the UI can share a single source of truth.
+
+const SCOPE_TIERS = {
+  direct_reports: [
+    { key:'none',     label:'None / Individual contributor', pts:0  },
+    { key:'1_3',      label:'1–3',     pts:4  },
+    { key:'4_7',      label:'4–7',     pts:8  },
+    { key:'8_15',     label:'8–15',    pts:12 },
+    { key:'16_30',    label:'16–30',   pts:16 },
+    { key:'31_plus',  label:'31+',     pts:20 },
+  ],
+  total_team_size: [
+    { key:'none',     label:'None',           pts:0  },
+    { key:'1_10',     label:'1–10',           pts:3  },
+    { key:'11_50',    label:'11–50',          pts:6  },
+    { key:'51_200',   label:'51–200',         pts:9  },
+    { key:'201_500',  label:'201–500',        pts:12 },
+    { key:'500_plus', label:'500+',           pts:15 },
+  ],
+  budget_responsibility: [
+    { key:'none',     label:'None',           pts:0  },
+    { key:'lt_5m',    label:'Under $5M',      pts:3  },
+    { key:'5_25m',    label:'$5–25M',         pts:6  },
+    { key:'25_100m',  label:'$25–100M',       pts:9  },
+    { key:'100_500m', label:'$100–500M',      pts:12 },
+    { key:'500m_plus',label:'$500M+',         pts:15 },
+  ],
+  pnl_size: [
+    { key:'lt_5m',    label:'Under $5M',      pts:2  },
+    { key:'5_25m',    label:'$5–25M',         pts:4  },
+    { key:'25_100m',  label:'$25–100M',       pts:6  },
+    { key:'100_500m', label:'$100–500M',      pts:8  },
+    { key:'500m_plus',label:'$500M+',         pts:10 },
+  ],
+  capex_authority: [
+    { key:'none',     label:'None',           pts:0  },
+    { key:'lt_1m',    label:'Under $1M',      pts:2  },
+    { key:'1_10m',    label:'$1–10M',         pts:5  },
+    { key:'10_50m',   label:'$10–50M',        pts:8  },
+    { key:'50m_plus', label:'$50M+',          pts:10 },
+  ],
+  sites_managed: [
+    { key:'one',        label:'1',            pts:0 },
+    { key:'two_three',  label:'2–3',          pts:2 },
+    { key:'four_ten',   label:'4–10',         pts:4 },
+    { key:'ten_plus',   label:'10+',          pts:6 },
+  ],
+  geographic_scope: [
+    { key:'single_site',         label:'Single site',                pts:0  },
+    { key:'multi_site_regional', label:'Multi-site — regional',      pts:3  },
+    { key:'multi_site_national', label:'Multi-site — national',      pts:6  },
+    { key:'multi_country',       label:'Multi-country',              pts:9  },
+    { key:'global',              label:'Global',                     pts:12 },
+  ],
+  operational_scale: [
+    { key:'small',      label:'Small',              pts:0 },
+    { key:'medium',     label:'Medium',             pts:3 },
+    { key:'large',      label:'Large',              pts:5 },
+    { key:'very_large', label:'Very large',         pts:7 },
+  ],
+};
+
+// Binary complexity & strategic flags, each with a point weight.
+const COMPLEXITY_FLAGS = {
+  greenfield_startup:        { label:'Greenfield startup (built from ground up)', pts:15 },
+  turnaround:                { label:'Turnaround / distressed operations',         pts:12 },
+  multi_site_ops:            { label:'Multi-site operational responsibility',      pts:10 },
+  union_environment:         { label:'Union environment',                          pts:8  },
+  erp_implementation:        { label:'ERP / systems implementation lead',          pts:8  },
+  twenty_four_seven_ops:     { label:'24/7 continuous operations',                 pts:8  },
+  regulated_environment:     { label:'Regulated environment (USCG, EPA, MARAD…)',  pts:10 },
+  infrastructure_development:{ label:'Infrastructure development / capex projects',pts:10 },
+};
+
+const STRATEGIC_FLAGS = {
+  department_built_scratch:  { label:'Built a department or function from scratch', pts:15 },
+  ma_integration:            { label:'M&A integration responsibility',               pts:15 },
+  board_executive_exposure:  { label:'Board / executive committee exposure',         pts:15 },
+  commercial_negotiations:   { label:'Owned commercial negotiations (>$10M)',        pts:12 },
+  customer_ownership:        { label:'Direct customer ownership / P&L',              pts:12 },
+  transformation_leadership: { label:'Led organizational transformation',            pts:12 },
+  procurement_authority:     { label:'Procurement / sourcing authority',             pts:10 },
+  strategic_planning:        { label:'Owned strategic planning cycle',               pts:9  },
+};
+
+const TRANSPORT_MODES = [
+  { key:'vessel',   label:'Vessel / marine' },
+  { key:'rail',     label:'Rail' },
+  { key:'truck',    label:'Truck / motor carrier' },
+  { key:'pipeline', label:'Pipeline / fixed conveyance' },
+];
+
+const LEADERSHIP_CLASSES = {
+  manager:         'Manager',
+  senior_manager:  'Senior Manager',
+  director:        'Director',
+  senior_director: 'Senior Director',
+  vp:              'VP',
+  svp:             'SVP',
+  evp:             'EVP',
+  c_suite:         'C-Suite',
+};
+
+const COMPLEXITY_CLASSES = {
+  low:        'Low',
+  moderate:   'Moderate',
+  high:       'High',
+  very_high:  'Very High',
+};
+
+function tierPts(tierKey, dimension) {
+  if (!tierKey) return 0;
+  const def = SCOPE_TIERS[dimension];
+  if (!def) return 0;
+  const hit = def.find(t => t.key === tierKey);
+  return hit ? hit.pts : 0;
+}
+
+// Derive scope_score, complexity_score, strategic_score, leadership_class,
+// complexity_class, and equivalent_label from a candidate_scope object.
+// Used at form save time (client) and on every match recompute (server).
+function deriveScopeMetrics(scope) {
+  if (!scope || typeof scope !== 'object') {
+    return {
+      scope_score:0, complexity_score:0, strategic_score:0,
+      leadership_class:null, complexity_class:null, equivalent_label:null,
+    };
+  }
+  const o = scope.org_scope    || {};
+  const c = scope.complexity   || {};
+  const s = scope.strategic    || {};
+
+  // Scope score (0–100)
+  let scopeScore = 0;
+  scopeScore += tierPts(o.direct_reports,        'direct_reports');
+  scopeScore += tierPts(o.total_team_size,       'total_team_size');
+  scopeScore += tierPts(o.budget_responsibility, 'budget_responsibility');
+  if (o.pnl_owned) {
+    scopeScore += 5;
+    scopeScore += tierPts(o.pnl_size, 'pnl_size');
+  }
+  scopeScore += tierPts(o.capex_authority,  'capex_authority');
+  scopeScore += tierPts(o.sites_managed,    'sites_managed');
+  scopeScore += tierPts(o.geographic_scope, 'geographic_scope');
+  if (o.international_responsibility) scopeScore += 7;
+  scopeScore = Math.min(100, scopeScore);
+
+  // Complexity score (0–100)
+  let complexityScore = 0;
+  for (const flag of Object.keys(COMPLEXITY_FLAGS)) {
+    if (c[flag]) complexityScore += COMPLEXITY_FLAGS[flag].pts;
+  }
+  const tmCount = Array.isArray(c.transport_modes) ? c.transport_modes.length : 0;
+  complexityScore += tmCount === 0 ? 0 : tmCount === 1 ? 4 : tmCount === 2 ? 8 : 12;
+  complexityScore += tierPts(c.operational_scale, 'operational_scale');
+  complexityScore = Math.min(100, complexityScore);
+
+  // Strategic score (0–100)
+  let strategicScore = 0;
+  for (const flag of Object.keys(STRATEGIC_FLAGS)) {
+    if (s[flag]) strategicScore += STRATEGIC_FLAGS[flag].pts;
+  }
+  strategicScore = Math.min(100, strategicScore);
+
+  // Leadership classification — derived from scope_score
+  let leadership_class;
+  if      (scopeScore >= 96) leadership_class = 'c_suite';
+  else if (scopeScore >= 90) leadership_class = 'evp';
+  else if (scopeScore >= 80) leadership_class = 'svp';
+  else if (scopeScore >= 65) leadership_class = 'vp';
+  else if (scopeScore >= 50) leadership_class = 'senior_director';
+  else if (scopeScore >= 35) leadership_class = 'director';
+  else if (scopeScore >= 20) leadership_class = 'senior_manager';
+  else                       leadership_class = 'manager';
+
+  // Complexity classification — derived from complexity_score
+  let complexity_class;
+  if      (complexityScore >= 80) complexity_class = 'very_high';
+  else if (complexityScore >= 55) complexity_class = 'high';
+  else if (complexityScore >= 30) complexity_class = 'moderate';
+  else                            complexity_class = 'low';
+
+  // Equivalent leadership label — the platform's signature output.
+  // Format: "Director-level scope · High-level complexity"
+  const equivalent_label =
+    `${LEADERSHIP_CLASSES[leadership_class]}-level scope · ${COMPLEXITY_CLASSES[complexity_class]} complexity`;
+
+  return {
+    scope_score:      scopeScore,
+    complexity_score: complexityScore,
+    strategic_score:  strategicScore,
+    leadership_class, complexity_class, equivalent_label,
+  };
+}
+
+// Empty scope skeleton — used when initializing the form.
+function emptyCandidateScope() {
+  return {
+    org_scope: {
+      direct_reports:        null,
+      total_team_size:       null,
+      budget_responsibility: null,
+      pnl_owned:             null,
+      pnl_size:              null,
+      capex_authority:       null,
+      sites_managed:         null,
+      geographic_scope:      null,
+      international_responsibility: false,
+    },
+    complexity: {
+      greenfield_startup: false, turnaround: false, multi_site_ops: false,
+      transport_modes: [], union_environment: false, erp_implementation: false,
+      twenty_four_seven_ops: false, regulated_environment: false,
+      infrastructure_development: false, operational_scale: null,
+    },
+    strategic: {
+      department_built_scratch: false, ma_integration: false,
+      commercial_negotiations: false, board_executive_exposure: false,
+      customer_ownership: false, procurement_authority: false,
+      transformation_leadership: false, strategic_planning: false,
+    },
+  };
+}
+
+
+// ── MATCH CONFIDENCE ENGINE ──────────────────────────────────────────────────
+// Categorical fit labels surfaced to both sides of the marketplace. Replaces
+// raw percentage as the primary signal. The percentage is retained as a
+// secondary anchor — not the headline.
+// Guidance is advisory — candidates are warned, never blocked.
+
+const MATCH_CONFIDENCE_LEVELS = {
+  high:     { label:'High Compatibility',    level:'high',     threshold: 80 },
+  moderate: { label:'Moderate Compatibility',level:'moderate', threshold: 60 },
+  stretch:  { label:'Stretch Opportunity',   level:'stretch',  threshold: 40 },
+  low:      { label:'Low Alignment',         level:'low',      threshold: 0  },
+};
+
+function getMatchConfidence(score, reasons, gaps) {
+  const r = reasons || {};
+
+  let level, label;
+  if      (score >= 80) { level = 'high';     label = MATCH_CONFIDENCE_LEVELS.high.label; }
+  else if (score >= 60) { level = 'moderate'; label = MATCH_CONFIDENCE_LEVELS.moderate.label; }
+  else if (score >= 40) { level = 'stretch';  label = MATCH_CONFIDENCE_LEVELS.stretch.label; }
+  else                  { level = 'low';      label = MATCH_CONFIDENCE_LEVELS.low.label; }
+
+  // Build specific gap descriptions (human-readable, not raw field names).
+  // r.scope, r.complexity etc. are expected to be true | false | null
+  // (null = unknown / data not yet collected). Treat null as missing data,
+  // not as a fail — this is honest about the system's ignorance and stops
+  // the legacy fallback from misleading users.
+  const gapDescriptions = [];
+  if (r.scope === false)             gapDescriptions.push('Operational scope mismatch');
+  if (r.scope === null)              gapDescriptions.push('Operational scope — candidate has not provided data');
+  if (r.industry === false)          gapDescriptions.push('Industry adjacency — not direct sector match');
+  if (r.salary === false)            gapDescriptions.push('Compensation mismatch');
+  if (r.location === false)          gapDescriptions.push('Geographic mismatch');
+  if (r.complexity === false)        gapDescriptions.push('Missing operational complexity experience');
+  if (r.complexity === null)         gapDescriptions.push('Operational complexity — candidate has not provided data');
+  if (r.work_arrangement === false)  gapDescriptions.push('Work arrangement preference differs');
+
+  // Strengths (alignment points)
+  const strengths = [];
+  if (r.scope === true)       strengths.push('Operational scope');
+  if (r.industry === true)    strengths.push('Industry alignment');
+  if (r.function === true)    strengths.push('Functional discipline');
+  if (r.pnl === true)         strengths.push('P&L experience');
+  if (r.complexity === true)  strengths.push('Operational complexity');
+  if (r.mandate === true)     strengths.push('Mandate type');
+
+  // Advisory text — soft friction, never a hard gate.
+  let advisory = null;
+  if (level === 'stretch') {
+    advisory = `This is a stretch opportunity. ${gapDescriptions.length > 0 ? gapDescriptions.slice(0,2).join(' and ') + ' detected.' : 'Some compatibility factors are misaligned.'} You can still express interest — but review the role carefully before doing so.`;
+  } else if (level === 'low') {
+    advisory = `Multiple compatibility factors suggest this role may not be a strong fit at this time. ${gapDescriptions.slice(0,2).join(' and ')}. Expressing interest is permitted, but this match is unlikely to convert.`;
+  }
+
+  return { level, label, score, gapDescriptions, strengths, advisory, shouldWarn: level === 'stretch' || level === 'low' };
+}
+
+// ── MATCH CONFIDENCE BADGE ───────────────────────────────────────────────────
+function MatchConfidenceBadge({ score, reasons, gaps, compact }) {
+  const conf = getMatchConfidence(score, reasons, gaps);
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',gap:'0.625rem',flexWrap:'wrap'}}>
+        <span className={`match-confidence-badge ${conf.level}`}>{conf.label}</span>
+        <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)'}}>{score}% fit</span>
+      </div>
+      {!compact && conf.gapDescriptions.length > 0 && (
+        <div className="match-gap-list">
+          {conf.gapDescriptions.map(g => <span key={g} className="match-gap-tag">{g}</span>)}
+        </div>
+      )}
+      {!compact && conf.strengths.length > 0 && (
+        <div className="match-confidence-detail">
+          Aligned on: {conf.strengths.slice(0,4).join(', ')}.
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── STRETCH OPPORTUNITY MODAL ────────────────────────────────────────────────
+// Shown before a candidate expresses interest in a stretch or low-alignment
+// match. Does NOT block — always allows proceeding after review.
+function StretchOpportunityModal({ job, confidence, onProceed, onCancel }) {
+  return (
+    <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onCancel();}}>
+      <div className="workflow-modal" style={{maxWidth:520}}>
+        <div className="stretch-modal-level" style={{color: confidence.level === 'low' ? 'var(--ink-4)' : '#bf360c'}}>
+          {confidence.label}
+        </div>
+        <div className="stretch-modal-header">Review Before Expressing Interest</div>
+        <div style={{fontSize:'0.875rem',color:'var(--ink-2)',lineHeight:'1.6',marginBottom:'1.25rem'}}>
+          {confidence.advisory}
+        </div>
+
+        {confidence.gapDescriptions.length > 0 && (
+          <div style={{marginBottom:'1.25rem'}}>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+              Compatibility Gaps Identified
+            </div>
+            {confidence.gapDescriptions.map(g => (
+              <div key={g} style={{display:'flex',gap:'0.5rem',alignItems:'flex-start',marginBottom:'0.375rem',fontSize:'0.8rem',color:'var(--ink-2)'}}>
+                <span style={{color:'#c0392b',flexShrink:0,marginTop:'0.1rem'}}>⚠</span>
+                <span>{g}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {confidence.strengths.length > 0 && (
+          <div style={{marginBottom:'1.25rem'}}>
+            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+              Alignment Points
+            </div>
+            {confidence.strengths.map(s => (
+              <div key={s} style={{display:'flex',gap:'0.5rem',alignItems:'center',marginBottom:'0.25rem',fontSize:'0.8rem',color:'var(--green)'}}>
+                <span>✓</span><span>{s}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1rem',marginBottom:'1.25rem',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.5'}}>
+          Fredheim Desk focuses on high-conversion introductions. Expressing interest in misaligned roles reduces your signal quality on the platform. You may proceed — but we recommend reviewing roles where compatibility is stronger.
+        </div>
+
+        <div className="workflow-actions">
+          <button className="workflow-close-btn" onClick={onCancel}>Return to Matches</button>
+          <button className={`match-interest-btn ${confidence.level}`} onClick={onProceed}>
+            Express Interest Anyway
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ── NOTIFICATION BELL ────────────────────────────────────────────────────────
 function NotificationBell({ userEmail, userType }) {
@@ -2655,10 +3085,15 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── NAV ──────────────────────────────────────────────────────────────────────
-function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userType, onSignIn, onSignOut }) {
+function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authUser, userType, onSignIn, onSignOut }) {
+  // Prefer goToView (scrolls to top after view change) so users actually see
+  // the page they just navigated to. setActiveView alone leaves the user at
+  // their previous scroll position, which made e.g. clicking "Early Careers"
+  // appear to do nothing if the user had scrolled past the Hero.
+  const go = goToView || setActiveView;
   return (
     <nav className="nav">
-      <div className="nav-brand" onClick={() => setActiveView('jobs')}>
+      <div className="nav-brand" onClick={() => go('jobs')}>
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
@@ -2666,19 +3101,19 @@ function NavBar({ activeView, setActiveView, openRecruiterModal, authUser, userT
         </div>
       </div>
       <div className="nav-links">
-        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => setActiveView('jobs')}>Opportunities</button>
-        <button className={`nav-link ${activeView==='early-careers'?'active':''}`} onClick={() => setActiveView('early-careers')}>Early Careers</button>
-        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => setActiveView('consulting')}>Consulting</button>
-        <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => setActiveView('pricing')}>Pricing</button>
+        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Opportunities</button>
+        <button className={`nav-link ${activeView==='early-careers'?'active':''}`} onClick={() => go('early-careers')}>Early Careers</button>
+        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting</button>
+        <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => go('pricing')}>Pricing</button>
         <div className="nav-divider" />
         {authUser && userType === 'recruiter' && (
-          <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => setActiveView('recruiter-dash')}>Firm Dashboard</button>
+          <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => go('recruiter-dash')}>Firm Dashboard</button>
         )}
         {!authUser && (
-          <button className="nav-link" onClick={() => setActiveView('recruiter-signin')}>Recruiter Sign In</button>
+          <button className="nav-link" onClick={() => go('recruiter-signin')}>Recruiter Sign In</button>
         )}
         {authUser && userType !== 'recruiter' ? (
-          <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => setActiveView('myprofile')}>My Profile</button>
+          <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => go('myprofile')}>My Profile</button>
         ) : !authUser ? (
           <button className="nav-link" onClick={onSignIn}>Sign In</button>
         ) : null}
@@ -3250,6 +3685,47 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
   });
   function setV(k,v) { setVetting(p=>({...p,[k]:v})); }
 
+  // ── SCOPE & COMPLEXITY STATE ────────────────────────────────────────────
+  // Captures what the candidate currently DOES — independent of title. This
+  // feeds the platform's core matching signal. Tier keys mirror SCOPE_TIERS;
+  // binary flags mirror COMPLEXITY_FLAGS and STRATEGIC_FLAGS.
+  const [scope, setScope] = useState(emptyCandidateScope());
+  function setOrg(k, v)        { setScope(p => ({ ...p, org_scope:  { ...p.org_scope,  [k]: v } })); }
+  function setComplexity(k, v) { setScope(p => ({ ...p, complexity: { ...p.complexity, [k]: v } })); }
+  function setStrategic(k, v)  { setScope(p => ({ ...p, strategic:  { ...p.strategic,  [k]: v } })); }
+  function toggleTransport(modeKey) {
+    setScope(p => {
+      const current = new Set(p.complexity.transport_modes || []);
+      if (current.has(modeKey)) current.delete(modeKey); else current.add(modeKey);
+      return { ...p, complexity: { ...p.complexity, transport_modes: [...current] } };
+    });
+  }
+  const scopeMetrics = useMemo(() => deriveScopeMetrics(scope), [scope]);
+
+  // Prefill scope data when an existing profile is loaded
+  useEffect(() => {
+    if (!authUserEmail) return;
+    sb.from('fed_profiles')
+      .select('candidate_scope')
+      .eq('email', authUserEmail)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data?.candidate_scope) return;
+        const stored = typeof data.candidate_scope === 'string'
+          ? JSON.parse(data.candidate_scope) : data.candidate_scope;
+        if (stored && (stored.org_scope || stored.complexity || stored.strategic)) {
+          // Merge stored values over the empty skeleton so any newly added
+          // fields default cleanly rather than coming through as undefined.
+          const blank = emptyCandidateScope();
+          setScope({
+            org_scope:  { ...blank.org_scope,  ...(stored.org_scope  || {}) },
+            complexity: { ...blank.complexity, ...(stored.complexity || {}) },
+            strategic:  { ...blank.strategic,  ...(stored.strategic  || {}) },
+          });
+        }
+      });
+  }, [authUserEmail]);
+
   // References state
   const [refs, setRefs] = useState([
     { name:'', email:'' },
@@ -3316,11 +3792,28 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
         return false;
       }
     }
+    if (step === 3) {
+      // Scope step is optional, but warn if candidate completes nothing —
+      // we don't block, because partial intake is better than no intake.
+      const o = scope.org_scope || {};
+      const hasAny = o.direct_reports || o.total_team_size || o.budget_responsibility
+                  || o.pnl_owned === true || o.capex_authority || o.sites_managed
+                  || o.geographic_scope;
+      if (!hasAny) {
+        showToast('Scope inputs help recruiters find you — adding even a few improves match quality.');
+        // Allow proceeding (return true) — soft nudge only.
+      }
+    }
     return true;
   }
 
   async function handleSubmit() {
     setLoading(true);
+
+    // Derive scope metrics fresh from the latest scope state so saved values
+    // always match what the candidate saw in the form.
+    const metrics = deriveScopeMetrics(scope);
+
     const profileData = {
       ...form,
       salary_min: form.salary_min ? parseInt(form.salary_min) : null,
@@ -3330,6 +3823,14 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       achievements: JSON.stringify(achievements.filter(a=>a.trim())),
       big_five: shareBigFive ? JSON.stringify(bigFive) : null,
       big_five_shared: shareBigFive,
+      candidate_scope:   scope,
+      scope_score:       metrics.scope_score,
+      complexity_score:  metrics.complexity_score,
+      strategic_score:   metrics.strategic_score,
+      leadership_class:  metrics.leadership_class,
+      complexity_class:  metrics.complexity_class,
+      equivalent_label:  metrics.equivalent_label,
+      scope_updated_at:  new Date().toISOString(),
     };
 
     // C1 FIX: Never downgrade a paid tier via form re-submission.
@@ -3408,7 +3909,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
     </div>
   );
 
-  const steps = ['Basics','Career','Personality','Preferences','Vetting'];
+  const steps = ['Basics','Career','Scope','Personality','Preferences','Vetting'];
 
   return (
     <div className="form">
@@ -3549,13 +4050,265 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
 
           <div className="step-nav">
             <button className="step-back" onClick={()=>setStep(1)}>← Back</button>
-            <button className="step-next" onClick={()=>setStep(3)}>Continue — Personality →</button>
+            <button className="step-next" onClick={()=>setStep(3)}>Continue — Scope &amp; Complexity →</button>
           </div>
         </>
       )}
 
-      {/* ── STEP 3: PERSONALITY ── */}
+      {/* ── STEP 3: SCOPE & COMPLEXITY ─────────────────────────────────────── */}
+      {/* The platform's core moat: classification of operational scope, not
+          title. Three sections (Org Scope, Operational Complexity, Strategic
+          Responsibility) populate candidate_scope JSONB. Live derivation of
+          Scope Score, Complexity Score, and Equivalent Leadership Mapping is
+          displayed as the candidate fills.                                   */}
       {step === 3 && (
+        <>
+          <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Scope &amp; Complexity</div>
+          <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1.25rem',lineHeight:'1.6'}}>
+            Fredheim matches on what you actually do — not what your business card says.
+            Titles in industrial, maritime, and logistics environments are inconsistent.
+            Operational scope is not. The data below is the platform's primary matching
+            signal and the basis for the Equivalent Leadership Mapping shown on your
+            profile.
+          </p>
+
+          {/* Live derivation panel — visible from the top so candidate sees the signal forming */}
+          <div className="scope-derivation-panel">
+            <div className="scope-derivation-eyebrow">Your Equivalent Leadership Mapping</div>
+            <div className="scope-derivation-label">
+              {scopeMetrics.equivalent_label || 'Complete the inputs below to generate your mapping.'}
+            </div>
+            <div className="scope-derivation-meters">
+              <div className="scope-meter">
+                <div className="scope-meter-label">Scope</div>
+                <div className="scope-meter-bar"><div className="scope-meter-fill" style={{width:`${scopeMetrics.scope_score}%`}} /></div>
+                <div className="scope-meter-num">{scopeMetrics.scope_score}</div>
+              </div>
+              <div className="scope-meter">
+                <div className="scope-meter-label">Complexity</div>
+                <div className="scope-meter-bar"><div className="scope-meter-fill complexity" style={{width:`${scopeMetrics.complexity_score}%`}} /></div>
+                <div className="scope-meter-num">{scopeMetrics.complexity_score}</div>
+              </div>
+              <div className="scope-meter">
+                <div className="scope-meter-label">Strategic</div>
+                <div className="scope-meter-bar"><div className="scope-meter-fill strategic" style={{width:`${scopeMetrics.strategic_score}%`}} /></div>
+                <div className="scope-meter-num">{scopeMetrics.strategic_score}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── ORGANIZATIONAL SCOPE ───────────────────────────────────────── */}
+          <div className="scope-section">
+            <div className="scope-section-title">Organizational Scope</div>
+            <p className="scope-section-desc">
+              What you accountably manage today — people, money, and footprint. Choose the
+              tier that best reflects your current role; ranges are deliberate so smaller
+              firms aren't penalized for not having multi-billion-dollar budgets.
+            </p>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Direct Reports</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.direct_reports.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.direct_reports===t.key?'selected':''}`}
+                       onClick={() => setOrg('direct_reports', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Total Team Size (direct + indirect)</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.total_team_size.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.total_team_size===t.key?'selected':''}`}
+                       onClick={() => setOrg('total_team_size', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Operating Budget Managed (annual)</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.budget_responsibility.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.budget_responsibility===t.key?'selected':''}`}
+                       onClick={() => setOrg('budget_responsibility', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">P&amp;L Ownership</label>
+              <div className="scope-tier-row" style={{marginBottom:'0.5rem'}}>
+                <div className={`scope-tier-chip ${scope.org_scope.pnl_owned===true?'selected':''}`}
+                     onClick={() => setOrg('pnl_owned', true)}>Yes — I own a P&amp;L</div>
+                <div className={`scope-tier-chip ${scope.org_scope.pnl_owned===false?'selected':''}`}
+                     onClick={() => { setOrg('pnl_owned', false); setOrg('pnl_size', null); }}>No</div>
+              </div>
+              {scope.org_scope.pnl_owned === true && (
+                <>
+                  <div className="scope-field-sublabel">P&amp;L Annual Revenue</div>
+                  <div className="scope-tier-row">
+                    {SCOPE_TIERS.pnl_size.map(t => (
+                      <div key={t.key}
+                           className={`scope-tier-chip ${scope.org_scope.pnl_size===t.key?'selected':''}`}
+                           onClick={() => setOrg('pnl_size', t.key)}>
+                        {t.label}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Capex Sign-Off Authority (without escalation)</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.capex_authority.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.capex_authority===t.key?'selected':''}`}
+                       onClick={() => setOrg('capex_authority', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Sites / Facilities Managed</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.sites_managed.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.sites_managed===t.key?'selected':''}`}
+                       onClick={() => setOrg('sites_managed', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Geographic Scope</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.geographic_scope.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.org_scope.geographic_scope===t.key?'selected':''}`}
+                       onClick={() => setOrg('geographic_scope', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">International Responsibility</label>
+              <div className="scope-tier-row">
+                <div className={`scope-tier-chip ${scope.org_scope.international_responsibility===true?'selected':''}`}
+                     onClick={() => setOrg('international_responsibility', true)}>Yes — work crosses borders</div>
+                <div className={`scope-tier-chip ${scope.org_scope.international_responsibility===false?'selected':''}`}
+                     onClick={() => setOrg('international_responsibility', false)}>No — domestic only</div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── OPERATIONAL COMPLEXITY ─────────────────────────────────────── */}
+          <div className="scope-section">
+            <div className="scope-section-title">Operational Complexity</div>
+            <p className="scope-section-desc">
+              Specific operating environments and disciplines you've handled. These are the
+              experiences that scoring a candidate by title alone misses. Select all that apply.
+            </p>
+
+            <div className="scope-flag-grid">
+              {Object.entries(COMPLEXITY_FLAGS).map(([key, def]) => (
+                <div key={key}
+                     className={`scope-flag-card ${scope.complexity[key]?'selected':''}`}
+                     onClick={() => setComplexity(key, !scope.complexity[key])}>
+                  <div className={`scope-flag-toggle ${scope.complexity[key]?'on':''}`} />
+                  <div className="scope-flag-label">{def.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div className="scope-field" style={{marginTop:'1rem'}}>
+              <label className="scope-field-label">Transport Modes Integrated</label>
+              <div className="scope-tier-row">
+                {TRANSPORT_MODES.map(m => (
+                  <div key={m.key}
+                       className={`scope-tier-chip ${(scope.complexity.transport_modes||[]).includes(m.key)?'selected':''}`}
+                       onClick={() => toggleTransport(m.key)}>
+                    {m.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="scope-field">
+              <label className="scope-field-label">Operational Scale</label>
+              <div className="scope-tier-row">
+                {SCOPE_TIERS.operational_scale.map(t => (
+                  <div key={t.key}
+                       className={`scope-tier-chip ${scope.complexity.operational_scale===t.key?'selected':''}`}
+                       onClick={() => setComplexity('operational_scale', t.key)}>
+                    {t.label}
+                  </div>
+                ))}
+              </div>
+              <p className="scope-field-hint">
+                Small = single small operation. Very large = sustained scale across multiple
+                large sites or significant national/global throughput.
+              </p>
+            </div>
+          </div>
+
+          {/* ── STRATEGIC RESPONSIBILITY ───────────────────────────────────── */}
+          <div className="scope-section">
+            <div className="scope-section-title">Strategic Responsibility</div>
+            <p className="scope-section-desc">
+              Beyond operating the business — what have you built, integrated, or transformed.
+              These differentiate candidates with the same operational scope but very different
+              strategic depth. Select all that apply.
+            </p>
+
+            <div className="scope-flag-grid">
+              {Object.entries(STRATEGIC_FLAGS).map(([key, def]) => (
+                <div key={key}
+                     className={`scope-flag-card ${scope.strategic[key]?'selected':''}`}
+                     onClick={() => setStrategic(key, !scope.strategic[key])}>
+                  <div className={`scope-flag-toggle ${scope.strategic[key]?'on':''}`} />
+                  <div className="scope-flag-label">{def.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Closing note */}
+          <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1rem',marginTop:'1rem',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.55'}}>
+            Your inputs here drive matching, ranking, and the Equivalent Leadership Mapping that
+            recruiters see. Recruiters never see the raw answers — only your derived classification
+            ({scopeMetrics.equivalent_label || 'pending'}) and aligned attributes. You can revisit
+            and update these any time.
+          </div>
+
+          <div className="step-nav">
+            <button className="step-back" onClick={()=>setStep(2)}>← Back</button>
+            <button className="step-next" onClick={() => { if(validateStep()) setStep(4); }}>
+              Continue — Personality →
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* ── STEP 4: PERSONALITY ── */}
+      {step === 4 && (
         <>
           <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Big Five Personality Profile</div>
 
@@ -3620,14 +4373,14 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           </p>
 
           <div className="step-nav">
-            <button className="step-back" onClick={()=>setStep(2)}>← Back</button>
-            <button className="step-next" onClick={()=>setStep(4)}>Continue — Preferences →</button>
+            <button className="step-back" onClick={()=>setStep(3)}>← Back</button>
+            <button className="step-next" onClick={()=>setStep(5)}>Continue — Preferences →</button>
           </div>
         </>
       )}
 
-      {/* ── STEP 4: PREFERENCES ── */}
-      {step === 4 && (
+      {/* ── STEP 5: PREFERENCES ── */}
+      {step === 5 && (
         <>
           <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Search Preferences</div>
 
@@ -3699,14 +4452,14 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           </div>
 
           <div className="step-nav" style={{marginTop:'0'}}>
-            <button className="step-back" onClick={()=>setStep(3)}>← Back</button>
-            <button className="step-next" onClick={()=>setStep(5)}>Continue — Vetting & References →</button>
+            <button className="step-back" onClick={()=>setStep(4)}>← Back</button>
+            <button className="step-next" onClick={()=>setStep(6)}>Continue — Vetting & References →</button>
           </div>
         </>
       )}
 
-      {/* ── STEP 5: VETTING & REFERENCES ── */}
-      {step === 5 && (
+      {/* ── STEP 6: VETTING & REFERENCES ── */}
+      {step === 6 && (
         <>
           {/* Availability */}
           <div className="vetting-section">
@@ -3907,7 +4660,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             }
           </p>
           <div className="step-nav" style={{marginTop:'0.5rem'}}>
-            <button className="step-back" onClick={()=>setStep(4)}>← Back</button>
+            <button className="step-back" onClick={()=>setStep(5)}>← Back</button>
           </div>
         </>
       )}
@@ -5590,7 +6343,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                                   method: 'POST',
                                   headers: {
                                     'Content-Type': 'application/json',
-                                    'X-Admin-Secret': sessionStorage.getItem('fed_admin_pwd') || '',
+                                    'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || ''),
                                   },
                                   body: JSON.stringify({
                                     job_id: i.job_id,
@@ -5681,12 +6434,12 @@ function AdminActivityTab({ showToast }) {
   const [editing, setEditing]   = useState(null);  // item being edited or {}
   const [saving, setSaving]     = useState(false);
 
-  const adminPwd = () => sessionStorage.getItem('fed_admin_pwd') || '';
+  const adminToken = () => sessionStorage.getItem('fed_admin_token') || '';
 
   async function api(action, extra = {}) {
     const r = await fetch('/api/marketplace-activity', {
       method: 'POST',
-      headers: { 'Content-Type':'application/json', 'X-Admin-Secret': adminPwd() },
+      headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + adminToken() },
       body: JSON.stringify({ action, ...extra }),
     });
     return r.json();
@@ -6052,10 +6805,10 @@ function AdminLeaderboardTab({ showToast }) {
 
   async function saveOverride() {
     try {
-      const adminPwd = sessionStorage.getItem('fed_admin_pwd') || '';
+      const adminToken = sessionStorage.getItem('fed_admin_token') || '';
       const resp = await fetch('/api/leaderboard', {
         method: 'POST',
-        headers: { 'Content-Type':'application/json', 'X-Admin-Secret': adminPwd },
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + adminToken },
         body: JSON.stringify({ action:'override', recruiter_email: editEmail, ...editForm }),
       });
       const data = await resp.json();
@@ -6068,10 +6821,10 @@ function AdminLeaderboardTab({ showToast }) {
 
   async function triggerSnapshot() {
     try {
-      const adminPwd = sessionStorage.getItem('fed_admin_pwd') || '';
+      const adminToken = sessionStorage.getItem('fed_admin_token') || '';
       const resp = await fetch('/api/leaderboard', {
         method:'POST',
-        headers:{'Content-Type':'application/json','X-Admin-Secret':adminPwd},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+adminToken},
         body:JSON.stringify({action:'snapshot'}),
       });
       const data = await resp.json();
@@ -6312,10 +7065,10 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                                 setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'approved'}:x));
                                 // Auto-draft activity item for admin review
                                 const job = jobs.find(j=>j.id===p.job_id);
-                                const adminPwd = sessionStorage.getItem('fed_admin_pwd')||'';
+                                const adminToken = sessionStorage.getItem('fed_admin_token')||'';
                                 fetch('/api/marketplace-activity', {
                                   method:'POST',
-                                  headers:{'Content-Type':'application/json','X-Admin-Secret':adminPwd},
+                                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+adminToken},
                                   body:JSON.stringify({
                                     action:'auto_draft',
                                     related_placement_id: p.id,
@@ -6334,10 +7087,10 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                                 await sb.from('fed_placements').update({admin_review_status:'disputed'}).eq('id',p.id);
                                 setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'disputed'}:x));
                                 // Suppress any published activity item linked to this placement
-                                const adminPwd = sessionStorage.getItem('fed_admin_pwd')||'';
+                                const adminToken = sessionStorage.getItem('fed_admin_token')||'';
                                 fetch('/api/marketplace-activity', {
                                   method:'POST',
-                                  headers:{'Content-Type':'application/json','X-Admin-Secret':adminPwd},
+                                  headers:{'Content-Type':'application/json','Authorization':'Bearer '+adminToken},
                                   body:JSON.stringify({action:'flag_disputed',related_placement_id:p.id}),
                                 }).catch(()=>{});
                                 showToast('Placement disputed. Any published activity item has been suppressed.');
@@ -6470,9 +7223,15 @@ function AdminLogin({ onLogin }) {
         body: JSON.stringify({ password }),
       });
       const data = await resp.json();
-      if (resp.ok && data.ok) {
+      if (resp.ok && data.ok && data.token) {
         sessionStorage.setItem('fed_admin', 'true');
-        sessionStorage.setItem('fed_admin_pwd', password); // stored for authenticated API calls
+        // Store the signed session token (HMAC-SHA256 + expiry) instead of
+        // the raw password. Sent as Authorization: Bearer on subsequent
+        // admin API calls. The password itself is never persisted.
+        sessionStorage.setItem('fed_admin_token', data.token);
+        // Defensive: scrub any legacy password storage left over from older
+        // sessions before this refactor.
+        sessionStorage.removeItem('fed_admin_pwd');
         onLogin();
       } else {
         setError(data.error || 'Incorrect password.');
@@ -7414,6 +8173,23 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
     setActLoad(p => ({...p, [key]: false}));
   }
 
+  // ── MATCH CONFIDENCE GATING ───────────────────────────────────────────────
+  // Stretch and low-alignment matches present a review modal before the
+  // candidate can express interest. The modal does NOT block — it surfaces
+  // the gaps and lets the candidate proceed if they choose. Soft friction
+  // protects platform signal quality without hard-gating exceptional fits.
+  const [stretchModal, setStretchModal] = useState(null); // { match, job, confidence }
+  function handleCandidateInterest(match, job) {
+    const reasons = typeof match.match_reasons === 'string'
+      ? JSON.parse(match.match_reasons) : (match.match_reasons || {});
+    const conf = getMatchConfidence(match.match_score, reasons, []);
+    if (conf.shouldWarn) {
+      setStretchModal({ match, job, confidence: conf });
+    } else {
+      doAction('candidate_interest', match.id || null, job.id);
+    }
+  }
+
   // Filter by tab
   const tabMatches = tab === 'interested'
     ? matches.filter(m => ['candidate_interested', 'mutual_interest'].includes(m.status))
@@ -7500,14 +8276,18 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                   <div className="job-match-details">
                     {job.location} · {job.type} · {job.salary_display}
                   </div>
-                  <div className="match-reason-tags" style={{marginTop:'0.5rem'}}>
-                    <span className="match-score-badge">
-                      <span style={{color:scoreColor(match.match_score),fontWeight:700}}>{match.match_score}%</span>
-                      <div className="match-score-bar" style={{maxWidth:50}}>
-                        <div className="match-score-fill" style={{width:`${match.match_score}%`,background:scoreColor(match.match_score)}} />
-                      </div>
-                      <span style={{fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.08em'}}>FIT</span>
-                    </span>
+                  {/* Match Confidence — replaces raw FIT% badge as primary signal */}
+                  <div style={{marginTop:'0.625rem',marginBottom:'0.375rem'}}>
+                    <MatchConfidenceBadge
+                      score={match.match_score}
+                      reasons={reasons}
+                      gaps={[]}
+                      compact={isMutual || isReceived}
+                    />
+                  </div>
+                  {/* Secondary alignment tags — kept compact, not lead signal */}
+                  <div className="match-reason-tags" style={{marginTop:'0.25rem'}}>
+                    {reasons.scope    === true && <span className="match-reason-tag match">Scope</span>}
                     {reasons.industry === true && <span className="match-reason-tag match">Industry</span>}
                     {reasons.function === true && <span className="match-reason-tag match">Function</span>}
                     {reasons.salary   === true && <span className="match-reason-tag match">Salary</span>}
@@ -7516,6 +8296,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                     {reasons.work_arrangement === 'partial' && <span className="match-reason-tag partial">Arrangement ~</span>}
                     {reasons.pnl     === true && <span className="match-reason-tag match">P&amp;L</span>}
                     {reasons.mandate === true && <span className="match-reason-tag match">Mandate</span>}
+                    {reasons.complexity === true && <span className="match-reason-tag match">Complexity</span>}
                     {reasons.tech    === true && <span className="match-reason-tag match">Technical</span>}
                     {reasons.salary  === false && <span className="match-reason-tag" style={{color:'var(--red,#c0392b)'}}>Salary gap</span>}
                   </div>
@@ -7537,13 +8318,24 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                   {match.status === 'candidate_declined' && <span className="match-status-badge declined">Declined</span>}
                   {match.status === 'recruiter_withdrawn' && <span className="match-status-badge declined">Firm Withdrew</span>}
 
-                  {/* Action buttons */}
-                  {match.status === 'matched' && (
-                    <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
-                      onClick={() => doAction('candidate_interest', null, job.id)} disabled={isBusy}>
-                      {isBusy ? '…' : 'Indicate Interest'}
-                    </button>
-                  )}
+                  {/* Action buttons — gated by match confidence */}
+                  {match.status === 'matched' && (() => {
+                    const conf = getMatchConfidence(match.match_score, reasons, []);
+                    const label =
+                      conf.level === 'high'     ? 'Confirm Interest' :
+                      conf.level === 'moderate' ? 'Indicate Interest' :
+                      conf.level === 'stretch'  ? 'Indicate Interest — Stretch' :
+                                                  'Indicate Interest — Low Alignment';
+                    return (
+                      <button
+                        className={`match-interest-btn ${conf.level}`}
+                        style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
+                        onClick={() => handleCandidateInterest(match, job)}
+                        disabled={isBusy}>
+                        {isBusy ? '…' : label}
+                      </button>
+                    );
+                  })()}
                   {isReceived && (
                     <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap',justifyContent:'flex-end'}}>
                       <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
@@ -7573,6 +8365,20 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
             );
           })}
         </div>
+      )}
+
+      {/* Stretch / low-alignment review modal — soft friction before
+          expressing interest. Candidate may always proceed. */}
+      {stretchModal && (
+        <StretchOpportunityModal
+          job={stretchModal.job}
+          confidence={stretchModal.confidence}
+          onCancel={() => setStretchModal(null)}
+          onProceed={() => {
+            doAction('candidate_interest', stretchModal.match.id || null, stretchModal.job.id);
+            setStretchModal(null);
+          }}
+        />
       )}
     </div>
   );
@@ -8420,22 +9226,29 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                   return (
                     <div key={match.id} className={`match-candidate-card ${isMutual ? 'mutual-border' : ''}`}
                          style={isMutual ? {borderTop:'2px solid var(--green)'} : {}}>
-                      {/* Match score */}
-                      <div className="match-score-badge">
-                        <span style={{color: scoreColor(match.match_score), fontWeight:700, fontSize:'0.9rem'}}>
-                          {match.match_score}%
-                        </span>
-                        <div className="match-score-bar">
-                          <div className="match-score-fill" style={{width:`${match.match_score}%`, background: scoreColor(match.match_score)}} />
-                        </div>
-                        <span style={{color:'var(--ink-4)',fontSize:'0.6rem',letterSpacing:'0.08em'}}>MATCH</span>
+                      {/* Match Confidence — categorical label is the lead signal. */}
+                      <div style={{marginBottom:'0.625rem'}}>
+                        <MatchConfidenceBadge
+                          score={match.match_score}
+                          reasons={reasons}
+                          gaps={[]}
+                          compact={false}
+                        />
                       </div>
 
-                      {/* Anonymized identity */}
+                      {/* Anonymized identity — surface candidate's equivalent leadership
+                          label when available (denormalized onto match record by
+                          /api/compute-matches). This is the platform's signature output
+                          to recruiters: scope and complexity classification, not title. */}
                       <div>
                         <div className="match-candidate-title">
                           {isMutual ? match.candidate_email : privacyLabel(match)}
                         </div>
+                        {match.candidate_equivalent_label && (
+                          <div className="match-candidate-equivalent">
+                            {match.candidate_equivalent_label}
+                          </div>
+                        )}
                         <div className="match-candidate-meta">
                           {isMutual
                             ? 'Identity revealed — Fredheim will facilitate introduction.'
@@ -8443,8 +9256,10 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                         </div>
                       </div>
 
-                      {/* Match reason tags */}
+                      {/* Specific alignment signals — kept as secondary detail. */}
                       <div className="match-reason-tags">
+                        {reasons.scope    === true && <span className="match-reason-tag match">Scope ✓</span>}
+                        {reasons.complexity === true && <span className="match-reason-tag match">Complexity ✓</span>}
                         {reasons.industry === true && <span className="match-reason-tag match">Industry ✓</span>}
                         {reasons.function === true && <span className="match-reason-tag match">Function ✓</span>}
                         {reasons.salary   === true && <span className="match-reason-tag match">Salary ✓</span>}
@@ -9663,8 +10478,11 @@ function BriefModal({ onClose, showToast }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" style={{maxWidth:'560px'}} onClick={e=>e.stopPropagation()}>
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      {/* Switched from .modal-box (no CSS — content sat on the dim overlay
+          with no visible container) to .workflow-modal which has the proper
+          background, padding, border, and max-height + scroll behaviour. */}
+      <div className="workflow-modal" style={{maxWidth:'560px'}} onClick={e=>e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
 
         {step === 'tos' && (
@@ -9955,30 +10773,10 @@ function AboutPage({ setActiveView }) {
 
 // ── APP ───────────────────────────────────────────────────────────────────────
 function App() {
-  // Initial view is driven by URL ?view=X so deep links work for visitors who
-  // haven't signed in yet (applyRouting only fires on SIGNED_IN, so without
-  // this an unauthenticated visitor following e.g. ?view=consulting would
-  // land on the default 'jobs' view).
-  const [activeView, setActiveView]   = useState(() => {
-    const v = new URLSearchParams(window.location.search).get('view');
-    return v && KNOWN_RETURN_VIEWS.has(v) ? v : 'jobs';
-  });
-  // pendingReturnView: where to land the user after a magic-link round-trip.
-  // Set by components that need to gate an action behind sign-in (e.g. the
-  // InternProfileForm auth gate). Consumed by SignInPage which passes it to
-  // sendMagicLink as the emailRedirectTo view param.
-  const [pendingReturnView, setPendingReturnView] = useState(null);
+  const [activeView, setActiveView]   = useState('jobs');
   const [briefModal, setBriefModal]   = useState(false);
   const [adminAuthed, setAdminAuthed] = useState(() => sessionStorage.getItem('fed_admin') === 'true');
   const [showAdmin, setShowAdmin]     = useState(() => window.location.search.includes('admin=true'));
-
-  // Helper: navigate to the sign-in view and remember where to send the user
-  // after they authenticate. Pass null/undefined to use the default destination.
-  function requestSignIn(targetView) {
-    setPendingReturnView(targetView && KNOWN_RETURN_VIEWS.has(targetView) ? targetView : null);
-    setActiveView('signin');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
   // Auth state
   const [authUser, setAuthUser]       = useState(null);
@@ -10162,7 +10960,6 @@ function App() {
       await sb.auth.signOut();
       setAuthUser(null);
       setUserType(null);
-      setPendingReturnView(null);
       setActiveView('jobs');
       window.history.replaceState({}, '', window.location.origin);
       showToast('Signed out.');
@@ -10269,7 +11066,7 @@ function App() {
           openRecruiterModal={() => setRecruiterModal(true)}
           authUser={authUser}
           userType={userType}
-          onSignIn={() => { setPendingReturnView(null); setActiveView('signin'); }}
+          onSignIn={() => setActiveView('signin')}
           onSignOut={handleSignOut}
         />
 
@@ -10390,7 +11187,6 @@ function App() {
               authUser={authUser}
               showToast={showToast}
               onComplete={() => setActiveView('intern-myprofile')}
-              requestSignIn={requestSignIn}
             />
           </div>
         )}
@@ -10404,7 +11200,7 @@ function App() {
         {activeView === 'intern-myprofile' && !authUser && (
           <div style={{maxWidth:600,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center'}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'1rem'}}>Sign in to view your student profile</div>
-            <button className="btn-primary" onClick={() => requestSignIn('intern-myprofile')}>Sign In</button>
+            <button className="btn-primary" onClick={() => setActiveView('signin')}>Sign In</button>
           </div>
         )}
 
@@ -10528,7 +11324,7 @@ function App() {
         )}
 
         {activeView === 'signin' && (
-          <SignInPage onBack={() => setActiveView('profile')} returnView={pendingReturnView} />
+          <SignInPage onBack={() => setActiveView('profile')} />
         )}
 
         {activeView === 'myprofile' && authUser && (
@@ -10543,7 +11339,7 @@ function App() {
         )}
 
         {activeView === 'myprofile' && !authUser && (
-          <SignInPage onBack={() => setActiveView('profile')} returnView="myprofile" />
+          <SignInPage onBack={() => setActiveView('profile')} />
         )}
 
         {activeView === 'recruiter-signin' && (
@@ -10608,6 +11404,7 @@ function App() {
             <ul className="footer-links">
               {['Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'].map(v => (
               <li key={v} style={{cursor:'pointer'}} onClick={()=>{
+                goToView('jobs');
                 setTimeout(()=>window.dispatchEvent(new CustomEvent('filterIndustry',{detail:v})),100);
               }}>{v}</li>
             ))}
@@ -10633,6 +11430,5 @@ function App() {
     </>
   );
 }
-
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
