@@ -1,8 +1,36 @@
 // api/compute-matches.js
-// Computes or refreshes match scores between all active candidates and a recruiter's job posts.
-// Called when a recruiter opens their dashboard or when a new job is published.
-// Uses service role to read all active candidate profiles.
-// Only creates match records for candidates with active profiles and score >= MIN_SCORE.
+//
+// Computes or refreshes match scores between all active candidates and a
+// recruiter's job posts. Called when a recruiter opens their dashboard or
+// when a new job is published. Uses service role to read all active profiles.
+//
+// Scoring philosophy (post-scope migration):
+//
+//   Fredheim's primary matching signal is operational scope and complexity —
+//   not title, not industry. Titles in maritime, logistics, terminals,
+//   manufacturing, and industrial environments are inconsistent. Operational
+//   scope is not. This matcher reflects that ordering of evidence:
+//
+//   30 pts  Operational scope match (leadership class alignment)
+//   20 pts  Operational complexity match
+//   15 pts  Functional discipline
+//   15 pts  Industry — adjacency-tolerant, not strict
+//   10 pts  Compensation alignment
+//    5 pts  Location
+//    5 pts  Strategic responsibility bonus
+//   ─────
+//  100 pts
+//
+//   Industry is adjacency-tolerant because the explicit thesis of the
+//   platform is that scope and complexity transfer across industrial
+//   verticals — a multi-site greenfield startup leader in terminals is a
+//   credible candidate for the same scope in cement.
+//
+//   `reasons` returned to the front end is consumed by getMatchConfidence.
+//   Each scoring dimension produces a true | false | null reason:
+//     true  = aligned
+//     false = misaligned (gap will be surfaced to candidate / recruiter)
+//     null  = data unavailable (treated as unknown — neither pass nor fail)
 
 const { createClient } = require('@supabase/supabase-js');
 
@@ -29,10 +57,10 @@ module.exports = async function handler(req, res) {
   const recruiterEmail = user.email.toLowerCase();
 
   try {
-    // Load this recruiter's active jobs
+    // Load this recruiter's active jobs, including scope requirements
     const { data: jobs, error: jErr } = await db
       .from('fed_jobs')
-      .select('id, title, industry, function, location, salary_min, salary_max, firm_email')
+      .select('id, title, industry, function, location, salary_min, salary_max, firm_email, role_scope_requirements, required_leadership_class, required_complexity_class')
       .ilike('firm_email', recruiterEmail)
       .eq('status', 'active')
       .eq('demo_post', false);
@@ -42,10 +70,10 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true, matches_created: 0, message: 'No active jobs.' });
     }
 
-    // Load all active candidate profiles (service role reads all)
+    // Load all candidate profiles, including derived scope classification
     const { data: candidates, error: cErr } = await db
       .from('fed_profiles')
-      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private')
+      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private, candidate_scope, scope_score, complexity_score, strategic_score, leadership_class, complexity_class, equivalent_label')
       .not('email', 'is', null);
 
     if (cErr) throw cErr;
@@ -64,19 +92,17 @@ module.exports = async function handler(req, res) {
       (existingMatches || []).map(m => `${m.job_id}::${m.candidate_email.toLowerCase()}`)
     );
 
-    // Compute scores and create new match records
     const toInsert = [];
 
     for (const job of jobs) {
       for (const candidate of candidates) {
-        // Skip recruiter's own email if they also have a profile
         if (candidate.email.toLowerCase() === recruiterEmail) continue;
 
         const key = `${job.id}::${candidate.email.toLowerCase()}`;
-        if (existingSet.has(key)) continue; // already have a match record for this pair
+        if (existingSet.has(key)) continue;
 
         const { score, reasons } = computeMatchScore(candidate, job);
-        if (score < MIN_SCORE) continue; // below threshold — don't surface this match
+        if (score < MIN_SCORE) continue;
 
         toInsert.push({
           job_id:          job.id,
@@ -85,6 +111,13 @@ module.exports = async function handler(req, res) {
           match_score:     score,
           match_reasons:   reasons,
           status:          'matched',
+          // Denormalized candidate classification — surfaced on recruiter card
+          // without requiring a join. This is the platform's signature output:
+          // a recruiter sees "Director-level scope, High complexity" alongside
+          // the anonymized identity instead of a job title that may be misleading.
+          candidate_equivalent_label: candidate.equivalent_label || null,
+          candidate_leadership_class: candidate.leadership_class || null,
+          candidate_complexity_class: candidate.complexity_class || null,
         });
       }
     }
@@ -100,36 +133,22 @@ module.exports = async function handler(req, res) {
       else created += chunk.length;
     }
 
-    // Also create new_candidate_match notifications for new matches
+    // Notifications — one summary per job, not per match
     if (created > 0) {
-      const notifInserts = toInsert.map(m => {
-        const job = jobs.find(j => j.id === m.job_id);
+      const byJob = {};
+      toInsert.forEach(m => { byJob[m.job_id] = (byJob[m.job_id] || 0) + 1; });
+      const summaryNotifs = Object.entries(byJob).map(([jobId, count]) => {
+        const job = jobs.find(j => j.id === jobId);
         return {
           recipient_email: recruiterEmail,
           recipient_role:  'recruiter',
           type:            'new_candidate_match',
-          job_id:          m.job_id,
-          title:           `New candidate match — ${job?.title || 'role'}`,
-          body:            `A new candidate profile matches your ${job?.title || 'role'} search with a ${m.match_score}% compatibility score.`,
+          job_id:          jobId,
+          title:           `${count} new candidate match${count > 1 ? 'es' : ''} — ${job?.title || 'role'}`,
+          body:            `${count} candidate profile${count > 1 ? 's' : ''} now match your ${job?.title || 'role'} search.`,
         };
       });
-      // Only send a summary notification, not one per match (avoid spam)
-      if (notifInserts.length > 0) {
-        const byJob = {};
-        notifInserts.forEach(n => { byJob[n.job_id] = (byJob[n.job_id] || 0) + 1; });
-        const summaryNotifs = Object.entries(byJob).map(([jobId, count]) => {
-          const job = jobs.find(j => j.id === jobId);
-          return {
-            recipient_email: recruiterEmail,
-            recipient_role:  'recruiter',
-            type:            'new_candidate_match',
-            job_id:          jobId,
-            title:           `${count} new candidate match${count > 1 ? 'es' : ''} — ${job?.title || 'role'}`,
-            body:            `${count} candidate profile${count > 1 ? 's' : ''} now match your ${job?.title || 'role'} search.`,
-          };
-        });
-        await db.from('fed_notifications').insert(summaryNotifs);
-      }
+      await db.from('fed_notifications').insert(summaryNotifs);
     }
 
     return res.status(200).json({
@@ -145,42 +164,135 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// ── MATCH SCORING (duplicated from match-action.js for independence) ──────────
+
+// ── MATCH SCORING ────────────────────────────────────────────────────────────
+// Mirrors the client-side `computeMatchScore` in src/main.jsx for the metrics
+// the API needs. The full client-side scorer also reads candidate_preferences
+// (work arrangement, mandate, etc.). For the v1 scope cut, server-side scoring
+// uses scope/complexity as the dominant signal and treats preferences as
+// soft modifiers added later.
+//
+// Ordering of leadership classes — used for class-distance scoring.
+const LEADERSHIP_ORDER = [
+  'manager','senior_manager','director','senior_director',
+  'vp','svp','evp','c_suite',
+];
+const COMPLEXITY_ORDER = ['low','moderate','high','very_high'];
+
+function classIndex(order, value) {
+  if (!value) return -1;
+  return order.indexOf(value);
+}
+
+// 0 distance = exact match (full credit). Each step away halves the credit
+// to a floor of 0. Going UP (candidate above required) is full credit;
+// going DOWN (candidate below required) is penalized.
+function classMatchCredit(candidateClass, requiredClass, order, fullPts) {
+  if (!requiredClass) return { pts: fullPts * 0.5, status: null }; // no requirement set — neutral
+  if (!candidateClass) return { pts: 0, status: null };            // candidate has no data
+  const cIdx = classIndex(order, candidateClass);
+  const rIdx = classIndex(order, requiredClass);
+  if (cIdx < 0 || rIdx < 0) return { pts: 0, status: null };
+
+  if (cIdx === rIdx)       return { pts: fullPts,        status: true  };
+  if (cIdx >  rIdx)        return { pts: fullPts * 0.9,  status: true  }; // candidate exceeds — still a strong fit
+  if (cIdx === rIdx - 1)   return { pts: fullPts * 0.6,  status: true  }; // one tier below — stretch but credible
+  if (cIdx === rIdx - 2)   return { pts: fullPts * 0.3,  status: false }; // two tiers below — gap
+  return                          { pts: 0,              status: false };
+}
+
 function computeMatchScore(candidate, job) {
   let score = 0;
   const reasons = {};
 
-  // Industry (40 pts)
+  // ── 1. OPERATIONAL SCOPE (30 pts) — dominant signal ────────────────────
+  const scopeCredit = classMatchCredit(
+    candidate.leadership_class,
+    job.required_leadership_class,
+    LEADERSHIP_ORDER,
+    30,
+  );
+  score += scopeCredit.pts;
+  reasons.scope = scopeCredit.status;
+
+  // ── 2. OPERATIONAL COMPLEXITY (20 pts) ─────────────────────────────────
+  const complexityCredit = classMatchCredit(
+    candidate.complexity_class,
+    job.required_complexity_class,
+    COMPLEXITY_ORDER,
+    20,
+  );
+  score += complexityCredit.pts;
+  reasons.complexity = complexityCredit.status;
+
+  // ── 3. FUNCTIONAL DISCIPLINE (15 pts) ──────────────────────────────────
+  if (candidate?.function && job?.function) {
+    if (candidate.function.toLowerCase() === job.function.toLowerCase()) {
+      score += 15; reasons.function = true;
+    } else {
+      reasons.function = false;
+    }
+  } else { score += 7; reasons.function = null; }
+
+  // ── 4. INDUSTRY ADJACENCY (15 pts) — adjacency-tolerant ────────────────
   if (candidate?.industry && job?.industry) {
     const cI = candidate.industry.toLowerCase();
     const jI = job.industry.toLowerCase();
     const cW = cI.split(/[\s&,]+/);
     const jW = jI.split(/[\s&,]+/);
     const overlap = cW.some(w => w.length > 3 && jW.some(jw => jw.length > 3 && (jw.includes(w) || w.includes(jw))));
-    if (overlap || cI === jI) { score += 40; reasons.industry = true; }
-  } else { score += 20; reasons.industry = null; }
+    if (overlap || cI === jI) {
+      score += 15; reasons.industry = true;
+    } else {
+      // Industrial cross-sector adjacency: maritime ↔ logistics ↔ industrial
+      // are adjacent. Award partial credit.
+      const industrialKeywords = ['maritime','shipping','port','terminal','logistics','industrial','energy','offshore'];
+      const cInd = industrialKeywords.some(k => cI.includes(k));
+      const jInd = industrialKeywords.some(k => jI.includes(k));
+      if (cInd && jInd) { score += 8; reasons.industry = 'adjacent'; }
+      else              {              reasons.industry = false;       }
+    }
+  } else { score += 7; reasons.industry = null; }
 
-  // Function (30 pts)
-  if (candidate?.function && job?.function) {
-    if (candidate.function.toLowerCase() === job.function.toLowerCase()) { score += 30; reasons.function = true; }
-  } else { score += 15; reasons.function = null; }
-
-  // Salary (20 pts)
+  // ── 5. COMPENSATION (10 pts) ───────────────────────────────────────────
   if (candidate?.salary_min && job?.salary_max && job.salary_max > 0) {
-    if (candidate.salary_min <= job.salary_max) { score += 20; reasons.salary = true; }
-    else { reasons.salary = false; }
-  } else { score += 20; reasons.salary = null; }
+    if (candidate.salary_min <= job.salary_max) {
+      score += 10; reasons.salary = true;
+    } else { reasons.salary = false; }
+  } else { score += 10; reasons.salary = null; }
 
-  // Location (10 pts)
+  // ── 6. LOCATION (5 pts) ────────────────────────────────────────────────
   if (job?.location && candidate?.location) {
     const jL = job.location.toLowerCase();
     const cL = candidate.location.toLowerCase();
     if (jL.includes('remote') || jL.includes('global') ||
         cL.includes(jL.split(',')[0].trim().substring(0,5)) ||
         jL.includes(cL.split(',')[0].trim().substring(0,5))) {
-      score += 10; reasons.location = true;
-    }
-  } else { score += 10; reasons.location = null; }
+      score += 5; reasons.location = true;
+    } else { reasons.location = false; }
+  } else { score += 5; reasons.location = null; }
 
-  return { score: Math.min(100, score), reasons };
+  // ── 7. STRATEGIC RESPONSIBILITY BONUS (up to 5 pts) ────────────────────
+  // Candidates with strong strategic depth get a credibility lift even when
+  // not explicitly required by the role. This is the "hidden upside" that
+  // recruiters value but rarely write into the spec.
+  if (typeof candidate.strategic_score === 'number') {
+    const bonus = Math.round((candidate.strategic_score / 100) * 5);
+    score += bonus;
+    if (candidate.strategic_score >= 50) reasons.strategic = true;
+  }
+
+  // ── HARD GUARD ─────────────────────────────────────────────────────────
+  // Block matches where the candidate is more than two leadership tiers
+  // below requirement — these introductions destroy recruiter trust more
+  // than they create candidate optionality.
+  if (job.required_leadership_class && candidate.leadership_class) {
+    const cIdx = classIndex(LEADERSHIP_ORDER, candidate.leadership_class);
+    const rIdx = classIndex(LEADERSHIP_ORDER, job.required_leadership_class);
+    if (cIdx >= 0 && rIdx >= 0 && cIdx < rIdx - 2) {
+      return { score: 0, reasons: { ...reasons, scope: false } };
+    }
+  }
+
+  return { score: Math.min(100, Math.round(score)), reasons };
 }
