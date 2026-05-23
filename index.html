@@ -3513,8 +3513,8 @@
   }
   .scope-derivation-meters {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 0.875rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
   }
   .scope-meter { display: flex; flex-direction: column; gap: 0.25rem; }
   .scope-meter-label {
@@ -3528,9 +3528,28 @@
   .scope-meter-fill { background: var(--ink); height: 100%; transition: width 0.25s ease; }
   .scope-meter-fill.complexity { background: #bf360c; }
   .scope-meter-fill.strategic  { background: var(--gold); }
+  .scope-meter-fill.commercial { background: #1565c0; }
   .scope-meter-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--ink); font-weight: 500; }
-  @media (max-width: 540px) {
+  @media (max-width: 720px) {
+    .scope-derivation-meters { grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+  }
+  @media (max-width: 420px) {
     .scope-derivation-meters { grid-template-columns: 1fr; gap: 0.5rem; }
+  }
+
+  /* Industrial-commercial translator badge - appears in derivation panel
+     when the candidate combines recurring-revenue commercial background
+     with industrial domain technical fluency. */
+  .scope-translator-badge {
+    background: #1565c0;
+    color: #ffffff;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    line-height: 1.45;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.875rem;
+    border-left: 3px solid #0d3f7a;
   }
 
   /* Scope sections */
@@ -3556,7 +3575,6 @@
   @media (max-width: 540px) { .scope-flag-grid { grid-template-columns: 1fr; } }
   .scope-flag-card { display: flex; align-items: flex-start; gap: 0.625rem; padding: 0.625rem 0.75rem; border: 1px solid var(--rule); background: var(--paper); cursor: pointer; transition: all 0.12s; user-select: none; }
   .scope-flag-card:hover { border-color: var(--ink-3); }
-  .scope-flag-card.selected { background: var(--gold-bg); border-color: var(--gold-rule); }
   .scope-flag-toggle { width: 14px; height: 14px; flex-shrink: 0; margin-top: 0.15rem; border: 1.5px solid var(--ink-3); background: var(--paper); transition: all 0.12s; position: relative; }
   .scope-flag-toggle.on { background: var(--ink); border-color: var(--ink); }
   .scope-flag-toggle.on::after { content: ''; position: absolute; left: 3px; top: 0px; width: 4px; height: 8px; border: solid var(--paper); border-width: 0 2px 2px 0; transform: rotate(45deg); }
