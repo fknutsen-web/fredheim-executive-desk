@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
         type:'candidate_introduction', to_email:firmEmail,
         subject:`Fredheim Introduction — Candidate for ${job.title}`,
         firm_name:job.firm_name, role_title:job.title, candidate_email, dashboard_url:dashUrl,
-        body:`We are pleased to facilitate a formal introduction for your search — ${job.title}.\n\nCandidate contact: ${candidate_email}\n\nThis candidate expressed interest in your posting and Fredheim has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.\n\nAs a reminder, the platform introduction fee applies upon placement confirmation.\n\nQuestions? desk@fredheimtech.com`,
+        body:`We are pleased to facilitate a formal introduction for your search — ${job.title}.\n\nCandidate contact: ${candidate_email}\n\nThis candidate expressed interest in your posting and Fredheim has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.\n\nYour introduction confirmation fee has been applied for this search. All further communication is directly between your firm and the candidate.\n\nQuestions? desk@fredheimtech.com`,
       });
     }
     await sendZapier({ type:'intro_forwarded_admin', to_email:adminEmail,
