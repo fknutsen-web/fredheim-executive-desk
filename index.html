@@ -1227,7 +1227,9 @@
   }
 
   @media (max-width: 900px) {
-    .plans-grid { grid-template-columns: 1fr; }
+    .plans-grid,
+    .plans-grid.plans-grid-count-2,
+    .plans-grid.plans-grid-count-3 { grid-template-columns: 1fr !important; max-width: none !important; }
     .intro-fee-box { grid-template-columns: 1fr; }
     .intro-fee-amount { text-align: left; }
   }
@@ -4973,7 +4975,6 @@
   }
 
   .industrial-tech-landing { max-width: 920px; margin: 2rem auto; padding: 0 1.5rem; }
-
 </style>
 </head>
 <body>
