@@ -4738,11 +4738,281 @@ function emptyIntakeValues() {
 // INTAKE WORKFLOW COMPONENT
 // 8-step recruiter intake. Replaces the legacy single-page RecruiterModal body.
 // -----------------------------------------------------------------------------
+// DOCUMENT INTAKE - drag-drop / paste / file upload, AI extraction, review.
+// Reused on recruiter intake (mode="recruiter") and candidate profile
+// (mode="candidate"). Calls /api/parse-document which routes to Anthropic
+// Claude. Never auto-submits - the ParseReviewModal gates every value with
+// confidence indicators and accept/edit/reject controls.
+// -----------------------------------------------------------------------------
+
+function DocumentIntakeDropzone({ mode, onParsed, accentLabel }) {
+  const [dragOver, setDragOver]   = useState(false);
+  const [parsing, setParsing]     = useState(false);
+  const [error, setError]         = useState('');
+  const [showPaste, setShowPaste] = useState(false);
+  const [pasted, setPasted]       = useState('');
+  const fileRef = useRef(null);
+
+  function readFileAsBase64(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = () => resolve(r.result.split(',')[1]);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+  }
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsText(file);
+    });
+  }
+
+  async function parseFile(file) {
+    setError(''); setParsing(true);
+    try {
+      let body = { mode };
+      const name = (file.name || '').toLowerCase();
+      const mime = file.type || '';
+      if (mime === 'application/pdf' || name.endsWith('.pdf')) {
+        body.file_base64 = await readFileAsBase64(file);
+        body.file_mime   = 'application/pdf';
+      } else if (name.endsWith('.txt') || mime.startsWith('text/')) {
+        body.pasted_text = await readFileAsText(file);
+      } else if (name.endsWith('.docx')) {
+        // DOCX: send as base64 - server falls back to UTF-8 decode. For best
+        // results an explicit server-side DOCX parser would be Phase 2.
+        body.file_base64 = await readFileAsBase64(file);
+        body.file_mime   = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      } else {
+        throw new Error('Unsupported file type. Use PDF, DOCX, or TXT.');
+      }
+      const r = await fetch('/api/parse-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Parse failed');
+      onParsed(data.fields || {});
+    } catch (e) {
+      setError(e.message || 'Parse failed - please try a different file or paste the text.');
+    }
+    setParsing(false);
+  }
+
+  async function parsePastedText() {
+    if (!pasted.trim()) { setError('Paste some text first.'); return; }
+    setError(''); setParsing(true);
+    try {
+      const r = await fetch('/api/parse-document', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode, pasted_text: pasted }),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Parse failed');
+      onParsed(data.fields || {});
+      setShowPaste(false); setPasted('');
+    } catch (e) {
+      setError(e.message || 'Parse failed.');
+    }
+    setParsing(false);
+  }
+
+  function onDrop(e) {
+    e.preventDefault(); setDragOver(false);
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) parseFile(file);
+  }
+
+  return (
+    <div className="intake-dropzone-wrap">
+      <div
+        className={`intake-dropzone ${dragOver ? 'dragover' : ''} ${parsing ? 'parsing' : ''}`}
+        onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        onClick={() => !parsing && fileRef.current && fileRef.current.click()}
+      >
+        <input
+          ref={fileRef} type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain"
+          style={{ display: 'none' }}
+          onChange={e => e.target.files[0] && parseFile(e.target.files[0])}
+        />
+        <div className="intake-dropzone-eyebrow">{accentLabel || 'Pre-fill from a document'}</div>
+        <div className="intake-dropzone-headline">
+          {parsing ? 'Extracting structured fields...' : (
+            mode === 'recruiter'
+              ? 'Drop a job description, search brief, or scorecard to pre-fill this intake.'
+              : 'Drop your resume, CV, or biography to pre-fill your profile.'
+          )}
+        </div>
+        <div className="intake-dropzone-blurb">
+          PDF, DOCX, TXT, or click to browse. Every extracted field appears on a review screen with confidence indicators -
+          {mode === 'candidate' ? ' nothing is published without your confirmation.' : ' nothing is submitted without your confirmation.'}
+        </div>
+        <button
+          type="button"
+          className="intake-dropzone-paste-btn"
+          onClick={e => { e.stopPropagation(); setShowPaste(s => !s); }}
+        >or paste text</button>
+      </div>
+      {showPaste && (
+        <div className="intake-dropzone-paste-area">
+          <textarea
+            className="intake-textarea"
+            rows={6}
+            placeholder={mode === 'recruiter' ? 'Paste the full job description or search brief here...' : 'Paste your resume text here...'}
+            value={pasted}
+            onChange={e => setPasted(e.target.value)}
+          />
+          <div style={{display:'flex',gap:'0.5rem',marginTop:'0.5rem',justifyContent:'flex-end'}}>
+            <button className="intake-btn-ghost" onClick={() => { setShowPaste(false); setPasted(''); }}>Cancel</button>
+            <button className="intake-btn-primary" onClick={parsePastedText} disabled={parsing}>
+              {parsing ? 'Parsing...' : 'Parse pasted text'}
+            </button>
+          </div>
+        </div>
+      )}
+      {error && <div className="intake-dropzone-error">{error}</div>}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// ParseReviewModal - shows every parsed field with confidence, accept/edit/
+// reject controls, and confidentiality defaults for candidate mode.
+// -----------------------------------------------------------------------------
+const CANDIDATE_SENSITIVE_FIELDS = new Set([
+  'first_name','last_name','current_company','location','email','phone',
+  'linkedin','contact_email','contact_phone',
+]);
+
+function ParseReviewModal({ mode, fields, onApprove, onCancel }) {
+  // Each row: { value, confidence, accepted, edited_value, hidden }
+  const [rows, setRows] = useState(() => {
+    const out = {};
+    Object.entries(fields || {}).forEach(([k, v]) => {
+      const value = v && typeof v === 'object' && 'value' in v ? v.value : v;
+      const confidence = v && typeof v === 'object' && v.confidence ? v.confidence : 'missing';
+      out[k] = {
+        value,
+        confidence,
+        // Default accept: high+medium auto-accepted; low requires explicit confirm
+        accepted: confidence === 'high' || confidence === 'medium',
+        edited_value: value,
+        hidden: mode === 'candidate' && CANDIDATE_SENSITIVE_FIELDS.has(k),
+      };
+    });
+    return out;
+  });
+
+  function setRow(k, patch) { setRows(p => ({ ...p, [k]: { ...p[k], ...patch } })); }
+
+  function approve() {
+    const approved = {};
+    Object.entries(rows).forEach(([k, r]) => {
+      if (r.accepted && !r.hidden && r.edited_value != null && r.edited_value !== '') {
+        approved[k] = r.edited_value;
+      }
+    });
+    onApprove(approved);
+  }
+
+  const entries = Object.entries(rows);
+  const lowCount = entries.filter(([,r]) => r.confidence === 'low' && r.accepted).length;
+  const missingCount = entries.filter(([,r]) => r.confidence === 'missing').length;
+
+  return (
+    <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onCancel(); }}>
+      <div className="modal modal-parse-review">
+        <button className="modal-close" onClick={onCancel}>X</button>
+        <div className="modal-eyebrow">Document parse review</div>
+        <h2 className="modal-title">Review each suggested field before saving</h2>
+        <p className="parse-review-blurb">
+          Nothing is {mode === 'candidate' ? 'published' : 'submitted'} until you approve. High-confidence
+          fields are pre-accepted; low-confidence fields require your explicit confirmation;
+          {mode === 'candidate' ? ' sensitive identity fields are hidden by default.' : ' missing fields stay blank.'}
+        </p>
+        <div className="parse-review-summary">
+          {Object.values(rows).filter(r => r.confidence === 'high').length} high &middot;{' '}
+          {Object.values(rows).filter(r => r.confidence === 'medium').length} medium &middot;{' '}
+          {Object.values(rows).filter(r => r.confidence === 'low').length} low &middot;{' '}
+          {missingCount} missing
+        </div>
+
+        <div className="parse-review-list">
+          {entries.map(([k, r]) => (
+            <div key={k} className={`parse-review-row conf-${r.confidence} ${r.accepted ? 'accepted' : 'rejected'}`}>
+              <div className="parse-review-field-name">
+                <code>{k}</code>
+                <span className={`confidence-pill ${r.confidence}`}>{r.confidence}</span>
+                {r.hidden && <span className="confidence-pill hidden">hidden</span>}
+              </div>
+              <div className="parse-review-field-value">
+                {Array.isArray(r.edited_value) ? (
+                  <input className="intake-input" value={r.edited_value.join(', ')}
+                    onChange={e => setRow(k, { edited_value: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })} />
+                ) : (
+                  <input className="intake-input" value={r.edited_value || ''}
+                    placeholder={r.confidence === 'missing' ? '(not found in document - fill manually)' : ''}
+                    onChange={e => setRow(k, { edited_value: e.target.value })} />
+                )}
+              </div>
+              <div className="parse-review-actions">
+                <button type="button" className={`parse-action ${r.accepted ? 'on' : ''}`}
+                  onClick={() => setRow(k, { accepted: true, hidden: false })}>Accept</button>
+                <button type="button" className={`parse-action ${!r.accepted ? 'on' : ''}`}
+                  onClick={() => setRow(k, { accepted: false })}>Reject</button>
+                {mode === 'candidate' && (
+                  <button type="button" className={`parse-action ${r.hidden ? 'on' : ''}`}
+                    onClick={() => setRow(k, { hidden: !r.hidden })}>{r.hidden ? 'Hidden' : 'Hide'}</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {lowCount > 0 && (
+          <div className="parse-review-warning">
+            {lowCount} low-confidence field{lowCount === 1 ? '' : 's'} accepted - please double-check before saving.
+          </div>
+        )}
+
+        <div className="parse-review-actions-footer">
+          <button className="intake-btn-ghost" onClick={onCancel}>Discard parse</button>
+          <button className="intake-btn-primary" onClick={approve}>Apply approved fields</button>
+        </div>
+        <div className="parse-review-fineprint">
+          {mode === 'candidate'
+            ? 'Hidden fields remain in the platform but are not displayed to recruiters before a curated introduction.'
+            : 'Approved fields populate the search brief - you can still edit any step before submitting.'}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
 function IntakeWorkflow({ onSubmit, onCancel, loading, submitted, pricingCfg }) {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState(emptyIntakeValues());
+  const [parsedFields, setParsedFields] = useState(null);
 
   function set(key, val) { setValues(p => ({ ...p, [key]: val })); }
+  function applyParsed(approved) {
+    // Merge approved parsed fields into values. Array fields concatenate
+    // unique, scalar fields overwrite. Schema keys map 1-1 to INTAKE_SCHEMA.
+    setValues(p => {
+      const merged = { ...p };
+      Object.entries(approved || {}).forEach(([k,v]) => {
+        if (Array.isArray(v)) merged[k] = [...new Set([...(p[k]||[]), ...v])];
+        else                  merged[k] = v;
+      });
+      return merged;
+    });
+    setParsedFields(null);
+  }
   function toggleChip(key, val) {
     setValues(p => {
       const cur = new Set(p[key] || []);
@@ -4810,6 +5080,21 @@ function IntakeWorkflow({ onSubmit, onCancel, loading, submitted, pricingCfg }) 
   return (
     <div className="intake-workflow">
       <IntakeProgressBar step={step} steps={INTAKE_SCHEMA.steps} onJump={setStep} />
+      {step === 0 && (
+        <DocumentIntakeDropzone
+          mode="recruiter"
+          accentLabel="Pre-fill from a search brief"
+          onParsed={setParsedFields}
+        />
+      )}
+      {parsedFields && (
+        <ParseReviewModal
+          mode="recruiter"
+          fields={parsedFields}
+          onApprove={applyParsed}
+          onCancel={() => setParsedFields(null)}
+        />
+      )}
       <div className="intake-step-header">
         <div className="intake-step-eyebrow">Step {currentStep.number} of {totalSteps}</div>
         <h2 className="intake-step-title">{currentStep.title}</h2>
@@ -5843,6 +6128,8 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading]     = useState(false);
   const [tier, setTier]           = useState('free');
+  // Document-intake parse result. When non-null, ParseReviewModal opens.
+  const [candidateParsed, setCandidateParsed] = useState(null);
   const [visibility, setVisibility] = useState('discreet');
   const [isUpdate, setIsUpdate]   = useState(false); // true if profile already exists
 
@@ -6198,8 +6485,39 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
         <>
           {isUpdate && (
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.25rem',fontSize:'0.8rem',color:'var(--ink-3)',lineHeight:'1.5'}}>
-              ⚠ You already have a profile. Submitting this form will update your existing profile.
+              You already have a profile. Submitting this form will update your existing profile.
             </div>
+          )}
+          {/* Resume / CV / biography upload - pre-fills the profile sections below. */}
+          <DocumentIntakeDropzone
+            mode="candidate"
+            accentLabel="Pre-fill from a resume / CV / biography"
+            onParsed={setCandidateParsed}
+          />
+          {candidateParsed && (
+            <ParseReviewModal
+              mode="candidate"
+              fields={candidateParsed}
+              onApprove={(approved) => {
+                // Merge approved fields into the various form/profile sections.
+                Object.entries(approved).forEach(([k, v]) => {
+                  // Basic form fields
+                  if (['first_name','last_name','current_title','current_company','industry','function','location'].includes(k)) {
+                    setForm(p => ({ ...p, [k]: v }));
+                  }
+                  // Operating profile array fields
+                  else if (['core_industries','adjacent_industries','tech_experience','leadership_style_tags','career_intent'].includes(k)) {
+                    setOpProfile(p => ({ ...p, [k]: Array.isArray(v) ? v : [v] }));
+                  }
+                  // Achievements array
+                  else if (k === 'achievements' && Array.isArray(v)) {
+                    setOpProfile(p => ({ ...p, achievements: v }));
+                  }
+                });
+                setCandidateParsed(null);
+              }}
+              onCancel={() => setCandidateParsed(null)}
+            />
           )}
           <div className="form-group">
             <label className="form-label">Member Tier</label>
@@ -13895,7 +14213,7 @@ function App() {
             </p>
           </div>
           <div>
-            <div className="footer-col-title">Resources</div>
+            <div className="footer-col-title">Platform</div>
             <ul className="footer-links">
               <li onClick={()=>goToView('jobs')}>Browse Searches</li>
               <li onClick={()=>goToView('profile')}>Executive Profile</li>
