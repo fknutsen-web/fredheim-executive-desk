@@ -2006,6 +2006,269 @@ function AdminCompBenchmarksTab({ showToast }) {
   );
 }
 
+// -----------------------------------------------------------------------------
+// ADMIN INTAKE SCHEMA TAB
+// Read-only view of every intake field, dropdown option, weighting category,
+// and matching influence. Phase 1: editing happens via SQL (fed_pricing_config
+// pattern); the footer lists the SQL tables to point engineering at.
+// -----------------------------------------------------------------------------
+function AdminIntakeSchemaTab() {
+  const [openStep, setOpenStep] = useState(INTAKE_SCHEMA.steps[0].id);
+  return (
+    <div className="admin-schema">
+      <div className="admin-schema-intro">
+        <div className="admin-schema-eyebrow">Recruiter Intake Workflow &middot; Schema View</div>
+        <h3 className="admin-schema-headline">Every question. Every option. Every weighting input.</h3>
+        <p className="admin-schema-blurb">
+          This is the canonical schema the recruiter intake renders from and the
+          matching engine scores against. Read-only in Phase 1 - to change a
+          weighting, dropdown option, or tier, file an engineering task and the
+          schema constant in <code>src/main.jsx</code> is updated. Live editing
+          UI is scheduled for Phase 2.
+        </p>
+        <div className="admin-schema-weighting">
+          {Object.entries(MATCH_WEIGHTING).map(([k,w]) => (
+            <div key={k} className="admin-schema-weight">
+              <div className="admin-schema-weight-label">{k.replace(/_/g,' ')}</div>
+              <div className="admin-schema-weight-pct">{w}%</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {INTAKE_SCHEMA.steps.map(step => (
+        <div key={step.id} className="admin-schema-step">
+          <header
+            className={`admin-schema-step-header ${openStep === step.id ? 'open' : ''}`}
+            onClick={() => setOpenStep(openStep === step.id ? '' : step.id)}
+          >
+            <div>
+              <div className="admin-schema-step-num">Step {step.number}</div>
+              <div className="admin-schema-step-title">{step.title}</div>
+              <div className="admin-schema-step-tagline">{step.tagline}</div>
+            </div>
+            <span className="admin-schema-step-toggle">{openStep === step.id ? '-' : '+'}</span>
+          </header>
+          {openStep === step.id && !step.isReview && (
+            <div className="admin-schema-step-body">
+              {(step.groups || []).map(group => (
+                <div key={group.id} className="admin-schema-group">
+                  <div className="admin-schema-group-title">{group.title}</div>
+                  {group.subtitle && <div className="admin-schema-group-subtitle">{group.subtitle}</div>}
+                  <table className="admin-schema-table">
+                    <thead>
+                      <tr>
+                        <th>Field</th>
+                        <th>Type</th>
+                        <th>Tier</th>
+                        <th>Weighting</th>
+                        <th>Options</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(group.fields || []).map(f => (
+                        <tr key={f.key}>
+                          <td>
+                            <div className="admin-schema-field-label">{f.label}</div>
+                            <code className="admin-schema-field-key">{f.key}</code>
+                          </td>
+                          <td><code>{f.type}</code></td>
+                          <td><IntakeTierBadge tier={f.tier} /></td>
+                          <td><code className="admin-schema-weight-tag">{f.weight}</code></td>
+                          <td className="admin-schema-options-cell">
+                            {f.type === 'multi_chip' && Array.isArray(f.options) && (
+                              <div className="admin-schema-options">
+                                {f.options.map(o => (
+                                  <span key={typeof o === 'string' ? o : o.v} className="admin-schema-option">
+                                    {typeof o === 'string' ? o : o.l}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {f.type === 'chip' && Array.isArray(f.options) && (
+                              <div className="admin-schema-options">
+                                {f.options.map(o => (
+                                  <span key={o.v} className="admin-schema-option">{o.l}</span>
+                                ))}
+                              </div>
+                            )}
+                            {f.type === 'yes_no_unsure' && (
+                              <div className="admin-schema-options">
+                                <span className="admin-schema-option">Yes</span>
+                                <span className="admin-schema-option">No</span>
+                                <span className="admin-schema-option">Unsure</span>
+                              </div>
+                            )}
+                            {f.type === 'priority_matrix' && (
+                              <div>
+                                <div className="admin-schema-options-sub">Items:</div>
+                                <div className="admin-schema-options">
+                                  {(f.items || []).map(it => (
+                                    <span key={it.k} className="admin-schema-option">{it.l}</span>
+                                  ))}
+                                </div>
+                                <div className="admin-schema-options-sub" style={{marginTop:'0.4rem'}}>Levels:</div>
+                                <div className="admin-schema-options">
+                                  {(f.levels || []).map(lv => (
+                                    <span key={lv.v} className={`admin-schema-option lvl-${lv.color}`}>{lv.l}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            {['text','textarea'].includes(f.type) && (
+                              <span className="admin-schema-option-empty">Free text</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          )}
+          {openStep === step.id && step.isReview && (
+            <div className="admin-schema-step-body">
+              <p className="admin-schema-review-blurb">
+                Step 8 is the pre-submission review. It does not capture new
+                inputs - it computes the compatibility weighting summary,
+                compensation transparency class, and completeness percentage
+                from prior steps and shows them to the recruiter before they
+                submit the brief. The same computations are stored on the
+                submission record and surface in the Recruiter Quality tab.
+              </p>
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div className="admin-schema-footer">
+        <div className="admin-schema-eyebrow">Storage &middot; Phase 1</div>
+        <p>
+          Submitted intakes are persisted to <code>fed_recruiter_submissions.job_requirements.intake</code>
+          (JSONB). On admin approval, the schema-aligned values are projected
+          onto <code>fed_jobs.role_scope_requirements</code> with derived
+          columns <code>transparency_class</code>, <code>completeness_pct</code>,
+          and <code>match_weighting_snapshot</code>. The compensation
+          visibility field controls which downstream surfaces - candidate
+          profile cards, public job board, candidate-only modal - render the
+          compensation block.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// ADMIN RECRUITER QUALITY TAB
+// Per-recruiter score across transparency, completeness, response quality,
+// and search activity. Phase 1: read-only sortable list.
+// -----------------------------------------------------------------------------
+function AdminRecruiterQualityTab({ submissions }) {
+  const [sort, setSort] = useState('transparency');
+
+  // Aggregate submissions by firm
+  const rows = useMemo(() => {
+    const byFirm = {};
+    (submissions || []).forEach(s => {
+      const firm = s.firm_name || 'Unknown';
+      if (!byFirm[firm]) byFirm[firm] = { firm, email:s.email, submissions:[], approved:0, total:0 };
+      byFirm[firm].submissions.push(s);
+      byFirm[firm].total++;
+      if (['approved','posted'].includes(s.status)) byFirm[firm].approved++;
+    });
+    return Object.values(byFirm).map(r => {
+      // Pull the most recent submission's intake values to drive the score
+      const recent = r.submissions[0] || {};
+      const intake = (recent.job_requirements && (recent.job_requirements.intake || recent.job_requirements.brief)) || {};
+      const completeness = computeIntakeCompleteness(intake);
+      const transparency = classifyCompensationTransparency(intake);
+      const approvalRate = r.total === 0 ? 0 : Math.round((r.approved / r.total) * 100);
+      // Composite quality score - clamps 0-100, weighted toward transparency
+      // since that is what we want recruiters to converge on.
+      const quality = Math.min(100, Math.round(
+        (transparency.class === 'executive_structured' ? 100 :
+         transparency.class === 'transparent' ? 80 :
+         transparency.class === 'basic' ? 55 : 25) * 0.5
+        + completeness.overall_pct * 0.3
+        + approvalRate * 0.2
+      ));
+      return { ...r, completeness, transparency, approvalRate, quality };
+    }).sort((a,b) => {
+      if (sort === 'transparency') return (b.transparency.class === 'executive_structured' ? 4 : b.transparency.class === 'transparent' ? 3 : b.transparency.class === 'basic' ? 2 : 1)
+                                       - (a.transparency.class === 'executive_structured' ? 4 : a.transparency.class === 'transparent' ? 3 : a.transparency.class === 'basic' ? 2 : 1);
+      if (sort === 'completeness') return b.completeness.overall_pct - a.completeness.overall_pct;
+      if (sort === 'quality')      return b.quality - a.quality;
+      if (sort === 'volume')       return b.total - a.total;
+      return 0;
+    });
+  }, [submissions, sort]);
+
+  return (
+    <div className="admin-quality">
+      <div className="admin-schema-intro">
+        <div className="admin-schema-eyebrow">Recruiter Quality Scoring</div>
+        <h3 className="admin-schema-headline">Where each firm sits on transparency, completeness, and search quality.</h3>
+        <p className="admin-schema-blurb">
+          Quality score combines compensation transparency (50%), intake completeness (30%),
+          and approval rate (20%). Recruiters with stronger compensation transparency
+          should receive improved search visibility and stronger candidate trust indicators.
+          Editing weights is Phase 2.
+        </p>
+      </div>
+
+      <div className="admin-quality-controls">
+        {[
+          {v:'quality',      l:'Quality score'},
+          {v:'transparency', l:'Transparency'},
+          {v:'completeness', l:'Completeness'},
+          {v:'volume',       l:'Volume'},
+        ].map(o => (
+          <button
+            key={o.v}
+            className={`admin-quality-sort ${sort === o.v ? 'active' : ''}`}
+            onClick={() => setSort(o.v)}
+          >{o.l}</button>
+        ))}
+      </div>
+
+      <table className="admin-table admin-quality-table">
+        <thead>
+          <tr>
+            <th>Firm</th>
+            <th>Contact</th>
+            <th>Submissions</th>
+            <th>Approved</th>
+            <th>Transparency</th>
+            <th>Completeness</th>
+            <th>Quality</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr><td colSpan="7" className="admin-empty">No recruiter submissions yet.</td></tr>
+          ) : rows.map(r => (
+            <tr key={r.firm}>
+              <td><strong>{r.firm}</strong></td>
+              <td style={{fontSize:'0.78rem',color:'var(--ink-4)'}}>{r.email}</td>
+              <td style={{textAlign:'center'}}>{r.total}</td>
+              <td style={{textAlign:'center'}}>{r.approved} <span style={{color:'var(--ink-4)',fontSize:'0.72rem'}}>({r.approvalRate}%)</span></td>
+              <td><span className={`intake-quality-pill ${r.transparency.class}`}>{r.transparency.label}</span></td>
+              <td>
+                <div className="admin-quality-meter">
+                  <div className="admin-quality-meter-fill" style={{width: `${r.completeness.overall_pct}%`}} />
+                  <span className="admin-quality-meter-pct">{r.completeness.overall_pct}%</span>
+                </div>
+              </td>
+              <td><strong style={{fontSize:'1rem'}}>{r.quality}</strong></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ── ADMIN INTERN TAB ─────────────────────────────────────────────────────────
 function AdminInternTab({ showToast }) {
   const [submissions, setSubmissions] = useState([]);
@@ -3619,84 +3882,926 @@ function TosModal({ onAgree, onCancel }) {
   );
 }
 
-// ── RECRUITER MODAL ───────────────────────────────────────────────────────────
+// -----------------------------------------------------------------------------
+// INTAKE SCHEMA - single source of truth for the recruiter intake workflow,
+// the admin schema review view, and the matching engine. Any field that the
+// recruiter sees, the admin reviews, or the matcher consumes is declared
+// here once. Order of step definitions IS the order recruiters experience.
+//
+// Field tiers:
+//   required             - must be present before submission
+//   strongly_encouraged  - prompts but does not block submission; influences
+//                          completeness / transparency scoring
+//   optional             - never blocks; minor influence on transparency only
+//
+// Field weight categories drive the Compatibility Weighting Summary shown to
+// recruiters at the end of intake and to admins on the schema view:
+//   scope, industry, leadership, culture, operational_complexity,
+//   commercial, governance, compensation_transparency, context
+// "context" fields appear in the admin view but do not affect match weighting.
+// -----------------------------------------------------------------------------
+
+const COMPANY_ENV_TAGS = [
+  'Entrepreneurial','Family-Owned','Corporate','PE-Backed','Startup',
+  'Growth Stage','Mature Operator','Turnaround','Asset Heavy','Service-Based',
+  'Technology-Driven','Industrial Operations',
+];
+
+const OPERATIONAL_COMPLEXITY_TAGS = [
+  'Greenfield startup','Turnaround','Multi-site operations','Union environment',
+  'Non-union environment','Rail integration','Vessel operations',
+  'Trucking/logistics integration','ERP implementation','Industrial operations',
+  '24/7 operations','Regulated environment','Infrastructure development',
+  'Operational transformation',
+];
+
+const LEADERSHIP_PROFILE_TAGS = [
+  'Builder','Optimizer','Operator','Strategist','Commercial Rainmaker',
+  'Hands-On','Process-Oriented','Team Builder','Relationship-Driven',
+  'Technical Specialist','Cross-Functional Leader',
+];
+
+const COMMERCIAL_ENVIRONMENT_TAGS = [
+  'Commodity Trading','Maritime Operations','Port & Terminal',
+  'Industrial Manufacturing','Logistics','Freight & Chartering','Supply Chain',
+  'Industrial SaaS','Maritime Technology','Operational AI',
+  'Safety & Compliance Technology','Fleet Intelligence',
+  'Infrastructure Development','Energy','Bulk Commodities',
+];
+
+const BONUS_STRUCTURE_OPTS = [
+  { v:'discretionary',         l:'Discretionary' },
+  { v:'kpi_based',              l:'KPI-based' },
+  { v:'commission',             l:'Commission-based' },
+  { v:'profit_sharing',         l:'Profit-sharing' },
+  { v:'equity_participation',   l:'Equity participation' },
+  { v:'phantom_equity',         l:'Phantom equity' },
+  { v:'ltip',                   l:'LTIP' },
+];
+
+const PRIORITY_REQUIREMENT_ITEMS = [
+  { k:'industry_experience',     l:'Industry experience' },
+  { k:'leadership_scope',         l:'Leadership scope' },
+  { k:'international_exposure',   l:'International exposure' },
+  { k:'technical_background',     l:'Technical background' },
+  { k:'language_requirements',    l:'Language requirements' },
+  { k:'degree_certifications',    l:'Degree / certifications' },
+  { k:'maritime_academy',         l:'Maritime academy background' },
+  { k:'software_platforms',       l:'Software / platform experience' },
+];
+
+const PRIORITY_LEVELS = [
+  { v:'must_have',   l:'Must Have',   color:'red'    },
+  { v:'preferred',   l:'Preferred',   color:'gold'   },
+  { v:'nice',        l:'Nice to Have',color:'blue'   },
+  { v:'irrelevant',  l:'Irrelevant',  color:'grey'   },
+];
+
+const TRANSPARENCY_VISIBILITY = [
+  { v:'platform_only',   l:'Platform-only (admin + matcher)' },
+  { v:'candidate_after_match', l:'Candidate-only after match' },
+  { v:'staged',           l:'Staged disclosure after mutual interest' },
+  { v:'public',           l:'Public on posting' },
+];
+
+// -- INTAKE_SCHEMA ------------------------------------------------------------
+const INTAKE_SCHEMA = {
+  steps: [
+    // STEP 1 - COMPANY PROFILE
+    {
+      id: 'company',
+      number: 1,
+      title: 'Company Profile',
+      tagline: 'The operating environment the leader will inherit.',
+      groups: [
+        {
+          id: 'identification',
+          title: 'Identification',
+          fields: [
+            { key:'company_name',        label:'Company name',          type:'text',   tier:'required',            weight:'context' },
+            { key:'company_website',     label:'Website',               type:'text',   tier:'strongly_encouraged', weight:'context' },
+            { key:'company_linkedin',    label:'LinkedIn',              type:'text',   tier:'optional',            weight:'context' },
+            { key:'primary_contact',     label:'Primary recruiter / contact', type:'text', tier:'required',         weight:'context' },
+            { key:'industry',            label:'Industry',              type:'text',   tier:'required',            weight:'industry' },
+            { key:'business_model',      label:'Business model',        type:'text',   tier:'strongly_encouraged', weight:'context' },
+            { key:'company_size',        label:'Company size (FTE)',    type:'text',   tier:'strongly_encouraged', weight:'context' },
+            { key:'geographic_footprint',label:'Geographic footprint',  type:'text',   tier:'strongly_encouraged', weight:'context' },
+            { key:'operational_footprint', label:'Operational footprint', type:'text', tier:'strongly_encouraged', weight:'context' },
+            { key:'ownership_structure', label:'Ownership structure',   type:'text',   tier:'strongly_encouraged', weight:'governance' },
+          ],
+        },
+        {
+          id: 'environment_tags',
+          title: 'Company environment',
+          subtitle: 'Select all that apply. These drive culture matching.',
+          fields: [
+            { key:'environment_tags', label:'Environment tags', type:'multi_chip', tier:'required', options: COMPANY_ENV_TAGS, weight:'culture' },
+          ],
+        },
+        {
+          id: 'governance',
+          title: 'Governance & ownership (Part B)',
+          subtitle: 'Highly important for executive compatibility.',
+          fields: [
+            { key:'family_owned',          label:'Family-owned business?',           type:'yes_no_unsure', tier:'strongly_encouraged', weight:'governance' },
+            { key:'pe_backed',              label:'PE-backed?',                       type:'yes_no_unsure', tier:'strongly_encouraged', weight:'governance' },
+            { key:'founder_led',            label:'Founder-led?',                     type:'yes_no_unsure', tier:'strongly_encouraged', weight:'governance' },
+            { key:'public_corporate',       label:'Corporate / public company?',      type:'yes_no_unsure', tier:'strongly_encouraged', weight:'governance' },
+            { key:'board_reporting',        label:'Board reporting required?',        type:'yes_no_unsure', tier:'strongly_encouraged', weight:'governance' },
+            { key:'decision_making_style',  label:'Decision-making',                  type:'chip', tier:'strongly_encouraged', weight:'governance',
+              options:[{v:'centralized',l:'Centralized'},{v:'decentralized',l:'Decentralized'},{v:'hybrid',l:'Hybrid'}] },
+            { key:'reporting_cadence',      label:'Reporting cadence expectations',   type:'text', tier:'optional',            weight:'governance' },
+            { key:'operational_autonomy',   label:'Operational autonomy level',       type:'chip', tier:'strongly_encouraged', weight:'governance',
+              options:[{v:'high',l:'High'},{v:'moderate',l:'Moderate'},{v:'constrained',l:'Constrained'}] },
+            { key:'budget_approval_process',label:'Budget approval process',          type:'textarea', tier:'optional',         weight:'governance' },
+            { key:'leadership_turnover',    label:'Executive leadership turnover history', type:'textarea', tier:'optional',    weight:'governance' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 2 - ROLE OVERVIEW (incl. required compensation + work structure from Part B)
+    {
+      id: 'role',
+      number: 2,
+      title: 'Role Overview',
+      tagline: 'Title, structure, compensation framework.',
+      groups: [
+        {
+          id: 'role_basics',
+          title: 'Role basics',
+          fields: [
+            { key:'position_title',     label:'Position title',     type:'text', tier:'required',            weight:'context' },
+            { key:'functional_dept',    label:'Functional department', type:'text', tier:'required',          weight:'context' },
+            { key:'reports_to',         label:'Reports to',         type:'text', tier:'required',            weight:'governance' },
+            { key:'replacement_or_new', label:'Replacement or new role?', type:'chip', tier:'strongly_encouraged', weight:'context',
+              options:[{v:'replacement',l:'Replacement'},{v:'new',l:'New role'},{v:'restructure',l:'Restructure'}] },
+            { key:'why_role_open',      label:'Why is the role open?', type:'textarea', tier:'strongly_encouraged', weight:'context' },
+            { key:'urgency_level',      label:'Urgency level',      type:'chip', tier:'required',            weight:'context',
+              options:[{v:'exploratory',l:'Exploratory'},{v:'active',l:'Active (12-16 wk)'},{v:'urgent',l:'Urgent (8-12 wk)'},{v:'critical',l:'Critical (<8 wk)'}] },
+            { key:'confidential_search',label:'Confidential search?', type:'chip', tier:'required', weight:'context',
+              options:[{v:'yes',l:'Yes - confidential'},{v:'partial',l:'Partial - company anonymous'},{v:'no',l:'No - public'}] },
+          ],
+        },
+        {
+          id: 'work_structure',
+          title: 'Work structure',
+          subtitle: 'Required: how the role works in practice.',
+          fields: [
+            { key:'work_arrangement',   label:'Remote / Hybrid / In-office', type:'chip', tier:'required', weight:'context',
+              options:[{v:'onsite',l:'On-site'},{v:'hybrid_office',l:'Hybrid - office majority'},{v:'hybrid_remote',l:'Hybrid - remote majority'},{v:'remote',l:'Fully remote'}] },
+            { key:'travel_pct',         label:'Travel percentage expectation', type:'text', tier:'required', weight:'context' },
+            { key:'relocation_required',label:'Relocation required?', type:'chip', tier:'required', weight:'context',
+              options:[{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'flexible',l:'Flexible'}] },
+            { key:'reporting_line',     label:'Reporting line', type:'text', tier:'required', weight:'governance' },
+            { key:'executive_autonomy', label:'Executive autonomy level', type:'chip', tier:'required', weight:'governance',
+              options:[{v:'high',l:'High'},{v:'moderate',l:'Moderate'},{v:'low',l:'Low'}] },
+          ],
+        },
+        {
+          id: 'compensation_core',
+          title: 'Compensation - core (required)',
+          subtitle: 'Salary transparency is a platform standard.',
+          fields: [
+            { key:'base_salary_range',  label:'Base salary range',     type:'text', tier:'required', weight:'compensation_transparency' },
+            { key:'bonus_structure',    label:'Bonus structure',       type:'multi_chip', tier:'required', options: BONUS_STRUCTURE_OPTS.map(o=>o.l), weight:'compensation_transparency' },
+            { key:'commission_structure', label:'Commission structure (if applicable)', type:'text', tier:'optional', weight:'compensation_transparency' },
+            { key:'equity_ltip',        label:'Equity / LTIP availability', type:'chip', tier:'required', weight:'compensation_transparency',
+              options:[{v:'yes_meaningful',l:'Yes - meaningful'},{v:'yes_modest',l:'Yes - modest'},{v:'no',l:'No'}] },
+          ],
+        },
+        {
+          id: 'compensation_package',
+          title: 'Executive package - strongly encouraged',
+          subtitle: 'Drives candidate trust and acceptance probability.',
+          fields: [
+            { key:'k401_match_pct',     label:'401(k) match percentage',         type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'healthcare_contrib', label:'Employer healthcare contribution',type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'car_allowance',      label:'Car allowance / vehicle package', type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'relocation_package', label:'Relocation package availability', type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'severance_structure',label:'Executive severance structure',   type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'pto_structure',      label:'PTO structure',                   type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'retention_bonus',    label:'Retention bonus availability',    type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'exec_coaching',      label:'Executive coaching support',      type:'yes_no_unsure', tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'professional_dev',   label:'Professional development support',type:'text',  tier:'strongly_encouraged', weight:'compensation_transparency' },
+          ],
+        },
+        {
+          id: 'compensation_optional',
+          title: 'Executive benefits - optional',
+          subtitle: 'Not core matching drivers. Supports executive positioning only.',
+          collapsedByDefault: true,
+          fields: [
+            { key:'golf_membership',    label:'Golf membership',          type:'yes_no_unsure', tier:'optional', weight:'context' },
+            { key:'wellness',           label:'Gym / wellness benefits',  type:'yes_no_unsure', tier:'optional', weight:'context' },
+            { key:'industry_memberships', label:'Industry memberships',   type:'text',          tier:'optional', weight:'context' },
+            { key:'club_memberships',   label:'Club memberships',         type:'text',          tier:'optional', weight:'context' },
+            { key:'travel_benefits',    label:'Executive travel benefits',type:'text',          tier:'optional', weight:'context' },
+            { key:'flexible_perks',     label:'Flexible executive perks', type:'text',          tier:'optional', weight:'context' },
+          ],
+        },
+        {
+          id: 'compensation_visibility',
+          title: 'Compensation visibility',
+          subtitle: 'How comp detail is shared with candidates.',
+          fields: [
+            { key:'compensation_visibility', label:'Visibility', type:'chip', tier:'required', weight:'compensation_transparency',
+              options: TRANSPARENCY_VISIBILITY.map(o=>({v:o.v,l:o.l})) },
+          ],
+        },
+      ],
+    },
+
+    // STEP 3 - OPERATIONAL SCOPE
+    {
+      id: 'scope',
+      number: 3,
+      title: 'Operational Scope',
+      tagline: 'Authority, complexity, span.',
+      groups: [
+        {
+          id: 'team_scope',
+          title: 'Team & authority',
+          fields: [
+            { key:'team_size_managed',  label:'Total team size managed',     type:'text', tier:'strongly_encouraged', weight:'scope' },
+            { key:'direct_reports',     label:'Direct reports',              type:'text', tier:'strongly_encouraged', weight:'scope' },
+            { key:'indirect_reports',   label:'Indirect reports',            type:'text', tier:'optional',            weight:'scope' },
+            { key:'revenue_responsibility', label:'Revenue responsibility (USD)', type:'text', tier:'strongly_encouraged', weight:'scope' },
+            { key:'pl_ownership',       label:'P&L ownership',               type:'yes_no_unsure', tier:'strongly_encouraged', weight:'scope' },
+            { key:'budget_responsibility', label:'Budget responsibility (USD)', type:'text', tier:'strongly_encouraged', weight:'scope' },
+            { key:'capex_authority',    label:'Capex authority (USD)',       type:'text', tier:'optional',            weight:'scope' },
+            { key:'geographic_responsibility', label:'Geographic responsibility', type:'text', tier:'strongly_encouraged', weight:'scope' },
+            { key:'multi_site',         label:'Multi-site responsibility?',  type:'yes_no_unsure', tier:'strongly_encouraged', weight:'scope' },
+            { key:'international',      label:'International responsibility?', type:'yes_no_unsure', tier:'strongly_encouraged', weight:'scope' },
+          ],
+        },
+        {
+          id: 'complexity_tags',
+          title: 'Operational complexity',
+          subtitle: 'Select all complexity factors that apply.',
+          fields: [
+            { key:'complexity_tags', label:'Complexity factors', type:'multi_chip', tier:'required', options: OPERATIONAL_COMPLEXITY_TAGS, weight:'operational_complexity' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 4 - LEADERSHIP & CULTURE FIT
+    {
+      id: 'leadership',
+      number: 4,
+      title: 'Leadership & Culture Fit',
+      tagline: 'What kind of leader succeeds here?',
+      groups: [
+        {
+          id: 'leadership_profile',
+          title: 'Leadership profile',
+          subtitle: 'Select all that describe the leader who succeeds in this environment.',
+          fields: [
+            { key:'leadership_tags', label:'Leadership profile', type:'multi_chip', tier:'required', options: LEADERSHIP_PROFILE_TAGS, weight:'leadership' },
+          ],
+        },
+        {
+          id: 'culture_narrative',
+          title: 'Culture narrative',
+          fields: [
+            { key:'why_previous_failed', label:'Why do previous hires fail here?', type:'textarea', tier:'strongly_encouraged', weight:'culture' },
+            { key:'personality_traits',  label:'What personality traits work best?', type:'textarea', tier:'strongly_encouraged', weight:'culture' },
+            { key:'background_struggles',label:'What backgrounds struggle in this environment?', type:'textarea', tier:'strongly_encouraged', weight:'culture' },
+            { key:'non_negotiable_culture', label:'What is non-negotiable culturally?', type:'textarea', tier:'required', weight:'culture' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 5 - COMMERCIAL / TECHNICAL ENVIRONMENT
+    {
+      id: 'commercial',
+      number: 5,
+      title: 'Commercial / Technical Environment',
+      tagline: 'Markets, systems, technical fluency.',
+      groups: [
+        {
+          id: 'environment',
+          title: 'Operating environments',
+          subtitle: 'Select all that apply.',
+          fields: [
+            { key:'commercial_environment_tags', label:'Commercial / technical environment', type:'multi_chip', tier:'required',
+              options: COMMERCIAL_ENVIRONMENT_TAGS, weight:'commercial' },
+          ],
+        },
+        {
+          id: 'technical',
+          title: 'Technical requirements',
+          fields: [
+            { key:'key_systems',          label:'Key systems / platforms used',     type:'textarea', tier:'strongly_encouraged', weight:'commercial' },
+            { key:'technical_fluency',    label:'Technical fluency required?',      type:'chip', tier:'strongly_encouraged', weight:'commercial',
+              options:[{v:'deep',l:'Deep'},{v:'working',l:'Working'},{v:'directional',l:'Directional'},{v:'not_required',l:'Not required'}] },
+            { key:'saas_recurring',       label:'SaaS / recurring revenue exposure required?', type:'yes_no_unsure', tier:'strongly_encouraged', weight:'commercial' },
+            { key:'enterprise_sales',     label:'Enterprise sales experience required?', type:'yes_no_unsure', tier:'strongly_encouraged', weight:'commercial' },
+            { key:'customer_types',       label:'Customer types served',           type:'textarea', tier:'strongly_encouraged', weight:'commercial' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 6 - REQUIREMENTS PRIORITIZATION
+    {
+      id: 'priority',
+      number: 6,
+      title: 'Requirements Prioritization',
+      tagline: 'Tell the matcher which signals are deal-breakers vs. nice-to-have.',
+      groups: [
+        {
+          id: 'priority_matrix',
+          title: 'Priority matrix',
+          subtitle: 'Must Have = hard filter. Preferred = strong boost. Nice = small boost. Irrelevant = ignored entirely.',
+          fields: [
+            { key:'requirement_priority', label:'Priority matrix', type:'priority_matrix', tier:'required',
+              items: PRIORITY_REQUIREMENT_ITEMS, levels: PRIORITY_LEVELS, weight:'scope' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 7 - IDEAL CANDIDATE PROFILE
+    {
+      id: 'ideal',
+      number: 7,
+      title: 'Ideal Candidate Profile',
+      tagline: 'Outcomes, success criteria, adjacencies.',
+      groups: [
+        {
+          id: 'success',
+          title: 'Success definition',
+          fields: [
+            { key:'success_12mo',          label:'What makes this role successful after 12 months?', type:'textarea', tier:'required', weight:'culture' },
+            { key:'success_outcomes',      label:'What outcomes define success?',                    type:'textarea', tier:'required', weight:'scope' },
+            { key:'common_mistakes',       label:'What mistakes should candidates avoid?',           type:'textarea', tier:'strongly_encouraged', weight:'culture' },
+            { key:'adjacent_industries',   label:'What adjacent industries would work?',             type:'textarea', tier:'strongly_encouraged', weight:'industry' },
+            { key:'unconventional_backgrounds', label:'What unconventional backgrounds could succeed?', type:'textarea', tier:'optional', weight:'industry' },
+          ],
+        },
+      ],
+    },
+
+    // STEP 8 - MATCHING & COMPATIBILITY OUTPUT (review)
+    {
+      id: 'review',
+      number: 8,
+      title: 'Review & Compatibility',
+      tagline: 'How your search will be matched.',
+      groups: [],
+      isReview: true,
+    },
+  ],
+};
+
+// Flatten the schema for quick field lookup.
+const INTAKE_FIELD_INDEX = (() => {
+  const idx = {};
+  INTAKE_SCHEMA.steps.forEach(step => {
+    (step.groups || []).forEach(group => {
+      (group.fields || []).forEach(f => { idx[f.key] = { ...f, stepId: step.id, groupId: group.id }; });
+    });
+  });
+  return idx;
+})();
+
+// -- COMPLETENESS + TRANSPARENCY SCORING --------------------------------------
+function isFieldFilled(value, field) {
+  if (value == null) return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') {
+    if (field && field.type === 'priority_matrix') {
+      const items = (field.items || []);
+      return items.some(it => value[it.k] && value[it.k] !== 'irrelevant');
+    }
+    return Object.keys(value).length > 0;
+  }
+  if (typeof value === 'string') return value.trim().length > 0;
+  return true;
+}
+
+function computeIntakeCompleteness(values) {
+  let required = 0, requiredFilled = 0;
+  let encouraged = 0, encouragedFilled = 0;
+  let optional = 0, optionalFilled = 0;
+  Object.values(INTAKE_FIELD_INDEX).forEach(f => {
+    const filled = isFieldFilled(values[f.key], f);
+    if (f.tier === 'required')             { required++;   if (filled) requiredFilled++; }
+    else if (f.tier === 'strongly_encouraged') { encouraged++; if (filled) encouragedFilled++; }
+    else                                   { optional++;   if (filled) optionalFilled++; }
+  });
+  const pct = (a,b) => b === 0 ? 0 : Math.round((a/b)*100);
+  return {
+    required_pct:   pct(requiredFilled, required),
+    encouraged_pct: pct(encouragedFilled, encouraged),
+    optional_pct:   pct(optionalFilled, optional),
+    overall_pct:    pct(requiredFilled + encouragedFilled + optionalFilled, required + encouraged + optional),
+    required_count: required,
+    required_filled: requiredFilled,
+    encouraged_count: encouraged,
+    encouraged_filled: encouragedFilled,
+  };
+}
+
+// Compensation transparency classification: Basic / Transparent / Executive Structured.
+// Driven entirely by which compensation_* fields the recruiter filled and which
+// visibility option they chose.
+function classifyCompensationTransparency(values) {
+  const comp = (key) => isFieldFilled(values[key], INTAKE_FIELD_INDEX[key]);
+  const coreFilled = ['base_salary_range','bonus_structure','equity_ltip']
+    .filter(comp).length;
+  const packageFilled = [
+    'k401_match_pct','healthcare_contrib','car_allowance','relocation_package',
+    'severance_structure','pto_structure','retention_bonus','exec_coaching','professional_dev'
+  ].filter(comp).length;
+  const visibility = values.compensation_visibility || '';
+  if (coreFilled >= 3 && packageFilled >= 6 && ['staged','candidate_after_match','public'].includes(visibility)) {
+    return { class:'executive_structured', label:'Executive Structured',
+      blurb:'Comprehensive compensation framework disclosed - signals confidence in the offer and trust in candidates.' };
+  }
+  if (coreFilled >= 3 && packageFilled >= 3) {
+    return { class:'transparent', label:'Transparent',
+      blurb:'Core comp plus several executive package elements disclosed.' };
+  }
+  if (coreFilled >= 2) {
+    return { class:'basic', label:'Basic',
+      blurb:'Base + bonus or equity disclosed. Encouraged: add executive package detail.' };
+  }
+  return { class:'minimal', label:'Below Standard',
+    blurb:'Salary transparency is a platform standard - core compensation fields are required to submit.' };
+}
+
+// -- COMPATIBILITY WEIGHTING --------------------------------------------------
+// Weighting summary the matcher actually uses. Numbers are the share of the
+// total match score allocated to each dimension. Adjust here and in
+// compute-matches.js together.
+const MATCH_WEIGHTING = {
+  scope:                   30,
+  industry:                15,
+  leadership:              15,
+  culture:                 15,
+  operational_complexity:  15,
+  commercial:              10,
+};
+
+const MATCH_CONFIDENCE_RULES = {
+  high:    { min: 80, label:'High Confidence',    blurb:'Scope, leadership profile, and culture all align with the brief.' },
+  medium:  { min: 60, label:'Strong Fit',         blurb:'Most signals aligned; one or two stretch dimensions.' },
+  stretch: { min: 45, label:'Stretch Opportunity',blurb:'Adjacent profile - high upside, requires recruiter judgment.' },
+  low:     { min: 0,  label:'High-Risk Mismatch', blurb:'Significant scope or culture gap - matcher will suppress unless overridden.' },
+};
+
+function describeMatchConfidence(score) {
+  if (score >= MATCH_CONFIDENCE_RULES.high.min)   return { ...MATCH_CONFIDENCE_RULES.high,   tier:'high' };
+  if (score >= MATCH_CONFIDENCE_RULES.medium.min) return { ...MATCH_CONFIDENCE_RULES.medium, tier:'medium' };
+  if (score >= MATCH_CONFIDENCE_RULES.stretch.min)return { ...MATCH_CONFIDENCE_RULES.stretch,tier:'stretch' };
+  return { ...MATCH_CONFIDENCE_RULES.low, tier:'low' };
+}
+
+// Empty initial state for the intake form, derived from the schema.
+function emptyIntakeValues() {
+  const v = {};
+  Object.values(INTAKE_FIELD_INDEX).forEach(f => {
+    if (f.type === 'multi_chip') v[f.key] = [];
+    else if (f.type === 'priority_matrix') v[f.key] = {};
+    else v[f.key] = '';
+  });
+  return v;
+}
+
+// -----------------------------------------------------------------------------
+// INTAKE WORKFLOW COMPONENT
+// 8-step recruiter intake. Replaces the legacy single-page RecruiterModal body.
+// -----------------------------------------------------------------------------
+function IntakeWorkflow({ onSubmit, onCancel, loading, submitted, pricingCfg }) {
+  const [step, setStep] = useState(0);
+  const [values, setValues] = useState(emptyIntakeValues());
+
+  function set(key, val) { setValues(p => ({ ...p, [key]: val })); }
+  function toggleChip(key, val) {
+    setValues(p => {
+      const cur = new Set(p[key] || []);
+      if (cur.has(val)) cur.delete(val); else cur.add(val);
+      return { ...p, [key]: [...cur] };
+    });
+  }
+  function setPriority(itemKey, level) {
+    setValues(p => ({ ...p, requirement_priority: { ...(p.requirement_priority||{}), [itemKey]: level } }));
+  }
+
+  const totalSteps = INTAKE_SCHEMA.steps.length;
+  const currentStep = INTAKE_SCHEMA.steps[step];
+  const completeness = useMemo(() => computeIntakeCompleteness(values), [values]);
+  const transparency = useMemo(() => classifyCompensationTransparency(values), [values]);
+
+  // Required fields missing on the current step (used for inline guidance,
+  // not enforced as a hard block until the final submit).
+  function requiredMissingOnStep(s) {
+    const missing = [];
+    (s.groups || []).forEach(g => (g.fields || []).forEach(f => {
+      if (f.tier === 'required' && !isFieldFilled(values[f.key], f)) missing.push(f);
+    }));
+    return missing;
+  }
+
+  function next() {
+    if (step < totalSteps - 1) setStep(step + 1);
+  }
+  function prev() { if (step > 0) setStep(step - 1); }
+
+  // Final submission - block only on the absolute hard-required core fields
+  // (intentionally lighter than the original RecruiterModal so the consultative
+  // feel survives. The user can always submit even if encouraged fields are
+  // empty - they just see a lower transparency class.)
+  function handleSubmit() {
+    const blockers = [];
+    const need = ['company_name','primary_contact','industry','position_title','base_salary_range','urgency_level','work_arrangement','compensation_visibility','non_negotiable_culture','requirement_priority'];
+    need.forEach(k => {
+      const f = INTAKE_FIELD_INDEX[k];
+      if (!isFieldFilled(values[k], f)) blockers.push(f?.label || k);
+    });
+    if (blockers.length) {
+      onSubmit({ blockers });
+      return;
+    }
+    onSubmit({ values, completeness, transparency });
+  }
+
+  if (submitted) {
+    return (
+      <div className="intake-submitted">
+        <div className="success-title">Search Brief Received</div>
+        <div className="success-desc">
+          Reviewed within 24 hours. As a Founding Partner you receive {(pricingCfg?.founding_partner_monthly_postings || 1)} complimentary search per month through {pricingCfg?.founding_partner_window_end || '2026-12-31'}.
+        </div>
+        <div className="intake-summary-line">
+          Transparency class: <strong>{transparency.label}</strong>{' '}
+          &middot; Completeness: <strong>{completeness.overall_pct}%</strong>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="intake-workflow">
+      <IntakeProgressBar step={step} steps={INTAKE_SCHEMA.steps} onJump={setStep} />
+      <div className="intake-step-header">
+        <div className="intake-step-eyebrow">Step {currentStep.number} of {totalSteps}</div>
+        <h2 className="intake-step-title">{currentStep.title}</h2>
+        <p className="intake-step-tagline">{currentStep.tagline}</p>
+      </div>
+
+      {currentStep.isReview ? (
+        <IntakeReview values={values} completeness={completeness} transparency={transparency} />
+      ) : (
+        <div className="intake-step-body">
+          {(currentStep.groups || []).map(group => (
+            <IntakeGroup
+              key={group.id}
+              group={group}
+              values={values}
+              set={set}
+              toggleChip={toggleChip}
+              setPriority={setPriority}
+            />
+          ))}
+          {requiredMissingOnStep(currentStep).length > 0 && (
+            <div className="intake-required-warning">
+              Required on this step: {requiredMissingOnStep(currentStep).map(f => f.label).join(', ')}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="intake-step-actions">
+        <button className="intake-btn-ghost" onClick={step === 0 ? onCancel : prev}>
+          {step === 0 ? 'Cancel' : 'Back'}
+        </button>
+        {step < totalSteps - 1 ? (
+          <button className="intake-btn-primary" onClick={next}>Continue</button>
+        ) : (
+          <button className="intake-btn-primary" onClick={handleSubmit} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Search for Review'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IntakeProgressBar({ step, steps, onJump }) {
+  return (
+    <div className="intake-progress">
+      {steps.map((s, i) => (
+        <button
+          key={s.id}
+          className={`intake-progress-step ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}
+          onClick={() => onJump(i)}
+        >
+          <span className="intake-progress-num">{s.number}</span>
+          <span className="intake-progress-label">{s.title}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function IntakeGroup({ group, values, set, toggleChip, setPriority }) {
+  const [open, setOpen] = useState(!group.collapsedByDefault);
+  return (
+    <section className="intake-group">
+      <header className="intake-group-header" onClick={() => group.collapsedByDefault && setOpen(o=>!o)}>
+        <div>
+          <div className="intake-group-title">{group.title}</div>
+          {group.subtitle && <div className="intake-group-subtitle">{group.subtitle}</div>}
+        </div>
+        {group.collapsedByDefault && <span className="intake-group-toggle">{open ? '-' : '+'}</span>}
+      </header>
+      {open && (
+        <div className="intake-group-fields">
+          {group.fields.map(f => (
+            <IntakeField
+              key={f.key}
+              field={f}
+              value={values[f.key]}
+              set={set}
+              toggleChip={toggleChip}
+              setPriority={setPriority}
+            />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function IntakeTierBadge({ tier }) {
+  if (tier === 'required')             return <span className="intake-tier-badge required">Required</span>;
+  if (tier === 'strongly_encouraged')  return <span className="intake-tier-badge encouraged">Strongly Encouraged</span>;
+  return <span className="intake-tier-badge optional">Optional</span>;
+}
+
+function IntakeField({ field, value, set, toggleChip, setPriority }) {
+  const v = value;
+  return (
+    <div className="intake-field">
+      <div className="intake-field-label-row">
+        <label className="intake-field-label">{field.label}</label>
+        <IntakeTierBadge tier={field.tier} />
+      </div>
+      {field.type === 'text' && (
+        <input className="intake-input" value={v || ''} onChange={e => set(field.key, e.target.value)} />
+      )}
+      {field.type === 'textarea' && (
+        <textarea className="intake-textarea" rows={3} value={v || ''} onChange={e => set(field.key, e.target.value)} />
+      )}
+      {field.type === 'chip' && (
+        <div className="intake-chip-row">
+          {(field.options || []).map(o => (
+            <button
+              key={o.v}
+              type="button"
+              className={`intake-chip ${v === o.v ? 'selected' : ''}`}
+              onClick={() => set(field.key, v === o.v ? '' : o.v)}
+            >{o.l}</button>
+          ))}
+        </div>
+      )}
+      {field.type === 'multi_chip' && (
+        <div className="intake-chip-row">
+          {(field.options || []).map(opt => {
+            const label = typeof opt === 'string' ? opt : opt.l;
+            const val   = typeof opt === 'string' ? opt : (opt.v || opt.l);
+            const selected = (v || []).includes(val);
+            return (
+              <button
+                key={val}
+                type="button"
+                className={`intake-chip ${selected ? 'selected' : ''}`}
+                onClick={() => toggleChip(field.key, val)}
+              >{label}</button>
+            );
+          })}
+        </div>
+      )}
+      {field.type === 'yes_no_unsure' && (
+        <div className="intake-chip-row">
+          {[{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'unsure',l:'Unsure'}].map(o => (
+            <button
+              key={o.v}
+              type="button"
+              className={`intake-chip ${v === o.v ? 'selected' : ''}`}
+              onClick={() => set(field.key, v === o.v ? '' : o.v)}
+            >{o.l}</button>
+          ))}
+        </div>
+      )}
+      {field.type === 'priority_matrix' && (
+        <div className="intake-priority-table">
+          {(field.items || []).map(item => (
+            <div key={item.k} className="intake-priority-row">
+              <div className="intake-priority-label">{item.l}</div>
+              <div className="intake-priority-actions">
+                {(field.levels || []).map(lvl => {
+                  const selected = (v && v[item.k]) === lvl.v;
+                  return (
+                    <button
+                      key={lvl.v}
+                      type="button"
+                      className={`intake-priority-chip ${lvl.color} ${selected ? 'selected' : ''}`}
+                      onClick={() => setPriority(item.k, selected ? '' : lvl.v)}
+                    >{lvl.l}</button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// INTAKE REVIEW - Step 8. Shows the recruiter the brief they are about to
+// submit, the inferred scope / culture / leadership profile, and the match
+// weighting the platform will use.
+// -----------------------------------------------------------------------------
+function IntakeReview({ values, completeness, transparency }) {
+  const v = values;
+  const tags = (k) => (v[k] || []).join(', ') || '-';
+  const text = (k) => (v[k] && String(v[k]).trim()) || '-';
+
+  // Pull the priority matrix into something readable
+  const prioritySummary = (() => {
+    const p = v.requirement_priority || {};
+    const groups = { must_have:[], preferred:[], nice:[], irrelevant:[] };
+    PRIORITY_REQUIREMENT_ITEMS.forEach(it => {
+      const lvl = p[it.k];
+      if (lvl && groups[lvl]) groups[lvl].push(it.l);
+    });
+    return groups;
+  })();
+
+  return (
+    <div className="intake-review">
+      <div className="intake-review-eyebrow">Your search is optimized around</div>
+      <div className="intake-review-headline">
+        Operational complexity, leadership scope, organizational fit, and business impact &mdash; not just titles and keywords.
+      </div>
+
+      <div className="intake-review-grid">
+        <div className="intake-summary-card">
+          <div className="intake-summary-title">Role summary</div>
+          <div className="intake-summary-line"><span>Position</span><strong>{text('position_title')}</strong></div>
+          <div className="intake-summary-line"><span>Company</span><strong>{text('company_name')}</strong></div>
+          <div className="intake-summary-line"><span>Industry</span><strong>{text('industry')}</strong></div>
+          <div className="intake-summary-line"><span>Compensation</span><strong>{text('base_salary_range')}</strong></div>
+          <div className="intake-summary-line"><span>Urgency</span><strong>{text('urgency_level')}</strong></div>
+          <div className="intake-summary-line"><span>Work arrangement</span><strong>{text('work_arrangement')}</strong></div>
+        </div>
+
+        <div className="intake-summary-card">
+          <div className="intake-summary-title">Scope classification</div>
+          <div className="intake-summary-line"><span>Team size</span><strong>{text('team_size_managed')}</strong></div>
+          <div className="intake-summary-line"><span>Direct reports</span><strong>{text('direct_reports')}</strong></div>
+          <div className="intake-summary-line"><span>Revenue responsibility</span><strong>{text('revenue_responsibility')}</strong></div>
+          <div className="intake-summary-line"><span>P&L</span><strong>{text('pl_ownership')}</strong></div>
+          <div className="intake-summary-line"><span>Multi-site</span><strong>{text('multi_site')}</strong></div>
+          <div className="intake-summary-line"><span>International</span><strong>{text('international')}</strong></div>
+        </div>
+
+        <div className="intake-summary-card">
+          <div className="intake-summary-title">Culture & leadership</div>
+          <div className="intake-summary-line"><span>Environment</span><strong>{tags('environment_tags')}</strong></div>
+          <div className="intake-summary-line"><span>Leadership profile</span><strong>{tags('leadership_tags')}</strong></div>
+          <div className="intake-summary-line"><span>Decision-making</span><strong>{text('decision_making_style')}</strong></div>
+          <div className="intake-summary-line"><span>Autonomy</span><strong>{text('operational_autonomy')}</strong></div>
+        </div>
+
+        <div className="intake-summary-card">
+          <div className="intake-summary-title">Operational complexity</div>
+          <div className="intake-summary-line"><span>Factors</span><strong>{tags('complexity_tags')}</strong></div>
+          <div className="intake-summary-line"><span>Commercial environment</span><strong>{tags('commercial_environment_tags')}</strong></div>
+          <div className="intake-summary-line"><span>Technical fluency</span><strong>{text('technical_fluency')}</strong></div>
+        </div>
+      </div>
+
+      <div className="intake-weighting">
+        <div className="intake-summary-title">Match weighting</div>
+        <div className="intake-weighting-bars">
+          {Object.entries(MATCH_WEIGHTING).map(([k, w]) => (
+            <div key={k} className="intake-weight-bar">
+              <div className="intake-weight-label">{k.replace(/_/g,' ')}</div>
+              <div className="intake-weight-track"><div className="intake-weight-fill" style={{width:`${w*2}%`}} /></div>
+              <div className="intake-weight-pct">{w}%</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="intake-priority-summary">
+        <div className="intake-summary-title">Requirement priorities</div>
+        <div className="intake-priority-grid">
+          {[
+            ['must_have','Must Have'],['preferred','Preferred'],
+            ['nice','Nice to Have'],['irrelevant','Irrelevant'],
+          ].map(([k,label]) => (
+            <div key={k} className={`intake-priority-cell ${k}`}>
+              <div className="intake-priority-cell-title">{label}</div>
+              <div className="intake-priority-cell-body">
+                {prioritySummary[k].length ? prioritySummary[k].join(' - ') : '-'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="intake-quality-row">
+        <div className={`intake-quality-pill ${transparency.class}`}>
+          Compensation Transparency: <strong>{transparency.label}</strong>
+        </div>
+        <div className="intake-quality-pill">
+          Completeness: <strong>{completeness.overall_pct}%</strong>
+          <span className="intake-quality-sub">(required {completeness.required_filled}/{completeness.required_count} &middot; encouraged {completeness.encouraged_filled}/{completeness.encouraged_count})</span>
+        </div>
+      </div>
+
+      <div className="intake-confidence-note">
+        Matches with overall score 80+ surface as <strong>High Confidence</strong>.
+        Scores 60-79 surface as <strong>Strong Fit</strong>.
+        Scores 45-59 surface as <strong>Stretch Opportunity</strong> with the soft-friction interest flow.
+        Below 45 the matcher suppresses the candidate unless an admin overrides.
+      </div>
+    </div>
+  );
+}
+// -- RECRUITER MODAL ----------------------------------------------------------
+// Modal shell around the 8-step IntakeWorkflow. The legacy single-page form
+// has been replaced; the structured Search Brief is now produced by the
+// schema-driven IntakeWorkflow component above. The modal keeps the TOS
+// gate, billing gate, and submission persistence; everything else is the
+// workflow component.
 function RecruiterModal({ onClose, showToast }) {
-  const [step, setStep]           = useState('tos');
-  const [submitted, setSubmitted] = useState(false);
-  const [loading, setLoading]     = useState(false);
+  const [step, setStep]             = useState('tos');
+  const [submitted, setSubmitted]   = useState(false);
+  const [loading, setLoading]       = useState(false);
   const [billingBlock, setBillingBlock] = useState(null);
   const [showBillingSetup, setShowBillingSetup] = useState(false);
-  const [jobReqs, setJobReqs]     = useState({}); // advanced job requirements
   const [pricingCfg, setPricingCfg] = useState(PRICING_CONFIG_DEFAULTS);
   useEffect(() => { loadPricingConfig().then(r => setPricingCfg(r.config)); }, []);
 
-  const [form, setForm] = useState({
-    firm_name:'', contact_name:'', email:'', role_title:'',
-    industry:'', location:'', salary_range:'', role_level:'executive', notes:'',
-    role_orientation:'', background_preferred:'', client_interface:'', references_required:'preferred',
-  });
-  function set(k,v) { setForm(p=>({...p,[k]:v})); }
-
-  // Structured recruiter brief - the 10 Phase 1 required intake fields. These
-  // are the inputs the matcher needs to produce a high-confidence introduction
-  // rather than a resume-keyword match. Stored on fed_recruiter_submissions
-  // (and propagated to fed_jobs.role_scope_requirements on approval).
-  const [brief, setBrief] = useState({
-    company_environment:    '',       // text - culture, stage, ownership type
-    leadership_style:       '',       // chip - directive | collaborative | coach | transformative | steady
-    commercial_environment: '',       // chip - high-growth | mature | turnaround | regulated | greenfield
-    must_have:              '',       // text - must-have requirements (deal-breakers)
-    preferred:              '',       // text - preferred requirements
-    nice_to_have:           '',       // text - nice-to-have requirements
-    location_remote:        '',       // chip - onsite | hybrid_office | hybrid_remote | fully_remote | flexible
-    travel_expectation:     '',       // chip - minimal | up_to_25 | up_to_50 | extensive
-    urgency:                '',       // chip - exploratory | active | urgent | critical
-  });
-  function setBriefField(k, v) { setBrief(p => ({ ...p, [k]: v })); }
-
-  async function handleSubmit() {
-    if (!form.firm_name || !form.email || !form.role_title) { showToast('Please complete firm name, email, and role title.'); return; }
-    if (!form.salary_range) { showToast('Compensation range is required - platform standard.'); return; }
-    // Phase 1: require the structured brief so matches are based on
-    // compatibility, not keyword overlap.
-    const missingBrief = [];
-    if (!brief.company_environment.trim()) missingBrief.push('company environment');
-    if (!brief.leadership_style)           missingBrief.push('leadership style');
-    if (!brief.commercial_environment)     missingBrief.push('commercial environment');
-    if (!brief.must_have.trim())           missingBrief.push('must-have requirements');
-    if (!brief.location_remote)            missingBrief.push('location / remote expectations');
-    if (!brief.travel_expectation)         missingBrief.push('travel expectations');
-    if (!brief.urgency)                    missingBrief.push('urgency level');
-    if (missingBrief.length > 0) {
-      showToast('Please complete: ' + missingBrief.slice(0, 3).join(', ') + (missingBrief.length > 3 ? '...' : ''));
+  async function persistAndSubmit(payload) {
+    if (payload.blockers) {
+      showToast('Please complete: ' + payload.blockers.slice(0,3).join(', ') + (payload.blockers.length > 3 ? '...' : ''));
       return;
     }
     setLoading(true);
+    const { values, completeness, transparency } = payload;
+    // Build the legacy contact fields from the schema-driven intake so existing
+    // admin queries and notify-posting payload shape continue to work.
+    const legacyForm = {
+      firm_name:       values.company_name,
+      contact_name:    values.primary_contact,
+      email:           values.primary_contact && values.primary_contact.includes('@') ? values.primary_contact : '',
+      role_title:      values.position_title,
+      industry:        values.industry,
+      location:        values.geographic_footprint || '',
+      salary_range:    values.base_salary_range,
+      role_level:      'executive',
+      notes:           values.success_outcomes || '',
+    };
     try {
       await sb.from('fed_recruiter_submissions').insert({
-        ...form,
-        // Store the advanced job requirements alongside the new structured
-        // brief. The brief is the Phase 1 matching input; jobReqs are the
-        // Phase 0 advanced fields (work arrangement, authority, mandate)
-        // kept for backward compatibility.
-        job_requirements: { ...jobReqs, brief },
+        ...legacyForm,
+        // Persist the full schema-aligned intake under job_requirements.intake.
+        // The admin schema view, recruiter quality dashboard, and matching
+        // engine all read from this path.
+        job_requirements: {
+          intake:              values,
+          completeness,
+          transparency,
+          match_weighting:     MATCH_WEIGHTING,
+          submitted_at:        new Date().toISOString(),
+        },
         tos_agreed: true,
         tos_agreed_at: new Date().toISOString(),
       });
-      // Notify admin — billing gate is enforced server-side in notify-posting
       const resp = await fetch('/api/notify-posting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(legacyForm),
       });
       const data = await resp.json();
       if (!resp.ok && data.billing_required) {
-        // Billing gate triggered server-side
         setBillingBlock(data.error);
         setLoading(false);
         return;
       }
-    } catch(e) {}
+    } catch(e) { /* swallow - notify is best-effort */ }
     setSubmitted(true);
     setLoading(false);
   }
@@ -3708,7 +4813,6 @@ function RecruiterModal({ onClose, showToast }) {
       onSuccess={() => { setShowBillingSetup(false); setBillingBlock(null); }}
     />;
   }
-
   if (billingBlock) {
     return <PaymentGateModal
       reason={billingBlock}
@@ -3719,302 +4823,640 @@ function RecruiterModal({ onClose, showToast }) {
 
   return (
     <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <button className="modal-close" onClick={onClose}>✕</button>
+      <div className="modal modal-intake">
+        <button className="modal-close" onClick={onClose}>X</button>
 
         {step === 'tos' && (
           <TosModal
-            onAgree={() => setStep('form')}
+            onAgree={() => setStep('intake')}
             onCancel={onClose}
           />
         )}
 
-        {step === 'form' && (
+        {step === 'intake' && (
           <>
             <div className="modal-eyebrow">For Search Firms</div>
             <h2 className="modal-title">Post a Search</h2>
-            <p style={{color:'var(--ink-3)',fontSize:'0.875rem',marginBottom:'0.875rem',lineHeight:'1.7'}}>
-              Reach qualified senior leaders in maritime, ports and terminals, energy, offshore, and industrial logistics.
-              Salary transparency is required on every posting.
+            <p className="intake-modal-blurb">
+              Reach qualified senior leaders in maritime, ports and terminals, energy,
+              offshore, industrial logistics, and industrial technology. Salary
+              transparency is a platform standard.
             </p>
-            <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.75rem 1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-3)'}}>
-              ✦ Founding Partner Program {pricingCfg.founding_partner_monthly_postings || 1} search{(pricingCfg.founding_partner_monthly_postings || 1) === 1 ? '' : 'es'} per month, complimentary through {pricingCfg.founding_partner_window_end || '2026-12-31'}. No curated-introduction fees during the founding window.
+            <div className="intake-founding-banner">
+              Founding Partner Program {pricingCfg.founding_partner_monthly_postings || 1} search{(pricingCfg.founding_partner_monthly_postings || 1) === 1 ? '' : 'es'} per month, complimentary through {pricingCfg.founding_partner_window_end || '2026-12-31'}. No curated-introduction fees during the founding window.
             </div>
-
-            {submitted ? (
-              <div className="success-box">
-                <div className="success-title">Submission Received</div>
-                <div className="success-desc">We'll be in touch within 24 hours to confirm posting details. As a Founding Partner you receive one complimentary search per month through December 31, 2026.</div>
+            <IntakeWorkflow
+              onSubmit={persistAndSubmit}
+              onCancel={onClose}
+              loading={loading}
+              submitted={submitted}
+              pricingCfg={pricingCfg}
+            />
+            {submitted && (
+              <div className="intake-submit-footer">
+                Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.<br/>
+                Questions? <a href='mailto:desk@fredheimtech.com' style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
               </div>
-            ) : (
-              <>
-                <hr className="modal-divider" />
-                <div className="modal-section-title">Your Firm</div>
-                <div className="form" style={{gap:'0.75rem',marginBottom:'1.5rem'}}>
-                  <div className="form-group">
-                    <label className="form-label">Search Firm *</label>
-                    <input className="form-input" placeholder="Firm name" value={form.firm_name} onChange={e=>set('firm_name',e.target.value)} />
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label className="form-label">Contact Name</label>
-                      <input className="form-input" placeholder="Your name" value={form.contact_name} onChange={e=>set('contact_name',e.target.value)} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Email *</label>
-                      <input className="form-input" type="email" placeholder="you@firm.com" value={form.email} onChange={e=>set('email',e.target.value)} />
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-section-title">The Role</div>
-                <div className="form" style={{gap:'0.75rem'}}>
-                  <div className="form-group">
-                    <label className="form-label">Role Title *</label>
-                    <input className="form-input" placeholder="e.g. Chief Commercial Officer" value={form.role_title} onChange={e=>set('role_title',e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Role Level *</label>
-                    <div className="visibility-toggle">
-                      <button
-                        className={`toggle-opt ${form.role_level==='executive'?'active':''}`}
-                        onClick={()=>set('role_level','executive')}
-                      >
-                        Executive - C-Suite / VP
-                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>
-                          Curated Introduction {fmtPrice(pricingCfg.introduction_csuite)} (C-Suite) /
-                          {' '}{fmtPrice(pricingCfg.introduction_vp_svp)} (VP)
-                        </span>
-                      </button>
-                      <button
-                        className={`toggle-opt ${form.role_level==='senior'?'active':''}`}
-                        onClick={()=>set('role_level','senior')}
-                      >
-                        Director / Senior Manager
-                        <span style={{display:'block',fontSize:'0.55rem',marginTop:'0.1rem',opacity:0.7}}>
-                          Curated Introduction {fmtPrice(pricingCfg.introduction_director)}
-                        </span>
-                      </button>
-                    </div>
-                  </div>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label className="form-label">Industry</label>
-                      <select className="form-select" value={form.industry} onChange={e=>set('industry',e.target.value)}>
-                        <option value="">Select</option>
-                        <optgroup label="Operational">
-                          <option>Maritime &amp; Shipping</option>
-                          <option>Ports &amp; Terminals</option>
-                          <option>Energy &amp; Offshore</option>
-                          <option>Industrial Commodities &amp; Logistics</option>
-                        </optgroup>
-                        <optgroup label="Industrial Technology">
-                          <option>Maritime Technology</option>
-                          <option>Port Technology</option>
-                          <option>Logistics Technology</option>
-                          <option>Industrial SaaS</option>
-                          <option>Fleet Intelligence</option>
-                          <option>Operational AI</option>
-                          <option>Industrial Automation</option>
-                          <option>Supply Chain Technology</option>
-                          <option>Compliance &amp; Safety Tech</option>
-                        </optgroup>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Location</label>
-                      <input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Compensation Range * (required)</label>
-                    <input className="form-input" placeholder="e.g. $300K – $400K total compensation" value={form.salary_range} onChange={e=>set('salary_range',e.target.value)} />
-                  </div>
-                </div>
-                
-                <div className="modal-section-title" style={{marginTop:'0.5rem'}}>Candidate Preferences</div>
-                <div className="form" style={{gap:'0.625rem',marginBottom:'1rem'}}>
-                  <div className="form-group">
-                    <label className="form-label">Role Orientation</label>
-                    <div className="tap-options-row">
-                      {[{v:'operational',l:'Operational'},{v:'balanced',l:'Balanced'},{v:'strategic',l:'Strategic'}].map(o=>(
-                        <div key={o.v} className={`tap-chip ${form.role_orientation===o.v?'selected':''}`} onClick={()=>set('role_orientation',o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Background Preferred</label>
-                    <div className="tap-options-row">
-                      {[{v:'commercial',l:'Commercial'},{v:'operations',l:'Operations'},{v:'finance',l:'Finance'},{v:'open',l:'Open'}].map(o=>(
-                        <div key={o.v} className={`tap-chip ${form.background_preferred===o.v?'selected':''}`} onClick={()=>set('background_preferred',o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Client Interface</label>
-                    <div className="tap-options-row">
-                      {[{v:'must',l:'Must be client-facing'},{v:'mixed',l:'Mixed'},{v:'internal',l:'Primarily internal'}].map(o=>(
-                        <div key={o.v} className={`tap-chip ${form.client_interface===o.v?'selected':''}`} onClick={()=>set('client_interface',o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Verified References</label>
-                    <div className="tap-options-row">
-                      {[{v:'required',l:'Required'},{v:'preferred',l:'Preferred'},{v:'not_required',l:'Not required'}].map(o=>(
-                        <div key={o.v} className={`tap-chip ${form.references_required===o.v?'selected':''}`} onClick={()=>set('references_required',o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* ── STRUCTURED SEARCH BRIEF ────────────────────────────────
-                    Phase 1 required inputs. The matcher uses these to prioritize
-                    compatibility and hiring-risk reduction over keyword overlap. */}
-                <hr className="modal-divider" />
-                <div className="modal-section-title">Search Brief</div>
-                <p style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.55',marginBottom:'1rem'}}>
-                  These inputs drive the matcher. Vague briefs produce sub-par matches; specific
-                  briefs produce high-conversion introductions. Required before submission.
-                </p>
-                <div className="form" style={{gap:'0.75rem'}}>
-
-                  <div className="form-group">
-                    <label className="form-label">Company Environment *</label>
-                    <textarea className="form-input" rows={2}
-                      placeholder="e.g. PE-backed mid-market industrial, post-acquisition integration; family-owned terminal operator; growth-stage maritime SaaS."
-                      value={brief.company_environment}
-                      onChange={e=>setBriefField('company_environment', e.target.value)}
-                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Leadership Style Needed *</label>
-                    <div className="tap-options-row">
-                      {[
-                        {v:'directive',     l:'Directive'},
-                        {v:'collaborative', l:'Collaborative'},
-                        {v:'coach',         l:'Coach / Developer'},
-                        {v:'transformative',l:'Transformative'},
-                        {v:'steady',        l:'Steady / Operator'},
-                      ].map(o => (
-                        <div key={o.v} className={`tap-chip ${brief.leadership_style===o.v?'selected':''}`}
-                             onClick={()=>setBriefField('leadership_style', o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Commercial Environment *</label>
-                    <div className="tap-options-row">
-                      {[
-                        {v:'high_growth', l:'High growth'},
-                        {v:'mature',      l:'Mature / stable'},
-                        {v:'turnaround',  l:'Turnaround'},
-                        {v:'regulated',   l:'Heavily regulated'},
-                        {v:'greenfield',  l:'Greenfield / startup'},
-                      ].map(o => (
-                        <div key={o.v} className={`tap-chip ${brief.commercial_environment===o.v?'selected':''}`}
-                             onClick={()=>setBriefField('commercial_environment', o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Must-Have Requirements * (deal-breakers)</label>
-                    <textarea className="form-input" rows={2}
-                      placeholder="e.g. P&amp;L ownership >$50M; multi-site operations experience; greenfield startup record."
-                      value={brief.must_have}
-                      onChange={e=>setBriefField('must_have', e.target.value)}
-                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Preferred Requirements</label>
-                    <textarea className="form-input" rows={2}
-                      placeholder="e.g. ERP implementation lead; M&amp;A integration experience; international supply chain exposure."
-                      value={brief.preferred}
-                      onChange={e=>setBriefField('preferred', e.target.value)}
-                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Nice-to-Have</label>
-                    <textarea className="form-input" rows={2}
-                      placeholder="e.g. Industry conference visibility; board exposure; multilingual."
-                      value={brief.nice_to_have}
-                      onChange={e=>setBriefField('nice_to_have', e.target.value)}
-                      style={{resize:'vertical',minHeight:'56px',fontFamily:'inherit'}} />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Location / Remote Expectations *</label>
-                    <div className="tap-options-row">
-                      {[
-                        {v:'onsite',         l:'Onsite required'},
-                        {v:'hybrid_office',  l:'Hybrid - office majority'},
-                        {v:'hybrid_remote',  l:'Hybrid - remote majority'},
-                        {v:'fully_remote',   l:'Fully remote'},
-                        {v:'flexible',       l:'Flexible'},
-                      ].map(o => (
-                        <div key={o.v} className={`tap-chip ${brief.location_remote===o.v?'selected':''}`}
-                             onClick={()=>setBriefField('location_remote', o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Travel Expectation *</label>
-                    <div className="tap-options-row">
-                      {[
-                        {v:'minimal',   l:'Minimal'},
-                        {v:'up_to_25',  l:'Up to 25%'},
-                        {v:'up_to_50',  l:'Up to 50%'},
-                        {v:'extensive', l:'Extensive'},
-                      ].map(o => (
-                        <div key={o.v} className={`tap-chip ${brief.travel_expectation===o.v?'selected':''}`}
-                             onClick={()=>setBriefField('travel_expectation', o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Urgency *</label>
-                    <div className="tap-options-row">
-                      {[
-                        {v:'exploratory', l:'Exploratory (no deadline)'},
-                        {v:'active',      l:'Active (12-16 weeks)'},
-                        {v:'urgent',      l:'Urgent (8-12 weeks)'},
-                        {v:'critical',    l:'Critical (under 8 weeks)'},
-                      ].map(o => (
-                        <div key={o.v} className={`tap-chip ${brief.urgency===o.v?'selected':''}`}
-                             onClick={()=>setBriefField('urgency', o.v)}>{o.l}</div>
-                      ))}
-                    </div>
-                  </div>
-
-                </div>
-
-                <hr className="modal-divider" />
-                {/* Advanced job requirements - executive matching */}
-                <details style={{marginBottom:'1rem'}}>
-                  <summary style={{cursor:'pointer',fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)',padding:'0.5rem 0',userSelect:'none'}}>
-                    Advanced Requirements (Work Arrangement, Authority, Compensation Detail, Mandate)
-                  </summary>
-                  <div style={{paddingTop:'0.5rem'}}>
-                    <div style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.5',marginBottom:'0.75rem'}}>
-                      These fields improve match quality significantly. They are used only for candidate matching and are not displayed publicly without your approval.
-                    </div>
-                    <JobRequirementsFields reqs={jobReqs} onChange={setJobReqs} />
-                  </div>
-                </details>
-                <button className="interest-btn" onClick={handleSubmit} disabled={loading}>
-                  {loading ? 'Submitting…' : 'Submit Search for Review'}
-                </button>
-                <div className="interest-note">Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.<br/>Questions? <a href='mailto:desk@fredheimtech.com' style={{color:'var(--gold)'}}>desk@fredheimtech.com</a></div>
-              </>
             )}
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// CANDIDATE SCHEMA - Executive Operating Profile
+// Single source of truth for the candidate side. Symmetric to the recruiter
+// INTAKE_SCHEMA so the matcher can compare like-for-like. Eleven sections:
+//
+//   1.  Career Intent
+//   2.  Preferred Operating Environment
+//   3.  Leadership Style
+//   4.  Scope-Based Experience  (existing scope step - reused, not duplicated)
+//   5.  Compensation Preferences
+//   6.  Career Drivers
+//   7.  Role Avoidance Signals
+//   8.  Confidentiality Controls
+//   9.  Industry and Technology Experience
+//   10. Structured Achievements
+//   11. Match Transparency (rendered when a candidate views a match - not in
+//       the profile builder itself)
+//
+// Positioning: "Fredheim Desk evaluates your actual scope, operating
+// environment, leadership complexity, and career intent - not just your
+// current title."
+// -----------------------------------------------------------------------------
+
+const CAREER_INTENT_OPTIONS = [
+  { v:'permanent_executive',    l:'Permanent Executive' },
+  { v:'growth_builder',          l:'Growth / Build Specialist' },
+  { v:'turnaround',              l:'Turnaround Specialist' },
+  { v:'fractional',              l:'Fractional Executive' },
+  { v:'consultant_advisor',      l:'Consultant / Advisor' },
+  { v:'interim',                 l:'Interim Leadership' },
+  { v:'board_advisor',           l:'Board / Strategic Advisor' },
+  { v:'early_career',            l:'Early Career / Graduate' },
+  { v:'individual_contributor',  l:'Individual Contributor' },
+  { v:'commercial_hunter',       l:'Commercial Hunter' },
+  { v:'operational_leader',      l:'Operational Leader' },
+];
+
+const CANDIDATE_ENVIRONMENT_TAGS = [
+  'Entrepreneurial','Family-Owned','PE-Backed','Structured Corporate','Startup',
+  'High-Growth','Stable Operator','Turnaround Environment','Asset-Heavy Operations',
+  'Technology-Driven','Industrial Operations',
+];
+
+// Leadership style tags - intentionally identical strings to the recruiter
+// LEADERSHIP_PROFILE_TAGS so the matcher can do a direct set-overlap.
+const CANDIDATE_LEADERSHIP_TAGS = [
+  'Builder','Optimizer','Strategist','Operator','Commercial Rainmaker',
+  'Team Builder','Technical Specialist','Hands-On','Cross-Functional',
+  'Process-Oriented','Relationship-Driven',
+];
+
+const CAREER_DRIVER_OPTIONS = [
+  'Compensation growth','Platform-building opportunity','Operational impact',
+  'Stability','International exposure','Entrepreneurial environment',
+  'Long-term leadership path','Equity participation','Technical innovation',
+  'Work-life flexibility','Board exposure','Commercial authority','Autonomy',
+  'Team-building opportunity',
+];
+
+const ROLE_AVOIDANCE_OPTIONS = [
+  'Heavy travel','Relocation','PE-backed pressure','Startup chaos',
+  'Highly political environment','Large corporate bureaucracy','Union environment',
+  'Pure sales role','Pure operations role','Low-autonomy role',
+  'Undefined compensation structure','Confidential employer instability',
+  'Excessive reporting burden',
+];
+
+const CANDIDATE_INDUSTRY_TAGS = [
+  'Maritime','Ports & Terminals','Industrial Logistics','Shipping',
+  'Freight & Chartering','Energy','Offshore','Bulk Commodities','Trading',
+  'Cement','Aggregates','Steel','Dry Bulk','Breakbulk','Containers','Rail',
+  'Barge','Warehousing','Infrastructure',
+];
+
+const CANDIDATE_TECH_TAGS = [
+  'Maritime Technology','Port Technology','Logistics Technology','Industrial SaaS',
+  'Fleet Intelligence','Operational AI','Industrial Automation',
+  'Supply Chain Technology','Safety & Compliance Technology','ERP','TMS','WMS',
+  'CRM','AI Analytics','Fleet Management Systems','Vessel Performance Systems',
+  'Salesforce','HubSpot','SAP','Oracle','NetSuite',
+];
+
+const ACHIEVEMENT_PROMPTS = [
+  'Built department from scratch','Reduced operating costs','Improved throughput',
+  'Managed expansion','Led turnaround','Implemented systems',
+  'Negotiated major contracts','Developed new commercial platform',
+  'Managed acquisition integration','Opened new geography',
+  'Improved safety performance','Built sales pipeline','Scaled revenue',
+  'Reduced freight cost','Managed capital project',
+];
+
+const CONFIDENTIALITY_TOGGLES = [
+  { k:'anonymous_mode',           l:'Anonymous mode',                          group:'identity' },
+  { k:'hide_full_name',            l:'Hide full name',                          group:'identity' },
+  { k:'hide_employer',             l:'Hide current employer',                   group:'identity' },
+  { k:'hide_exact_location',       l:'Hide exact location',                     group:'identity' },
+  { k:'hide_linkedin',             l:'Hide LinkedIn profile',                   group:'identity' },
+  { k:'hide_contact_until_intro',  l:'Hide phone/email until curated introduction', group:'identity' },
+  { k:'region_only',               l:'Show approximate region only',            group:'identity' },
+  { k:'approved_recruiters_only',  l:'Restrict visibility to approved recruiters only', group:'visibility' },
+  { k:'exclude_current_employer',  l:'Exclude current employer',                group:'visibility' },
+  { k:'exclude_companies_enabled', l:'Exclude specified companies',             group:'visibility' },
+];
+
+const OPENNESS_TOGGLES = [
+  { k:'open_direct_employer',    l:'Open to direct employer contact' },
+  { k:'open_recruiter_only',     l:'Recruiter-only contact' },
+  { k:'open_consulting',         l:'Open to consulting opportunities' },
+  { k:'open_permanent',          l:'Open to permanent roles' },
+  { k:'open_board_advisory',     l:'Open to board / advisory roles' },
+];
+
+const COMP_PREF_FIELDS = [
+  { k:'desired_base_range',     l:'Desired base salary range',         type:'text' },
+  { k:'minimum_base',           l:'Minimum acceptable base salary',    type:'text' },
+  { k:'bonus_preference',       l:'Bonus preference',                  type:'text' },
+  { k:'commission_preference',  l:'Commission preference',             type:'text' },
+  { k:'equity_interest',        l:'Equity / LTIP interest',            type:'chip',
+    options:[{v:'high',l:'High'},{v:'modest',l:'Modest'},{v:'low',l:'Low'},{v:'none',l:'None'}] },
+  { k:'profit_share_interest',  l:'Profit-sharing interest',           type:'yes_no_unsure' },
+  { k:'risk_tolerance',         l:'Risk tolerance',                    type:'chip',
+    options:[{v:'high',l:'High'},{v:'moderate',l:'Moderate'},{v:'low',l:'Low'}] },
+  { k:'upside_vs_guarantee',    l:'Upside vs guaranteed comp preference', type:'chip',
+    options:[{v:'upside',l:'Upside'},{v:'balanced',l:'Balanced'},{v:'guaranteed',l:'Guaranteed'}] },
+  { k:'relocation_required',    l:'Relocation package required?',      type:'yes_no_unsure' },
+  { k:'car_allowance_importance',l:'Car allowance importance',         type:'importance' },
+  { k:'healthcare_importance',  l:'Healthcare importance',             type:'importance' },
+  { k:'k401_importance',        l:'401(k) importance',                 type:'importance' },
+  { k:'severance_importance',   l:'Severance importance',              type:'importance' },
+  { k:'pto_flex_importance',    l:'PTO / flexibility importance',      type:'importance' },
+];
+
+const IMPORTANCE_LEVELS = [
+  { v:'critical',  l:'Critical' },
+  { v:'important', l:'Important' },
+  { v:'nice',      l:'Nice to have' },
+  { v:'low',       l:'Low priority' },
+];
+
+// Empty initial state
+function emptyCandidateOperatingProfile() {
+  return {
+    career_intent:           [],
+    environment_preferred:   [],
+    environment_avoid:       [],
+    leadership_style:        [],
+    compensation:            {},
+    career_drivers_ranked:   [],
+    role_avoidance:          [],
+    confidentiality:         {},
+    openness:                { open_recruiter_only: true, open_permanent: true },
+    core_industries:         [],
+    adjacent_industries:     [],
+    willing_industries:      [],
+    excluded_industries:     [],
+    tech_experience:         [],
+    achievements:            [],
+  };
+}
+
+// -- CANDIDATE_PROFILE_STEPS  -------------------------------------------------
+// The candidate-side equivalent of the recruiter INTAKE_SCHEMA. Step 4
+// (Scope-Based Experience) is handled by the existing ProfileForm scope step
+// which captures org_scope, complexity, strategic, and commercial JSONB blocks
+// already - we do not duplicate it here. Step 11 (Match Transparency) is
+// rendered on a per-match basis, not in the profile builder.
+const CANDIDATE_PROFILE_STEPS = [
+  { id:'career_intent',   number:1,  title:'Career Intent',                 tagline:'How you want your career to compound from here.' },
+  { id:'environment',     number:2,  title:'Preferred Operating Environment', tagline:'Where you perform best, and where you do not.' },
+  { id:'leadership_style',number:3,  title:'Leadership Style',              tagline:'The leader you actually are - in your own words.' },
+  { id:'compensation',    number:5,  title:'Compensation Preferences',      tagline:'Structured beyond base salary - acceptance probability depends on this.' },
+  { id:'drivers',         number:6,  title:'Career Drivers',                tagline:'Rank what matters most. Top 3-5.' },
+  { id:'avoidance',       number:7,  title:'Role Avoidance Signals',        tagline:'What you do not want. Reduces noise in your match list.' },
+  { id:'confidentiality', number:8,  title:'Confidentiality Controls',      tagline:'Decide exactly what recruiters see before any introduction.' },
+  { id:'industry_tech',   number:9,  title:'Industry & Technology',         tagline:'Industries you lead in - and the tech systems you operate.' },
+  { id:'achievements',    number:10, title:'Structured Achievements',       tagline:'Situation, action, measurable result. The signal AI matching reads.' },
+];
+
+// -----------------------------------------------------------------------------
+// CandidateOperatingProfile - schema-driven multi-section builder. Renders
+// under the existing ProfileForm so the existing scope step, Big Five, career
+// timeline, and references stay in place. Persisted onto fed_profiles.candidate_profile JSONB.
+// -----------------------------------------------------------------------------
+function CandidateOperatingProfile({ value, onChange }) {
+  const [step, setStep] = useState(0);
+  const v = value || emptyCandidateOperatingProfile();
+
+  function set(key, val)        { onChange({ ...v, [key]: val }); }
+  function setNested(key, k, val){ onChange({ ...v, [key]: { ...(v[key]||{}), [k]: val } }); }
+  function toggleList(key, val) {
+    const set = new Set(v[key] || []);
+    if (set.has(val)) set.delete(val); else set.add(val);
+    onChange({ ...v, [key]: [...set] });
+  }
+  function rankDriver(opt) {
+    const cur = v.career_drivers_ranked || [];
+    if (cur.includes(opt)) onChange({ ...v, career_drivers_ranked: cur.filter(x => x !== opt) });
+    else if (cur.length < 5) onChange({ ...v, career_drivers_ranked: [...cur, opt] });
+  }
+  function moveDriver(i, dir) {
+    const cur = [...(v.career_drivers_ranked || [])];
+    const ni = i + dir;
+    if (ni < 0 || ni >= cur.length) return;
+    [cur[i], cur[ni]] = [cur[ni], cur[i]];
+    onChange({ ...v, career_drivers_ranked: cur });
+  }
+  function addAchievement() {
+    onChange({ ...v, achievements: [...(v.achievements || []), { prompt:'', situation:'', action:'', result:'', impact:'', scope:'' }] });
+  }
+  function setAchievement(i, key, val) {
+    const cur = [...(v.achievements || [])];
+    cur[i] = { ...cur[i], [key]: val };
+    onChange({ ...v, achievements: cur });
+  }
+  function removeAchievement(i) {
+    onChange({ ...v, achievements: (v.achievements || []).filter((_,idx) => idx !== i) });
+  }
+
+  const currentStep = CANDIDATE_PROFILE_STEPS[step];
+
+  return (
+    <div className="candprofile">
+      <div className="candprofile-eyebrow">Executive Operating Profile</div>
+      <h3 className="candprofile-headline">
+        Fredheim Desk evaluates your actual scope, operating environment,
+        leadership complexity, and career intent - not just your current title.
+      </h3>
+
+      <div className="candprofile-tabs">
+        {CANDIDATE_PROFILE_STEPS.map((s, i) => (
+          <button
+            key={s.id}
+            className={`candprofile-tab ${i === step ? 'active' : ''}`}
+            onClick={() => setStep(i)}
+          >
+            <span className="candprofile-tab-num">{s.number}</span>
+            <span className="candprofile-tab-label">{s.title}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="candprofile-step">
+        <div className="candprofile-step-tagline">{currentStep.tagline}</div>
+
+        {currentStep.id === 'career_intent' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Select all that apply.</div>
+            <div className="intake-chip-row">
+              {CAREER_INTENT_OPTIONS.map(o => (
+                <button key={o.v} type="button"
+                  className={`intake-chip ${(v.career_intent || []).includes(o.v) ? 'selected' : ''}`}
+                  onClick={() => toggleList('career_intent', o.v)}
+                >{o.l}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep.id === 'environment' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Environments where you perform best</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_ENVIRONMENT_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.environment_preferred || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('environment_preferred', t)}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1rem'}}>Environments that do not fit you well</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_ENVIRONMENT_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.environment_avoid || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('environment_avoid', t)}
+                >{t}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep.id === 'leadership_style' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Select all that describe you.</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_LEADERSHIP_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.leadership_style || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('leadership_style', t)}
+                >{t}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep.id === 'compensation' && (
+          <div className="candprofile-body candprofile-comp-grid">
+            {COMP_PREF_FIELDS.map(f => (
+              <div key={f.k} className="intake-field">
+                <div className="candprofile-field-label">{f.l}</div>
+                {f.type === 'text' && (
+                  <input className="intake-input" value={(v.compensation || {})[f.k] || ''}
+                    onChange={e => setNested('compensation', f.k, e.target.value)} />
+                )}
+                {f.type === 'chip' && (
+                  <div className="intake-chip-row">
+                    {f.options.map(o => (
+                      <button key={o.v} type="button"
+                        className={`intake-chip ${(v.compensation || {})[f.k] === o.v ? 'selected' : ''}`}
+                        onClick={() => setNested('compensation', f.k, (v.compensation || {})[f.k] === o.v ? '' : o.v)}
+                      >{o.l}</button>
+                    ))}
+                  </div>
+                )}
+                {f.type === 'yes_no_unsure' && (
+                  <div className="intake-chip-row">
+                    {[{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'unsure',l:'Unsure'}].map(o => (
+                      <button key={o.v} type="button"
+                        className={`intake-chip ${(v.compensation || {})[f.k] === o.v ? 'selected' : ''}`}
+                        onClick={() => setNested('compensation', f.k, (v.compensation || {})[f.k] === o.v ? '' : o.v)}
+                      >{o.l}</button>
+                    ))}
+                  </div>
+                )}
+                {f.type === 'importance' && (
+                  <div className="intake-chip-row">
+                    {IMPORTANCE_LEVELS.map(o => (
+                      <button key={o.v} type="button"
+                        className={`intake-chip ${(v.compensation || {})[f.k] === o.v ? 'selected' : ''}`}
+                        onClick={() => setNested('compensation', f.k, (v.compensation || {})[f.k] === o.v ? '' : o.v)}
+                      >{o.l}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {currentStep.id === 'drivers' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Pick up to 5. Then rank top 3 by clicking the order arrows.</div>
+            <div className="intake-chip-row">
+              {CAREER_DRIVER_OPTIONS.map(d => (
+                <button key={d} type="button"
+                  className={`intake-chip ${(v.career_drivers_ranked || []).includes(d) ? 'selected' : ''}`}
+                  onClick={() => rankDriver(d)}
+                >{d}</button>
+              ))}
+            </div>
+            {(v.career_drivers_ranked || []).length > 0 && (
+              <div className="candprofile-ranked">
+                <div className="candprofile-field-label">Your ranked drivers</div>
+                {(v.career_drivers_ranked || []).map((d, i) => (
+                  <div key={d} className="candprofile-rank-row">
+                    <span className="candprofile-rank-num">{i + 1}</span>
+                    <span className="candprofile-rank-label">{d}</span>
+                    <div className="candprofile-rank-actions">
+                      <button onClick={() => moveDriver(i, -1)} disabled={i === 0}>up</button>
+                      <button onClick={() => moveDriver(i, 1)} disabled={i === (v.career_drivers_ranked || []).length - 1}>dn</button>
+                      <button onClick={() => rankDriver(d)}>remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentStep.id === 'avoidance' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Signal what you want to avoid. The matcher will deprioritize roles matching these.</div>
+            <div className="intake-chip-row">
+              {ROLE_AVOIDANCE_OPTIONS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.role_avoidance || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('role_avoidance', t)}
+                >{t}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep.id === 'confidentiality' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Identity & visibility</div>
+            <div className="candprofile-toggle-grid">
+              {CONFIDENTIALITY_TOGGLES.map(t => (
+                <label key={t.k} className="candprofile-toggle">
+                  <input type="checkbox"
+                    checked={!!(v.confidentiality || {})[t.k]}
+                    onChange={e => setNested('confidentiality', t.k, e.target.checked)} />
+                  <span>{t.l}</span>
+                </label>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1.25rem'}}>Openness</div>
+            <div className="candprofile-toggle-grid">
+              {OPENNESS_TOGGLES.map(t => (
+                <label key={t.k} className="candprofile-toggle">
+                  <input type="checkbox"
+                    checked={!!(v.openness || {})[t.k]}
+                    onChange={e => setNested('openness', t.k, e.target.checked)} />
+                  <span>{t.l}</span>
+                </label>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1.25rem'}}>Excluded companies (comma separated)</div>
+            <input className="intake-input" value={v.excluded_companies || ''}
+              onChange={e => set('excluded_companies', e.target.value)}
+              placeholder="Company A, Company B" />
+          </div>
+        )}
+
+        {currentStep.id === 'industry_tech' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">Core industries you have led in</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_INDUSTRY_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.core_industries || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('core_industries', t)}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1rem'}}>Adjacent industries you have worked in</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_INDUSTRY_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.adjacent_industries || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('adjacent_industries', t)}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1rem'}}>Industries you would transition into</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_INDUSTRY_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.willing_industries || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('willing_industries', t)}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1rem'}}>Industries you are not interested in</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_INDUSTRY_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.excluded_industries || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('excluded_industries', t)}
+                >{t}</button>
+              ))}
+            </div>
+            <div className="candprofile-field-label" style={{marginTop:'1rem'}}>Technology & systems experience</div>
+            <div className="intake-chip-row">
+              {CANDIDATE_TECH_TAGS.map(t => (
+                <button key={t} type="button"
+                  className={`intake-chip ${(v.tech_experience || []).includes(t) ? 'selected' : ''}`}
+                  onClick={() => toggleList('tech_experience', t)}
+                >{t}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentStep.id === 'achievements' && (
+          <div className="candprofile-body">
+            <div className="candprofile-field-label">
+              Structured achievements drive AI matching and the recruiter-facing
+              summary. Add at least three.
+            </div>
+            {(v.achievements || []).map((a, i) => (
+              <div key={i} className="candprofile-achievement">
+                <div className="candprofile-achievement-header">
+                  <select className="intake-input" value={a.prompt}
+                    onChange={e => setAchievement(i, 'prompt', e.target.value)}>
+                    <option value="">Choose an achievement type...</option>
+                    {ACHIEVEMENT_PROMPTS.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <button className="intake-btn-ghost" onClick={() => removeAchievement(i)}>Remove</button>
+                </div>
+                <textarea className="intake-textarea" rows={2} placeholder="Situation"
+                  value={a.situation || ''} onChange={e => setAchievement(i, 'situation', e.target.value)} />
+                <textarea className="intake-textarea" rows={2} placeholder="Action you took"
+                  value={a.action || ''} onChange={e => setAchievement(i, 'action', e.target.value)} />
+                <textarea className="intake-textarea" rows={2} placeholder="Measurable result (numbers, percentages, dollars)"
+                  value={a.result || ''} onChange={e => setAchievement(i, 'result', e.target.value)} />
+                <textarea className="intake-textarea" rows={2} placeholder="Business impact"
+                  value={a.impact || ''} onChange={e => setAchievement(i, 'impact', e.target.value)} />
+                <input className="intake-input" placeholder="Scope involved (team size, revenue, geography...)"
+                  value={a.scope || ''} onChange={e => setAchievement(i, 'scope', e.target.value)} />
+              </div>
+            ))}
+            <button className="intake-btn-primary" onClick={addAchievement}>Add Achievement</button>
+          </div>
+        )}
+      </div>
+
+      <div className="candprofile-step-nav">
+        <button className="intake-btn-ghost" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}>Previous</button>
+        <span className="candprofile-step-pos">Section {step + 1} of {CANDIDATE_PROFILE_STEPS.length}</span>
+        <button className="intake-btn-primary" onClick={() => setStep(Math.min(CANDIDATE_PROFILE_STEPS.length - 1, step + 1))} disabled={step === CANDIDATE_PROFILE_STEPS.length - 1}>Next</button>
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// CandidateMatchTransparencyCard - rendered when a candidate views a match
+// before Express Interest. Surfaces match confidence, key fit indicators,
+// potential mismatch factors, and confidentiality status.
+// -----------------------------------------------------------------------------
+const FIT_LABELS = {
+  high:     { l:'High Compatibility',   color:'gold' },
+  moderate: { l:'Moderate Compatibility',color:'blue' },
+  stretch:  { l:'Stretch Opportunity',  color:'gold' },
+  low:      { l:'Low Alignment',        color:'red' },
+};
+
+function summarizeFit(match) {
+  // Maps the matcher's `reasons` and score into human-readable indicators.
+  const score = match?.score || 0;
+  const reasons = match?.reasons || {};
+  const fit = score >= 80 ? 'high' : score >= 60 ? 'moderate' : score >= 45 ? 'stretch' : 'low';
+  const indicators = [];
+  const mismatches = [];
+  if (reasons.scope === true)        indicators.push('Strong operational alignment');
+  if (reasons.scope === false)       mismatches.push('Scope below target');
+  if (reasons.complexity === true)   indicators.push('Operational complexity aligned');
+  if (reasons.complexity === false)  mismatches.push('Complexity gap');
+  if (reasons.industry === true)     indicators.push('Strong industry fit');
+  if (reasons.industry === 'adjacent') indicators.push('Adjacent industry');
+  if (reasons.industry === false)    mismatches.push('Industry mismatch');
+  if (reasons.salary === true)       indicators.push('Compensation aligned');
+  if (reasons.salary === false)      mismatches.push('Compensation mismatch');
+  if (reasons.location === false)    mismatches.push('Location mismatch');
+  if (reasons.industrial_translator) indicators.push('Industrial-commercial translator pattern');
+  if (reasons.complexity_tags === true) indicators.push('Strong operational complexity overlap');
+  if (Array.isArray(reasons.must_have_gaps) && reasons.must_have_gaps.length) {
+    mismatches.push('Missing must-have: ' + reasons.must_have_gaps.join(', '));
+  }
+  return { fit, indicators, mismatches };
+}
+
+function CandidateMatchTransparencyCard({ match, profile, onExpressInterest, onClose }) {
+  const summary = summarizeFit(match);
+  const label = FIT_LABELS[summary.fit];
+  const conf = (profile && profile.candidate_profile && profile.candidate_profile.confidentiality) || {};
+  const anonymous = !!conf.anonymous_mode;
+
+  return (
+    <div className="match-transparency">
+      <div className="intake-review-eyebrow">Match Transparency</div>
+      <div className={`match-transparency-fit ${label.color}`}>
+        <div className="match-transparency-fit-label">{label.l}</div>
+        <div className="match-transparency-fit-score">{Math.round(match?.score || 0)}/100</div>
+      </div>
+
+      <div className="match-transparency-section">
+        <div className="intake-summary-title">Key fit indicators</div>
+        {summary.indicators.length === 0
+          ? <div className="match-transparency-empty">Insufficient signal - complete your operating profile for clearer matching.</div>
+          : <ul className="match-transparency-list good">
+              {summary.indicators.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+        }
+      </div>
+
+      <div className="match-transparency-section">
+        <div className="intake-summary-title">Potential mismatch factors</div>
+        {summary.mismatches.length === 0
+          ? <div className="match-transparency-empty">No mismatches surfaced.</div>
+          : <ul className="match-transparency-list bad">
+              {summary.mismatches.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+        }
+      </div>
+
+      <div className="match-transparency-section">
+        <div className="intake-summary-title">Your confidentiality at this stage</div>
+        <div className="match-transparency-confidentiality">
+          {anonymous
+            ? 'Anonymous mode is on. The recruiter only sees scope, complexity, leadership profile, and industry. No name, employer, or contact until you confirm interest.'
+            : 'Standard visibility. Recruiter sees your name and headline. Contact details remain hidden until you confirm interest.'}
+        </div>
+      </div>
+
+      <div className="match-transparency-actions">
+        <button className="intake-btn-ghost" onClick={onClose}>Close</button>
+        <button className="intake-btn-primary" onClick={onExpressInterest}>Express Interest</button>
+      </div>
+      <div className="match-transparency-fineprint">
+        Fredheim Desk surfaces fewer, better introductions. We prefer one confirmed mutual interest to twenty cold applications.
       </div>
     </div>
   );
@@ -4092,6 +5534,29 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
     engagement_status:      '',   // permanent | interim | consultant | early_career
   });
   function setV(k,v) { setVetting(p=>({...p,[k]:v})); }
+
+  // -- CANDIDATE OPERATING PROFILE (CAREER INTENT, ENV, DRIVERS, ETC.) -------
+  // Schema-driven 11-section profile that mirrors the recruiter intake. Lives
+  // alongside the legacy scope/Big Five/vetting state and persists under
+  // fed_profiles.candidate_operating_profile JSONB so existing matchers and
+  // admin views are unaffected.
+  const [opProfile, setOpProfile] = useState(emptyCandidateOperatingProfile());
+  useEffect(() => {
+    if (!authUserEmail) return;
+    sb.from('fed_profiles')
+      .select('candidate_operating_profile')
+      .eq('email', authUserEmail)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data || !data.candidate_operating_profile) return;
+        const stored = typeof data.candidate_operating_profile === 'string'
+          ? JSON.parse(data.candidate_operating_profile)
+          : data.candidate_operating_profile;
+        if (stored && typeof stored === 'object') {
+          setOpProfile({ ...emptyCandidateOperatingProfile(), ...stored });
+        }
+      });
+  }, [authUserEmail]);
 
   // ── SCOPE & COMPLEXITY STATE ────────────────────────────────────────────
   // Captures what the candidate currently DOES — independent of title. This
@@ -4242,6 +5707,11 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       big_five: shareBigFive ? JSON.stringify(bigFive) : null,
       big_five_shared: shareBigFive,
       candidate_scope:       scope,
+      // Schema-driven 11-section operating profile. Mirrors recruiter intake
+      // so the matcher can compare like-for-like (career intent, environment
+      // fit, leadership style, comp prefs, drivers, avoidance, confidentiality,
+      // industry adjacency, achievements).
+      candidate_operating_profile: opProfile,
       scope_score:           metrics.scope_score,
       complexity_score:      metrics.complexity_score,
       strategic_score:       metrics.strategic_score,
@@ -5164,6 +6634,14 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             <p style={{fontSize:'0.7rem',color:'var(--ink-4)',lineHeight:'1.55',marginTop:'0.5rem'}}>
               You can skip references now and add them later from your profile dashboard.
             </p>
+          </div>
+
+          {/* -- Executive Operating Profile (career intent, environment fit, leadership style,
+                comp prefs, drivers, avoidance, confidentiality, industry adjacency, achievements).
+                Schema-driven, 9 sections rendered as tabs. Mirrors the recruiter intake so the
+                matcher can compare like-for-like. Persists to fed_profiles.candidate_operating_profile. */}
+          <div className="vetting-section" style={{marginTop:'1rem'}}>
+            <CandidateOperatingProfile value={opProfile} onChange={setOpProfile} />
           </div>
 
           {/* Summary */}
@@ -6625,6 +8103,12 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         <button className={`admin-tab ${tab==='benchmarks'?'active':''}`} onClick={()=>setTab('benchmarks')}>
           Comp Benchmarks
         </button>
+        <button className={`admin-tab ${tab==='intake_schema'?'active':''}`} onClick={()=>setTab('intake_schema')}>
+          Intake Schema
+        </button>
+        <button className={`admin-tab ${tab==='recruiter_quality'?'active':''}`} onClick={()=>setTab('recruiter_quality')}>
+          Recruiter Quality
+        </button>
       </div>
 
       {/* ── SUBMISSIONS TAB ── */}
@@ -7017,6 +8501,14 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
 
       {tab === 'benchmarks' && (
         <AdminCompBenchmarksTab showToast={showToast} />
+      )}
+
+      {tab === 'intake_schema' && (
+        <AdminIntakeSchemaTab />
+      )}
+
+      {tab === 'recruiter_quality' && (
+        <AdminRecruiterQualityTab submissions={submissions} />
       )}
     </div>
   );
