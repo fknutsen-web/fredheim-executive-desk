@@ -4658,6 +4658,45 @@
     .candprofile-rank-actions { grid-column: 1 / -1; }
   }
 
+
+  /* ===================================================================
+     INTRODUCTION STATUS PANEL + JOB LIFECYCLE + MARKET DEMAND
+     =================================================================== */
+  .intro-status-panel { border:1px solid var(--rule); border-radius:4px; padding:1rem 1.125rem; background:var(--paper); display:flex; flex-direction:column; gap:0.625rem; }
+  .intro-status-eyebrow { font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.12em; }
+  .intro-status-options { display:flex; flex-wrap:wrap; gap:0.4rem; }
+  .intro-status-chip { font-family:inherit; font-size:0.74rem; padding:0.45rem 0.875rem; border:1px solid var(--rule); background:var(--paper); color:var(--ink-2); border-radius:3px; cursor:pointer; transition:all 0.12s ease; }
+  .intro-status-chip:hover { border-color:var(--gold-rule); color:var(--ink-1); }
+  .intro-status-chip.selected { border-color:var(--gold); background:var(--gold-bg); color:var(--ink-1); box-shadow:inset 0 0 0 1px var(--gold); }
+  .intro-status-chip:disabled { opacity:0.5; cursor:wait; }
+  .intro-status-fineprint { font-size:0.7rem; color:var(--ink-4); line-height:1.55; padding-top:0.4rem; border-top:1px dashed var(--rule); }
+  .intro-status-locked { border:1px dashed var(--rule); padding:1rem 1.125rem; border-radius:4px; background:rgba(0,0,0,0.02); }
+  .intro-status-locked-title { font-family:'Playfair Display',serif; font-size:0.95rem; color:var(--ink-2); margin-bottom:0.4rem; }
+  .intro-status-locked-blurb { font-size:0.78rem; color:var(--ink-4); line-height:1.6; }
+
+  .job-lifecycle-card { border:1px solid var(--rule); border-radius:4px; padding:1rem 1.125rem; background:var(--paper); margin-bottom:0.75rem; }
+  .job-lifecycle-card.phase-expired { border-color:#d8b8b8; background:rgba(139,26,26,0.04); }
+  .job-lifecycle-card.phase-expiring_soon { border-color:var(--gold-rule); background:var(--gold-bg); }
+  .job-lifecycle-eyebrow { font-family:'DM Mono',monospace; font-size:0.6rem; color:var(--gold); text-transform:uppercase; letter-spacing:0.12em; margin-bottom:0.35rem; }
+  .job-lifecycle-card.phase-expired .job-lifecycle-eyebrow { color:#8b1a1a; }
+  .job-lifecycle-title { font-family:'Playfair Display',serif; font-size:1rem; color:var(--ink-1); margin-bottom:0.2rem; }
+  .job-lifecycle-meta { font-size:0.72rem; color:var(--ink-4); margin-bottom:0.625rem; }
+  .job-lifecycle-review-prompt { font-size:0.74rem; color:var(--ink-2); line-height:1.55; background:rgba(0,0,0,0.03); padding:0.5rem 0.75rem; border-radius:3px; margin-bottom:0.625rem; }
+  .job-lifecycle-actions { display:flex; gap:0.4rem; flex-wrap:wrap; }
+
+  .market-demand-pill { display:inline-flex; gap:0.5rem; align-items:center; padding:0.3rem 0.625rem; border:1px solid var(--rule); border-radius:3px; font-size:0.7rem; color:var(--ink-2); background:var(--paper); }
+  .market-demand-pill .label { font-family:'DM Mono',monospace; font-size:0.58rem; color:var(--ink-4); text-transform:uppercase; letter-spacing:0.08em; }
+  .market-demand-pill.high_demand,.market-demand-pill.critical_shortage { border-color:#d8b8b8; color:#8b1a1a; background:rgba(139,26,26,0.04); }
+  .market-demand-pill.rising,.market-demand-pill.rapidly_rising { border-color:var(--gold-rule); background:var(--gold-bg); color:var(--ink-1); }
+  .market-demand-directional-note { font-size:0.68rem; color:var(--ink-4); font-style:italic; margin-top:0.4rem; }
+
+  .compensation-alignment-flag { display:inline-block; padding:0.2rem 0.5rem; border-radius:2px; font-family:'DM Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.08em; }
+  .compensation-alignment-flag.clear_alignment { background:var(--gold-bg); color:var(--ink-1); border:1px solid var(--gold); }
+  .compensation-alignment-flag.candidate_may_stretch { background:rgba(30,77,122,0.06); color:#1e4d7a; border:1px solid #c7d5e3; }
+  .compensation-alignment-flag.possible_gap { background:rgba(0,0,0,0.04); color:var(--ink-3); border:1px solid var(--rule); }
+  .compensation-alignment-flag.material_mismatch { background:rgba(139,26,26,0.06); color:#8b1a1a; border:1px solid #d8b8b8; }
+  .compensation-alignment-flag.recruiter_below_market { background:rgba(139,26,26,0.04); color:#8b1a1a; border:1px dashed #d8b8b8; }
+
 </style>
 </head>
 <body>
