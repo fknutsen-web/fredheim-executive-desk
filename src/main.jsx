@@ -3583,10 +3583,12 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
         </div>
       </div>
       <div className="nav-links">
-        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Opportunities</button>
-        <button className={`nav-link ${activeView==='early-careers'?'active':''}`} onClick={() => go('early-careers')}>Early Careers</button>
-        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting</button>
+        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Executive Search</button>
+        <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting &amp; Interim</button>
+        <button className={`nav-link ${activeView==='industrial-tech'?'active':''}`} onClick={() => go('industrial-tech')}>Industrial Technology</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => go('pricing')}>Pricing</button>
+        <div className="nav-divider" />
+        <button className={`nav-link nav-link-secondary ${activeView==='early-careers'?'active':''}`} onClick={() => go('early-careers')}>Early Career</button>
         <div className="nav-divider" />
         {authUser && userType === 'recruiter' && (
           <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => go('recruiter-dash')}>Firm Dashboard</button>
@@ -3631,6 +3633,10 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             energy, and industrial logistics. Salary ranges always published.
             Your identity protected until you choose to engage.
           </p>
+          <div className="hero-positioning">
+            Fredheim Desk evaluates operational scope, leadership complexity,
+            and organizational fit &mdash; not just titles and keywords.
+          </div>
           <div className="hero-actions">
             <button className="btn-primary" onClick={scrollToJobs}>Browse Opportunities</button>
             {authUser ? (
@@ -4645,6 +4651,80 @@ function isFieldFilled(value, field) {
   return true;
 }
 
+// -- PROGRESSIVE PROFILING -------------------------------------------------
+// Derive profile level from existing tier so we don't need a separate `level`
+// field on every INTAKE_SCHEMA field. Mapping:
+//   required             -> essential   (must complete for fast onboarding)
+//   strongly_encouraged  -> enhanced     (optional, drives match precision)
+//   optional             -> executive    (deep profile, serious users only)
+function fieldLevel(field) {
+  if (!field) return 'enhanced';
+  if (field.tier === 'required')             return 'essential';
+  if (field.tier === 'strongly_encouraged')  return 'enhanced';
+  return 'executive';
+}
+
+const PRECISION_TIERS = [
+  { v:'essential',    l:'Essential',           min:0,  next:'enhanced' },
+  { v:'enhanced',     l:'Enhanced Precision',  min:50, next:'executive' },
+  { v:'executive',    l:'Executive Precision', min:80, next:null },
+];
+
+// Given completeness, return the current precision tier and next-best action.
+function computePrecision(values) {
+  const c = computeIntakeCompleteness(values);
+  const tier =
+    c.required_pct >= 90 && c.encouraged_pct >= 70 ? 'executive'
+  : c.required_pct >= 90 && c.encouraged_pct >= 30 ? 'enhanced'
+  : 'essential';
+  // Find one suggested field to add for the next tier
+  let suggestion = null;
+  for (const f of Object.values(INTAKE_FIELD_INDEX)) {
+    if (suggestion) break;
+    const isFilled = isFieldFilled(values[f.key], f);
+    if (isFilled) continue;
+    if (tier === 'essential' && fieldLevel(f) === 'essential') {
+      suggestion = f.label;
+    } else if (tier === 'enhanced' && fieldLevel(f) === 'enhanced') {
+      suggestion = f.label;
+    } else if (tier === 'executive' && fieldLevel(f) === 'executive') {
+      suggestion = f.label;
+    }
+  }
+  return {
+    tier,
+    label: PRECISION_TIERS.find(t => t.v === tier).l,
+    completeness: c,
+    suggestion,
+  };
+}
+
+// MatchPrecisionMeter - visual progression indicator. Frames additional fields
+// as match-precision improvement, never as administrative compliance.
+function MatchPrecisionMeter({ values, onExpandLevel }) {
+  const p = computePrecision(values);
+  const widthPct = p.tier === 'executive' ? 100 : p.tier === 'enhanced' ? 66 : 33;
+  return (
+    <div className="precision-meter">
+      <div className="precision-meter-header">
+        <span className="precision-meter-label">Match Precision</span>
+        <span className={`precision-meter-tier ${p.tier}`}>{p.label}</span>
+      </div>
+      <div className="precision-meter-track"><div className="precision-meter-fill" style={{width:`${widthPct}%`}} /></div>
+      {p.suggestion && (
+        <div className="precision-meter-suggestion">
+          Add <strong>{p.suggestion}</strong> to improve match precision.
+          {onExpandLevel && p.tier !== 'executive' && (
+            <button type="button" className="precision-meter-expand" onClick={() => onExpandLevel(p.tier === 'essential' ? 'enhanced' : 'executive')}>
+              {p.tier === 'essential' ? 'Improve Match Precision' : 'Executive Precision Profile'}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function computeIntakeCompleteness(values) {
   let required = 0, requiredFilled = 0;
   let encouraged = 0, encouragedFilled = 0;
@@ -4998,6 +5078,15 @@ function IntakeWorkflow({ onSubmit, onCancel, loading, submitted, pricingCfg }) 
   const [step, setStep] = useState(0);
   const [values, setValues] = useState(emptyIntakeValues());
   const [parsedFields, setParsedFields] = useState(null);
+  // Progressive profiling. Default visible level is 'essential' so first-time
+  // recruiters complete a fast brief in under 3 minutes. They can expand to
+  // 'enhanced' or 'executive' via the precision meter or the toggle below.
+  const [visibleLevel, setVisibleLevel] = useState('essential');
+  function fieldVisible(field) {
+    if (visibleLevel === 'executive') return true;                  // show everything
+    if (visibleLevel === 'enhanced')  return fieldLevel(field) !== 'executive';
+    return fieldLevel(field) === 'essential';
+  }
 
   function set(key, val) { setValues(p => ({ ...p, [key]: val })); }
   function applyParsed(approved) {
@@ -5105,16 +5194,34 @@ function IntakeWorkflow({ onSubmit, onCancel, loading, submitted, pricingCfg }) 
         <IntakeReview values={values} completeness={completeness} transparency={transparency} />
       ) : (
         <div className="intake-step-body">
-          {(currentStep.groups || []).map(group => (
-            <IntakeGroup
-              key={group.id}
-              group={group}
-              values={values}
-              set={set}
-              toggleChip={toggleChip}
-              setPriority={setPriority}
-            />
-          ))}
+          <MatchPrecisionMeter values={values} onExpandLevel={setVisibleLevel} />
+          <div className="precision-toggle">
+            {[
+              {v:'essential',l:'Essential'},
+              {v:'enhanced', l:'Enhanced'},
+              {v:'executive',l:'Executive Precision'},
+            ].map(o => (
+              <button key={o.v} type="button"
+                className={`precision-toggle-btn ${visibleLevel === o.v ? 'active' : ''}`}
+                onClick={() => setVisibleLevel(o.v)}>{o.l}</button>
+            ))}
+          </div>
+          {(currentStep.groups || []).map(group => {
+            // Drop entire groups when none of their fields pass the visibility
+            // filter. Avoids empty group headers in essential mode.
+            const visibleFields = (group.fields || []).filter(fieldVisible);
+            if (visibleFields.length === 0) return null;
+            return (
+              <IntakeGroup
+                key={group.id}
+                group={{ ...group, fields: visibleFields }}
+                values={values}
+                set={set}
+                toggleChip={toggleChip}
+                setPriority={setPriority}
+              />
+            );
+          })}
           {requiredMissingOnStep(currentStep).length > 0 && (
             <div className="intake-required-warning">
               Required on this step: {requiredMissingOnStep(currentStep).map(f => f.label).join(', ')}
@@ -13454,7 +13561,71 @@ function BriefModal({ onClose, showToast }) {
 }
 
 
-// ── ABOUT PAGE ───────────────────────────────────────────────────────────────
+// -- INDUSTRIAL TECHNOLOGY LANDING --------------------------------------------
+// Positions the platform's industrial-tech vertical alongside Executive Search
+// and Consulting. Surfaces the matching engine's industrial-translator
+// pattern detection. Filters jobs to industrial-tech industries when shown.
+function IndustrialTechLanding({ goToView, jobs }) {
+  const TECH_VERTICALS = [
+    'Maritime Technology','Industrial SaaS','Port Technology','Logistics Technology',
+    'Operational AI','Fleet Intelligence','Industrial Automation',
+    'Safety & Compliance Technology','Supply Chain Technology',
+  ];
+  const techJobs = (jobs || []).filter(j => {
+    const ind = (j.industry || '').toLowerCase();
+    return ['technology','saas','intelligence','automation','ai','digital','platform','software'].some(k => ind.includes(k));
+  });
+  return (
+    <div className="industrial-tech-landing">
+      <div className="legal-eyebrow">Industrial Technology</div>
+      <h1 className="legal-title">Industrial Technology Leadership</h1>
+      <p className="hero-positioning" style={{maxWidth:780,marginBottom:'2rem'}}>
+        Fredheim Desk surfaces the rare commercial-technical leaders who can
+        translate maritime, ports, energy, and industrial operations into
+        software, AI, and platform businesses &mdash; and the operators who can
+        run them.
+      </p>
+      <div className="legal-section">
+        <h2 className="legal-section-title">Verticals served</h2>
+        <div className="intake-chip-row">
+          {TECH_VERTICALS.map(v => (
+            <span key={v} className="intake-chip selected" style={{cursor:'default'}}>{v}</span>
+          ))}
+        </div>
+        <p style={{marginTop:'1rem',fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.6}}>
+          Focused on technology serving industrial and operational sectors.
+          We do not broaden into generic software recruiting.
+        </p>
+      </div>
+      <div className="legal-section">
+        <h2 className="legal-section-title">Active searches</h2>
+        {techJobs.length === 0 ? (
+          <p style={{color:'var(--ink-4)',fontSize:'0.85rem'}}>
+            No active industrial-technology searches at the moment. New searches
+            appear here as recruiters post them.
+          </p>
+        ) : (
+          <p style={{color:'var(--ink-2)',fontSize:'0.85rem'}}>
+            {techJobs.length} active search{techJobs.length === 1 ? '' : 'es'}.
+            {' '}<a onClick={() => goToView('jobs')} style={{color:'var(--gold)',cursor:'pointer',textDecoration:'underline'}}>Browse all opportunities &rarr;</a>
+          </p>
+        )}
+      </div>
+      <div className="legal-section">
+        <h2 className="legal-section-title">The industrial-commercial translator</h2>
+        <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.7}}>
+          Our matcher specifically detects the pattern that industrial-tech
+          companies cannot find through generic SaaS recruiters: leaders fluent
+          in both recurring-revenue commercial motion and the operational reality
+          of ports, vessels, terminals, and logistics. The platform awards
+          credit for this combined profile rather than treating it as noise.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// -- ABOUT PAGE ---------------------------------------------------------------
 function AboutPage({ setActiveView }) {
   return (
     <div className="legal-page">
@@ -13775,7 +13946,7 @@ function App() {
   // and back/forward navigable. Other internal views (signin, myprofile,
   // recruiter-dash, etc.) are state-only and don't push hashes - they are not
   // public anchor destinations.
-  const HASHABLE_VIEWS = ['jobs','early-careers','consulting','pricing','about','terms','privacy'];
+  const HASHABLE_VIEWS = ['jobs','early-careers','consulting','industrial-tech','pricing','about','terms','privacy'];
 
   function goToView(view) {
     // 'profile' view shows the ProfileForm - accessible to all users whether authed or not
