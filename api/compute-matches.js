@@ -254,12 +254,64 @@ function computeMatchScore(candidate, job) {
     }
   } else { score += 7; reasons.industry = null; }
 
-  // ── 5. COMPENSATION (10 pts) ───────────────────────────────────────────
-  if (candidate?.salary_min && job?.salary_max && job.salary_max > 0) {
-    if (candidate.salary_min <= job.salary_max) {
-      score += 10; reasons.salary = true;
-    } else { reasons.salary = false; }
-  } else { score += 10; reasons.salary = null; }
+  // -- 5. COMPENSATION (10 pts) with structured Min/Target/Ceiling framework -
+  // Reads the schema-aligned comp_floor / comp_target_low / comp_target_high /
+  // comp_exceptional_ceiling / comp_negotiability from job.intake when
+  // available, and the candidate's candidate_operating_profile.compensation
+  // (minimum_base / target_base / desired_total / flexibility). Emits a
+  // qualitative comp_alignment flag in addition to numeric score adjustment.
+  //   clear_alignment         - candidate floor inside job target band
+  //   candidate_may_stretch    - above target but reachable at ceiling, with
+  //                              recruiter or candidate flexibility
+  //   possible_gap             - above target, no flexibility
+  //   material_mismatch         - above the exceptional ceiling
+  //   recruiter_below_market    - ceiling clearly below market for the class
+  const _op = candidate?.candidate_operating_profile || {};
+  const _comp = _op.compensation || {};
+  const _intake = job?.intake || (job?.role_scope_requirements && job.role_scope_requirements.intake) || {};
+  function parseUSD(s) {
+    if (s == null || s === '') return NaN;
+    const str = String(s).toLowerCase().replace(/[\s,]/g,'');
+    const n = parseFloat(str.replace(/[^0-9.km]/g,''));
+    if (!Number.isFinite(n)) return NaN;
+    if (str.includes('m')) return n * 1000000;
+    if (str.includes('k')) return n * 1000;
+    return n;
+  }
+  const candFloorMin = parseUSD(_comp.minimum_base) || candidate?.salary_min;
+  const candTarget   = parseUSD(_comp.target_base);
+  const candTotal    = parseUSD(_comp.desired_total);
+  const candFlex     = _comp.flexibility || '';
+  const candSoft     = candFlex === 'highly_flexible' || candFlex === 'open_exceptional' || candFlex === 'depends_package';
+  const jobFloor       = parseUSD(_intake.comp_floor)              || job?.salary_min;
+  const jobTargetLow   = parseUSD(_intake.comp_target_low);
+  const jobTargetHigh  = parseUSD(_intake.comp_target_high)         || job?.salary_max;
+  const jobCeiling     = parseUSD(_intake.comp_exceptional_ceiling) || jobTargetHigh;
+  const jobNeg         = _intake.comp_negotiability || '';
+  const recOpen        = jobNeg === 'highly_flexible' || jobNeg === 'open_exceptional' || jobNeg === 'equity_ltip_adjust';
+
+  if (Number.isFinite(candFloorMin) && Number.isFinite(jobTargetHigh)) {
+    if (candFloorMin <= jobTargetHigh) {
+      score += 10; reasons.salary = true; reasons.comp_alignment = 'clear_alignment';
+    } else if (Number.isFinite(jobCeiling) && candFloorMin <= jobCeiling) {
+      if (recOpen || candSoft) {
+        score += 7; reasons.salary = 'stretch'; reasons.comp_alignment = 'candidate_may_stretch';
+      } else {
+        score += 3; reasons.salary = false; reasons.comp_alignment = 'possible_gap';
+      }
+    } else {
+      reasons.salary = false; reasons.comp_alignment = 'material_mismatch';
+    }
+    // Recruiter-below-market signal (intelligence, not punitive)
+    if (job.required_leadership_class === 'c_suite' && Number.isFinite(jobCeiling) && jobCeiling < 250000) {
+      reasons.comp_alignment_note = 'recruiter_below_market';
+    }
+    if (Number.isFinite(candTotal) && Number.isFinite(jobCeiling) && candTotal > jobCeiling * 1.4) {
+      reasons.comp_alignment_note = 'recruiter_below_market';
+    }
+  } else {
+    score += 10; reasons.salary = null; reasons.comp_alignment = 'insufficient_data';
+  }
 
   // ── 6. LOCATION (5 pts) ────────────────────────────────────────────────
   if (job?.location && candidate?.location) {

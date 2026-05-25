@@ -354,11 +354,15 @@ module.exports = async function handler(req, res) {
       archived,
       interestNotifications,
       foundingStatus,
+      introReminders,
+      jobExpiration,
     ] = await Promise.all([
       runColdEngagementCheckins(),
       runAutoArchive(),
       runCandidateInterestNotifications(),
       runFoundingCapCheck(),
+      runIntroductionReminders(),
+      runJobListingExpiration(),
     ]);
 
     const summary = {
@@ -368,6 +372,8 @@ module.exports = async function handler(req, res) {
       engagements_archived:       archived,
       interest_notifications_sent: interestNotifications,
       founding_partner_status:    foundingStatus,
+      introduction_reminders:     introReminders,
+      job_expiration:             jobExpiration,
     };
 
     console.log('talent-billing cron complete:', JSON.stringify(summary));
