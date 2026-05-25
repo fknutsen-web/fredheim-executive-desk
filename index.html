@@ -30,7 +30,8 @@
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+  @media (max-width: 700px) { html { scroll-padding-top: 64px; } }
 
   body {
     background: var(--paper);
@@ -4887,8 +4888,7 @@
 </style>
 </head>
 <body>
-<div id="root"></div>
-
-<script type="module" src="/src/main.jsx"></script>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
