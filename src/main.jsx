@@ -3881,6 +3881,349 @@ function TosModal({ onAgree, onCancel }) {
     </div>
   );
 }
+// -----------------------------------------------------------------------------
+// CONFIDENTIALITY / ANTI-CIRCUMVENTION HELPERS
+// Pure functions that anonymize candidate profiles and job listings before
+// a paid introduction is confirmed. Replaces identifying details with
+// generalized descriptors so neither side can route around the platform.
+//
+// Applied at every render site that shows profiles or jobs to the other
+// party pre-introduction.
+//
+// Examples:
+//   Instead of "Commercial Director at SESCO Terminals"
+//   Display:   "Commercial leader at privately held industrial terminal operator"
+//
+//   Instead of "Houston, TX"
+//   Display:   "US Gulf Coast"
+// -----------------------------------------------------------------------------
+
+// Regional collapse map. Specific cities/states become broader regions.
+const REGION_COLLAPSE = [
+  { match: /\b(houston|galveston|beaumont|corpus christi|new orleans|mobile|tampa|jacksonville|miami)\b/i, region: 'US Gulf Coast' },
+  { match: /\b(savannah|charleston|wilmington|norfolk|baltimore|philadelphia|new york|newark|boston)\b/i, region: 'US East Coast' },
+  { match: /\b(los angeles|long beach|oakland|san francisco|portland|seattle|tacoma|san diego)\b/i, region: 'US West Coast' },
+  { match: /\b(chicago|st\.? louis|kansas city|memphis|minneapolis|cincinnati|cleveland|detroit|pittsburgh)\b/i, region: 'US Inland' },
+  { match: /\b(dallas|fort worth|austin|san antonio|oklahoma city|denver|phoenix)\b/i, region: 'US South / Mountain' },
+  { match: /\b(rotterdam|amsterdam|antwerp|hamburg|bremen|le havre|marseille|genoa|barcelona|valencia)\b/i, region: 'Continental Europe / ARA' },
+  { match: /\b(london|liverpool|southampton|felixstowe|dublin|aberdeen)\b/i, region: 'UK & Ireland' },
+  { match: /\b(singapore|hong kong|shanghai|busan|tokyo|kobe|yokohama|kaohsiung|shenzhen)\b/i, region: 'East Asia' },
+  { match: /\b(dubai|abu dhabi|jeddah|jebel ali|doha|salalah|fujairah)\b/i, region: 'Middle East' },
+  { match: /\b(alexandria|port said|damietta|casablanca|tangier|tunis|algiers)\b/i, region: 'North Africa / Mediterranean' },
+  { match: /\b(santos|paranagua|buenos aires|valparaiso|callao|cartagena)\b/i, region: 'South America' },
+  { match: /\b(sydney|melbourne|brisbane|fremantle|auckland)\b/i, region: 'Oceania' },
+  { match: /\b(mumbai|chennai|kolkata|jakarta|manila|bangkok)\b/i, region: 'South / Southeast Asia' },
+];
+
+function anonymizeLocation(location) {
+  if (!location || typeof location !== 'string') return 'Region undisclosed';
+  for (const rule of REGION_COLLAPSE) {
+    if (rule.match.test(location)) return rule.region;
+  }
+  // Fallback: keep only the country / final segment of "City, Region, Country"
+  const parts = location.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 2) return parts[parts.length - 1];
+  return 'Region undisclosed';
+}
+
+// Generalize company name into "<descriptor> <vertical>" form. The descriptor
+// blends ownership_structure and company_size when available so the display
+// is informative without being identifying.
+function anonymizeCompanyDescriptor(profile) {
+  if (!profile) return 'Confidential industrial operator';
+  const intake = profile.candidate_operating_profile || {};
+  const industries = intake.core_industries || [];
+  const opMode = (industries.find(i => /terminal|port/i.test(i))    ? 'industrial terminal operator'
+                : industries.find(i => /maritime|shipping/i.test(i)) ? 'maritime operator'
+                : industries.find(i => /energy|offshore/i.test(i))   ? 'energy operator'
+                : industries.find(i => /logistics|freight/i.test(i)) ? 'industrial logistics operator'
+                : industries.find(i => /cement|aggregates|steel/i.test(i)) ? 'bulk materials operator'
+                : 'industrial operator');
+  // Inherit ownership signal from the recruiter intake if this is a job side,
+  // otherwise from the candidate's preferred environments.
+  const env = profile.candidate_operating_profile?.environment_preferred || [];
+  const ownership = env.includes('PE-Backed')        ? 'PE-backed'
+                  : env.includes('Family-Owned')      ? 'family-owned'
+                  : env.includes('Structured Corporate')? 'publicly held'
+                  : env.includes('Startup')           ? 'growth-stage'
+                  : 'privately held';
+  return `${ownership} ${opMode}`;
+}
+
+function anonymizeJobDescriptor(job) {
+  if (!job) return 'Confidential industrial role';
+  const intake = job.intake || {};
+  const env = job.environment_tags || intake.environment_tags || [];
+  const ownership = env.includes('PE-Backed')        ? 'PE-backed'
+                  : env.includes('Family-Owned')      ? 'family-owned'
+                  : env.includes('Corporate')         ? 'publicly held'
+                  : env.includes('Startup')           ? 'growth-stage'
+                  : 'privately held';
+  const industry = (job.industry || '').toLowerCase();
+  const operator = industry.includes('terminal') ? 'industrial terminal operator'
+                 : industry.includes('maritime') ? 'maritime operator'
+                 : industry.includes('energy')   ? 'energy operator'
+                 : industry.includes('logistic') ? 'industrial logistics operator'
+                 : 'industrial operator';
+  return `${ownership} ${operator}`;
+}
+
+// Map a candidate scope/title pair into a generic "Commercial leader" label.
+function anonymizeRoleLabel(profile) {
+  const cls = profile?.leadership_class || '';
+  const fn  = (profile?.function || '').toLowerCase();
+  const tone = fn.includes('commercial') || fn.includes('sales') ? 'Commercial leader'
+             : fn.includes('operation')                          ? 'Operations leader'
+             : fn.includes('finance')                            ? 'Finance leader'
+             : fn.includes('technical') || fn.includes('engineer')? 'Technical leader'
+             : 'Executive leader';
+  const tier = cls === 'c_suite'    ? 'C-Suite'
+             : cls === 'svp'        ? 'SVP-tier'
+             : cls === 'vp'         ? 'VP-tier'
+             : cls === 'director'   ? 'Director-tier'
+             : cls === 'sr_manager' ? 'Senior manager-tier'
+             : '';
+  return tier ? `${tone} - ${tier}` : tone;
+}
+
+// Detect whether a piece of free-text refers to a known vessel / facility /
+// project name we should strip out of the anonymized summary. The pattern is
+// conservative - we only redact obvious vessel/asset patterns.
+const ASSET_NAME_PATTERN = /\b(?:MV|M\/V|MS|SS|barge|berth|terminal|facility|project)\s+[A-Z][A-Za-z0-9\- ]{2,40}\b/g;
+function stripAssetNames(text) {
+  if (!text || typeof text !== 'string') return text;
+  return text.replace(ASSET_NAME_PATTERN, '[asset redacted]');
+}
+
+// A profile-side anonymized summary. Recruiter sees this until they confirm
+// (i.e. pay for) a curated introduction.
+function anonymizeProfile(profile, options) {
+  options = options || {};
+  if (options.introductionConfirmed) return profile; // pass-through after payment
+  if (!profile) return profile;
+  return {
+    id:                  profile.id,
+    display_name:        'Confidential Executive',
+    headline:            anonymizeRoleLabel(profile),
+    company_display:     anonymizeCompanyDescriptor(profile),
+    location:            anonymizeLocation(profile.location),
+    industry:            profile.industry,
+    function:            profile.function,
+    leadership_class:    profile.leadership_class,
+    complexity_class:    profile.complexity_class,
+    equivalent_label:    profile.equivalent_label,
+    industrial_translator: profile.industrial_translator,
+    scope_score:         profile.scope_score,
+    complexity_score:    profile.complexity_score,
+    strategic_score:     profile.strategic_score,
+    commercial_score:    profile.commercial_score,
+    salary_min:          profile.salary_min,
+    candidate_scope:     profile.candidate_scope,
+    career_intent_tags:  profile.career_intent_tags || [],
+    leadership_style_tags: profile.leadership_style_tags || [],
+    core_industries:     profile.core_industries || [],
+    tech_experience:     profile.tech_experience || [],
+    // achievements summary - strip asset names
+    achievement_summary: stripAssetNames(profile.headline_summary || ''),
+    is_anonymized:       true,
+    tier:                profile.tier,
+    created_at:          profile.created_at,
+  };
+}
+
+// A job-side anonymized summary. Candidate sees this until they confirm interest
+// AND the recruiter has paid for the introduction.
+function anonymizeJob(job, options) {
+  options = options || {};
+  if (options.introductionConfirmed) return job;
+  if (!job) return job;
+  return {
+    id:                   job.id,
+    title:                stripAssetNames(job.title || 'Senior leadership search'),
+    company_display:      anonymizeJobDescriptor(job),
+    industry:             job.industry,
+    location:             anonymizeLocation(job.location),
+    salary_range:         job.salary_range || job.salary_display,
+    urgency_level:        job.urgency_level,
+    work_arrangement:     job.work_arrangement,
+    environment_tags:     job.environment_tags || [],
+    leadership_tags:      job.leadership_tags || [],
+    complexity_tags:      job.complexity_tags || [],
+    commercial_environment_tags: job.commercial_environment_tags || [],
+    transparency_class:   job.transparency_class,
+    completeness_pct:     job.completeness_pct,
+    description:          stripAssetNames(job.description || ''),
+    is_anonymized:        true,
+    created_at:           job.created_at,
+    expires_at:           job.expires_at,
+  };
+}
+
+// Check whether a match has a confirmed (paid) introduction. Drives the
+// gate between anonymized and full display.
+function introductionConfirmed(match) {
+  if (!match) return false;
+  return Boolean(
+    match.introduction_confirmed_at
+    || match.engagement_confirmed_at
+    || match.recruiter_status === 'engaged'
+    || match.fee_unlock_bracket === 'complimentary'
+    || match.payment_completed_at
+  );
+}
+
+// Convenience: returns the right shape based on the gate. Use this wherever
+// a profile or job is rendered to the OTHER party.
+function gatedProfile(profile, match) {
+  return anonymizeProfile(profile, { introductionConfirmed: introductionConfirmed(match) });
+}
+function gatedJob(job, match) {
+  return anonymizeJob(job, { introductionConfirmed: introductionConfirmed(match) });
+}
+
+// -----------------------------------------------------------------------------
+// INTRODUCTION STATUS PANEL
+// Lightweight status picker rendered post-introduction. Writes to
+// fed_introduction_status. Status options differ by party. The component is
+// intentionally minimal - this is not an ATS pipeline.
+// -----------------------------------------------------------------------------
+const RECRUITER_STATUS_OPTIONS = [
+  { v:'interested',   l:'Interested / Proceeding' },
+  { v:'interviewing', l:'Interviewing' },
+  { v:'not_fit',      l:'Not a Fit' },
+  { v:'filled',       l:'Position Filled' },
+  { v:'on_hold',      l:'On Hold' },
+];
+
+const CANDIDATE_STATUS_OPTIONS = [
+  { v:'interested',           l:'Interested' },
+  { v:'interviewing',          l:'Interviewing' },
+  { v:'not_interested',        l:'Not Interested' },
+  { v:'accepted_other',        l:'Accepted Another Opportunity' },
+  { v:'comp_misalignment',     l:'Compensation Misalignment' },
+  { v:'company_misalignment',  l:'Company Misalignment' },
+  { v:'no_longer_available',   l:'No Longer Available' },
+];
+
+function IntroductionStatusPanel({ match, party, party_email, onUpdated }) {
+  const [current, setCurrent] = useState(null);
+  const [notes, setNotes]     = useState('');
+  const [saving, setSaving]   = useState(false);
+  const options = party === 'candidate' ? CANDIDATE_STATUS_OPTIONS : RECRUITER_STATUS_OPTIONS;
+
+  useEffect(() => {
+    if (!match || !match.id) return;
+    sb.from('fed_introduction_status')
+      .select('*')
+      .eq('match_id', match.id)
+      .eq('party', party)
+      .order('status_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }) => { if (data) { setCurrent(data.status); setNotes(data.notes || ''); } });
+  }, [match?.id, party]);
+
+  async function setStatus(s) {
+    if (!match?.id) return;
+    setSaving(true);
+    try {
+      await sb.from('fed_introduction_status').insert({
+        match_id: match.id,
+        party,
+        status: s,
+        notes,
+        recruiter_email: party === 'recruiter' ? party_email : null,
+        candidate_email: party === 'candidate' ? party_email : null,
+        status_at: new Date().toISOString(),
+      });
+      setCurrent(s);
+      if (onUpdated) onUpdated(s);
+    } catch(e) { /* swallow */ }
+    setSaving(false);
+  }
+
+  if (!introductionConfirmed(match)) {
+    return (
+      <div className="intro-status-locked">
+        <div className="intro-status-locked-title">Status updates unlock after curated introduction</div>
+        <div className="intro-status-locked-blurb">Once the introduction is confirmed, both sides can update the relationship status here. We keep this light - it is not an ATS pipeline.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="intro-status-panel">
+      <div className="intro-status-eyebrow">Relationship Status</div>
+      <div className="intro-status-options">
+        {options.map(o => (
+          <button
+            key={o.v}
+            type="button"
+            className={`intro-status-chip ${current === o.v ? 'selected' : ''}`}
+            disabled={saving}
+            onClick={() => setStatus(o.v)}
+          >{o.l}</button>
+        ))}
+      </div>
+      <textarea
+        className="intake-textarea"
+        rows={2}
+        placeholder="Optional notes (internal, never sent to the other party)"
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+      />
+      <div className="intro-status-fineprint">
+        Status updates inform our matching intelligence. They do not get sent to the other party.
+      </div>
+    </div>
+  );
+}
+
+// -----------------------------------------------------------------------------
+// JOB LIFECYCLE PROMPT
+// Displays expiration phase and offers repost / update / close / archive
+// actions. Drives the dashboard tile when a listing is expiring or expired.
+// -----------------------------------------------------------------------------
+function JobLifecyclePrompt({ job, onRepost, onUpdate, onClose, onArchive }) {
+  if (!job) return null;
+  const now = Date.now();
+  const expiresMs = job.expires_at ? new Date(job.expires_at).getTime() : null;
+  const phase = !expiresMs ? 'unknown'
+              : expiresMs < now ? 'expired'
+              : expiresMs < now + 7 * 86400000 ? 'expiring_soon'
+              : 'active';
+  if (phase === 'active' || phase === 'unknown') return null;
+
+  const repostCount = job.repost_count || 0;
+  const needsReview = repostCount >= 2;
+
+  return (
+    <div className={`job-lifecycle-card phase-${phase}`}>
+      <div className="job-lifecycle-eyebrow">
+        {phase === 'expired' ? 'Listing expired' : 'Expiring within 7 days'}
+      </div>
+      <div className="job-lifecycle-title">{job.title || 'Search'}</div>
+      <div className="job-lifecycle-meta">
+        {expiresMs && (<>Expires{phase === 'expired' ? 'd' : ''}: {new Date(expiresMs).toLocaleDateString()}</>)}
+        {' '}&middot; Reposts: {repostCount}
+      </div>
+      {needsReview && (
+        <div className="job-lifecycle-review-prompt">
+          Before reposting again, review: compensation, requirements, work structure,
+          hiring process, and market competitiveness. Repeat reposts without updates
+          reduce visibility.
+        </div>
+      )}
+      <div className="job-lifecycle-actions">
+        <button className="intake-btn-primary" onClick={onRepost}>Repost as-is</button>
+        <button className="intake-btn-ghost" onClick={onUpdate}>Update listing</button>
+        <button className="intake-btn-ghost" onClick={onClose}>Close listing</button>
+        <button className="intake-btn-ghost" onClick={onArchive}>Archive</button>
+      </div>
+    </div>
+  );
+}
+
 
 // -----------------------------------------------------------------------------
 // INTAKE SCHEMA - single source of truth for the recruiter intake workflow,
@@ -4061,12 +4404,31 @@ const INTAKE_SCHEMA = {
         {
           id: 'compensation_core',
           title: 'Compensation - core (required)',
-          subtitle: 'Salary transparency is a platform standard.',
+          subtitle: 'Executive comp is a range, not a number. Minimum floor / Target / Exceptional ceiling. Compensation transparency is a platform standard.',
           fields: [
-            { key:'base_salary_range',  label:'Base salary range',     type:'text', tier:'required', weight:'compensation_transparency' },
-            { key:'bonus_structure',    label:'Bonus structure',       type:'multi_chip', tier:'required', options: BONUS_STRUCTURE_OPTS.map(o=>o.l), weight:'compensation_transparency' },
-            { key:'commission_structure', label:'Commission structure (if applicable)', type:'text', tier:'optional', weight:'compensation_transparency' },
-            { key:'equity_ltip',        label:'Equity / LTIP availability', type:'chip', tier:'required', weight:'compensation_transparency',
+            // Phase 1: structured Min / Target / Exceptional + Negotiability.
+            // Replaces the single base_salary_range field with a framework
+            // that reflects how executive offers actually work.
+            { key:'comp_floor',              label:'Minimum expected base salary (floor)', type:'text', tier:'required', weight:'compensation_transparency' },
+            { key:'comp_target_low',          label:'Target base salary - low',             type:'text', tier:'required', weight:'compensation_transparency' },
+            { key:'comp_target_high',         label:'Target base salary - high',            type:'text', tier:'required', weight:'compensation_transparency' },
+            { key:'comp_exceptional_ceiling', label:'Exceptional candidate ceiling',        type:'text', tier:'strongly_encouraged', weight:'compensation_transparency' },
+            { key:'comp_negotiability',       label:'Negotiability', type:'chip', tier:'required', weight:'compensation_transparency',
+              options:[
+                {v:'firm',                  l:'Firm'},
+                {v:'flexible',              l:'Flexible'},
+                {v:'highly_flexible',       l:'Highly Flexible'},
+                {v:'dependent_on_scope',    l:'Dependent on Scope'},
+                {v:'equity_ltip_adjust',    l:'Equity / LTIP Adjustable'},
+                {v:'open_exceptional',      l:'Open for Exceptional Candidate'},
+              ] },
+            // Legacy field kept for backward compat with prior submissions and
+            // the admin job board UI. New intakes populate this from the
+            // structured fields above (e.g. "$300K - $400K + LTIP").
+            { key:'base_salary_range',        label:'Display range (auto-built from above)', type:'text', tier:'optional', weight:'compensation_transparency' },
+            { key:'bonus_structure',          label:'Bonus structure',       type:'multi_chip', tier:'required', options: BONUS_STRUCTURE_OPTS.map(o=>o.l), weight:'compensation_transparency' },
+            { key:'commission_structure',     label:'Commission structure (if applicable)', type:'text', tier:'optional', weight:'compensation_transparency' },
+            { key:'equity_ltip',              label:'Equity / LTIP availability', type:'chip', tier:'required', weight:'compensation_transparency',
               options:[{v:'yes_meaningful',l:'Yes - meaningful'},{v:'yes_modest',l:'Yes - modest'},{v:'no',l:'No'}] },
           ],
         },
@@ -4978,8 +5340,21 @@ const OPENNESS_TOGGLES = [
 ];
 
 const COMP_PREF_FIELDS = [
-  { k:'desired_base_range',     l:'Desired base salary range',         type:'text' },
+  // Phase 1: structured candidate-side floor / target / desired total +
+  // flexibility. Mirrors the recruiter Min / Target / Exceptional framework.
   { k:'minimum_base',           l:'Minimum acceptable base salary',    type:'text' },
+  { k:'target_base',            l:'Target base salary',                type:'text' },
+  { k:'desired_total',          l:'Desired total compensation',        type:'text' },
+  { k:'flexibility',            l:'Compensation flexibility',          type:'chip',
+    options:[
+      {v:'firm',            l:'Firm'},
+      {v:'flexible',         l:'Flexible'},
+      {v:'highly_flexible',  l:'Highly Flexible'},
+      {v:'depends_scope',    l:'Depends on role scope'},
+      {v:'depends_package',  l:'Depends on total package'},
+      {v:'open_exceptional', l:'Open for exceptional opportunity'},
+    ] },
+  { k:'desired_base_range',     l:'Desired base salary range (display)', type:'text' },
   { k:'bonus_preference',       l:'Bonus preference',                  type:'text' },
   { k:'commission_preference',  l:'Commission preference',             type:'text' },
   { k:'equity_interest',        l:'Equity / LTIP interest',            type:'chip',
@@ -13520,7 +13895,7 @@ function App() {
             </p>
           </div>
           <div>
-            <div className="footer-col-title">Platform</div>
+            <div className="footer-col-title">Resources</div>
             <ul className="footer-links">
               <li onClick={()=>goToView('jobs')}>Browse Searches</li>
               <li onClick={()=>goToView('profile')}>Executive Profile</li>
