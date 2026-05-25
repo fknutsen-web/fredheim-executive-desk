@@ -1109,10 +1109,30 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
             </div>
           </div>
 
-          {/* Privacy */}
+          {/* Privacy - platform rule + post-introduction preferences */}
           <div style={{marginBottom:'1.5rem'}}>
-            <div className="prefs-section-title">Privacy Settings</div>
-            {[{k:'privacy_hide_name',l:'Hide my name until I accept engagement'},{k:'privacy_hide_school',l:'Hide my school name'},{k:'privacy_anonymous_until_accepted',l:'Fully anonymous until I accept engagement'}].map(f=>(
+            <div className="prefs-section-title">Privacy</div>
+            <div style={{
+              padding:'0.875rem 1rem',
+              border:'1px solid var(--gold)',
+              background:'var(--gold-bg)',
+              marginBottom:'0.875rem',
+              borderRadius:'4px',
+              fontSize:'0.8rem',
+              color:'var(--ink-1)',
+              lineHeight:'1.6',
+            }}>
+              Your name, school, email, and exact location are <strong>always
+              hidden</strong> from recruiters until an introduction is
+              confirmed. This is platform policy, not an opt-in setting.
+            </div>
+            <div style={{fontSize:'0.78rem',color:'var(--ink-4)',marginBottom:'0.4rem'}}>
+              Post-introduction visibility:
+            </div>
+            {[
+              {k:'privacy_hide_school_post_intro', l:'Keep school name hidden even after introduction'},
+              {k:'privacy_platform_messaging_only',l:'Platform messaging only - never release email or phone'},
+            ].map(f=>(
               <label key={f.k} className="prefs-check-item" style={{marginBottom:'0.5rem'}}>
                 <input type="checkbox" checked={!!form[f.k]} onChange={e=>set(f.k,e.target.checked)} />
                 <span style={{fontSize:'0.82rem'}}>{f.l}</span>
@@ -4001,8 +4021,18 @@ function stripAssetNames(text) {
   return text.replace(ASSET_NAME_PATTERN, '[asset redacted]');
 }
 
-// A profile-side anonymized summary. Recruiter sees this until they confirm
-// (i.e. pay for) a curated introduction.
+// A profile-side anonymized summary. Recruiter sees this until they have
+// paid for and confirmed a curated introduction.
+//
+// PLATFORM POLICY (non-negotiable): name, current_company, email, phone,
+// LinkedIn, and exact location are ALWAYS hidden pre-payment - regardless
+// of any candidate-side opt-in attempt. Candidates cannot expose these
+// fields ahead of an introduction. The privacy preferences panel only
+// controls POST-introduction visibility (which channels the candidate
+// permits the recruiter to use after the introduction is confirmed).
+//
+// The gate is `options.introductionConfirmed`, which MUST come from
+// introductionConfirmed(match) - never from a user setting.
 function anonymizeProfile(profile, options) {
   options = options || {};
   if (options.introductionConfirmed) return profile; // pass-through after payment
@@ -4037,8 +4067,14 @@ function anonymizeProfile(profile, options) {
   };
 }
 
-// A job-side anonymized summary. Candidate sees this until they confirm interest
-// AND the recruiter has paid for the introduction.
+// A job-side anonymized summary. Candidate sees this until the recruiter has
+// paid for the introduction AND the candidate has accepted it.
+//
+// SAME PLATFORM POLICY applies to the recruiter side: firm name, recruiter
+// name, firm email/phone/LinkedIn, exact company name, and identifying
+// project / vessel / facility names are ALWAYS hidden from candidates
+// pre-payment. Candidates see only the role descriptor, scope, comp range,
+// and approximate region. Recruiters cannot opt out of this rule.
 function anonymizeJob(job, options) {
   options = options || {};
   if (options.introductionConfirmed) return job;
@@ -11699,18 +11735,49 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
         </div>
       )}
 
-      {/* Privacy */}
+      {/* Privacy - post-introduction visibility preferences */}
       {tab === 'privacy' && (
         <div>
           <div className="prefs-section">
-            <div className="prefs-section-title">Profile Visibility Controls</div>
+            {/* Platform-level confidentiality rule. Non-negotiable. */}
+            <div style={{
+              padding:'1rem 1.125rem',
+              border:'1px solid var(--gold)',
+              background:'var(--gold-bg)',
+              marginBottom:'1.25rem',
+              borderRadius:'4px',
+            }}>
+              <div style={{
+                fontFamily:"'DM Mono',monospace",
+                fontSize:'0.62rem',
+                color:'var(--gold)',
+                textTransform:'uppercase',
+                letterSpacing:'0.14em',
+                marginBottom:'0.5rem',
+              }}>Platform confidentiality rule</div>
+              <div style={{fontSize:'0.85rem',color:'var(--ink-1)',lineHeight:'1.65'}}>
+                Your name, current employer, email, phone, LinkedIn, and exact
+                location are <strong>always hidden</strong> from recruiters
+                until a curated introduction is confirmed and paid. This is
+                enforced by the platform - it is not a setting you can opt
+                out of. Recruiters see only your operational scope, leadership
+                profile, industry, and approximate region pre-introduction.
+              </div>
+            </div>
+
+            <div className="prefs-section-title">Post-introduction visibility</div>
+            <div style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.55',marginBottom:'0.875rem'}}>
+              Once a recruiter has paid the curated introduction fee AND you
+              have accepted the introduction, decide which channels they may
+              use to contact you. You can change these at any time.
+            </div>
             <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(240px,1fr))',gap:'0.375rem',marginBottom:'1rem'}}>
               {[
-                {k:'privacy.hide_name',              l:'Hide my name from recruiters until I accept engagement'},
-                {k:'privacy.hide_employer',           l:'Hide my current employer'},
-                {k:'privacy.hide_location',           l:'Hide my exact location'},
-                {k:'privacy.show_region_only',        l:'Show region only, not city'},
-                {k:'privacy.anonymous_until_accepted',l:'Fully anonymous until I accept engagement'},
+                {k:'privacy.allow_email_post_intro',    l:'Release email after introduction'},
+                {k:'privacy.allow_phone_post_intro',     l:'Release phone after introduction'},
+                {k:'privacy.allow_linkedin_post_intro',  l:'Release LinkedIn after introduction'},
+                {k:'privacy.platform_messaging_only',    l:'Platform messaging only - never release direct contact'},
+                {k:'privacy.require_my_approval_each_intro', l:'Require my approval on every introduction'},
               ].map(f => (
                 <label key={f.k} className="prefs-check-item">
                   <input type="checkbox"
@@ -11721,7 +11788,9 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
               ))}
             </div>
             <div style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6',padding:'0.875rem 1rem',background:'var(--paper-2)',border:'1px solid var(--rule)'}}>
-              Privacy settings apply to all recruiter-facing match cards. Your name and employer are always visible to Fredheim admin. Mutual interest does not automatically reveal your identity — you control all disclosure.
+              Fredheim admin sees your full identity for vetting purposes only.
+              Recruiters never bypass the introduction gate - paying the fee is
+              the only path to your name, employer, and contact details.
             </div>
           </div>
         </div>
