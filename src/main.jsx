@@ -3851,41 +3851,57 @@ function TosModal({ onAgree, onCancel }) {
     <div className="tos-overlay">
       <div className="tos-modal">
         <div className="tos-eyebrow">Platform Terms — Search Firms</div>
-        <h2 className="tos-title">Introduction Fee Agreement</h2>
+        <h2 className="tos-title">Platform Terms &amp; Curated Introduction Agreement</h2>
         <div className="tos-body">
           <p>Before posting a search, please review and agree to the Fredheim Executive Desk
-          platform terms regarding introduction fees. These terms protect both the platform
-          and the integrity of the executive community.</p>
+          platform terms. These terms protect both the platform and the integrity of the
+          executive community.</p>
 
           <div className="tos-clause">
-            <strong>Introduction Fee.</strong> Any candidate who first expressed interest in a posted
-            role through Fredheim Executive Desk and is subsequently hired for that role — or a
-            substantially similar role at the same organization — within <strong>12 months</strong> of
-            first documented contact on the platform obligates the posting firm to pay a flat
-            platform introduction fee of <strong>$3,500 (C-Suite / VP)</strong> or{' '}
-            <strong>$1,500 (Director / Senior Manager)</strong>. This fee is invoiced to the search firm
-            upon placement confirmation and is due within 30 days of invoice.
+            <strong>Subscription.</strong> Active recruiter access requires a Standard subscription
+            of <strong>$199/month</strong>, billed monthly through Stripe. Founding Partner cohort
+            members (admission by application) have subscription fees waived through 2026-12-31.
+          </div>
+
+          <div className="tos-clause">
+            <strong>Curated Introduction Fee.</strong> A one-time introduction fee is charged
+            <em> at the moment you confirm a curated introduction</em> with a candidate. The fee
+            is tiered by the candidate's leadership scope:
+            {' '}<strong>$495</strong> (C-Suite),
+            {' '}<strong>$295</strong> (VP / SVP),
+            {' '}<strong>$149</strong> (Director),
+            {' '}<strong>$79</strong> (Senior Manager / Manager).
+            Early-career candidates are complimentary. There is <strong>no placement fee, no
+            success fee, and no fee on hire</strong> — the curated-introduction fee is the only
+            transactional charge. Founding cohort recruiters pay no introduction fees during the
+            founding window.
           </div>
 
           <div className="tos-clause">
             <strong>Salary Transparency.</strong> All postings must include a published total
-            compensation range. Postings without salary ranges will not be approved.
-            Misrepresentation of compensation ranges is grounds for immediate account suspension.
+            compensation range (Minimum / Target / Exceptional ceiling acceptable). Postings
+            without compensation transparency will not be approved. Misrepresentation of
+            compensation ranges is grounds for immediate account suspension.
           </div>
 
           <div className="tos-clause">
-            <strong>Confidentiality.</strong> Executive profile information accessed through the
-            platform — including candidate identity, compensation expectations, and current
-            employer — may not be shared outside the search engagement for which it was accessed,
-            or used to solicit candidates for other roles without their express consent.
+            <strong>Confidentiality &amp; Anti-Circumvention.</strong> Candidate identity,
+            employer, contact details, and compensation expectations accessed through the
+            platform may not be shared outside the search engagement for which they were
+            accessed, used to solicit candidates for other roles without express consent, or
+            used to bypass the platform's curated introduction process. Off-platform contact
+            attempts (including LinkedIn outreach using information first surfaced on Fredheim)
+            are grounds for suspension.
           </div>
         </div>
 
         <div className="tos-check-row" onClick={() => setChecked1(!checked1)}>
           <div className={`tos-checkbox ${checked1?'checked':''}`} />
           <div className="tos-check-label">
-            I agree to pay the <strong>flat platform introduction fee ($3,500 C-Suite/VP · $1,500 Director level)</strong> for
-            any confirmed hire resulting from a Fredheim Executive Desk introduction within 12 months.
+            I agree to the <strong>$199/month subscription</strong> and the
+            {' '}<strong>curated introduction fees</strong> ($495 / $295 / $149 / $79 by candidate
+            leadership scope), charged at the moment of confirmed introduction. I understand
+            there is no placement fee on hire.
           </div>
         </div>
 
@@ -7991,38 +8007,41 @@ function TermsPage() {
         <h3>3.2 Subscription Plans</h3>
         <table className="legal-table">
           <thead>
-            <tr><th>Plan</th><th>Price</th><th>Postings</th></tr>
+            <tr><th>Plan</th><th>Price</th><th>Concurrent active searches</th></tr>
           </thead>
           <tbody>
-            <tr><td>Boutique</td><td>$400/month (billed annually)</td><td>3 active postings/month</td></tr>
-            <tr><td>Professional</td><td>$1,000/month (billed annually)</td><td>10 postings + featured placement + candidate data</td></tr>
-            <tr><td>Enterprise</td><td>$2,500/month (billed annually)</td><td>Unlimited postings + full profile access</td></tr>
+            <tr><td>Standard</td><td>$199/month, billed monthly</td><td>Up to 5 concurrent active searches</td></tr>
+            <tr><td>Founding Access (by application)</td><td>Subscription fees waived through 2026-12-31</td><td>1 complimentary posting per month through the founding window</td></tr>
           </tbody>
         </table>
 
-        <h3>3.3 Introduction Fee — Binding Obligation</h3>
+        <h3>3.3 Curated Introduction Fee</h3>
         <div className="legal-clause">
-          <strong>Introduction Fee.</strong> A Platform Introduction Fee is due from the Search Firm
-          to Fredheim Technologies LLC when: (a) an Executive Member first expressed interest in,
-          or was first connected to the Search Firm through, a Posting on the Platform; and (b) that
-          Executive Member is hired for the role described in the Posting, or a substantially similar
-          role at the same organization, within <strong>twelve (12) months</strong> of the date of
-          first documented contact on the Platform.
+          <strong>Curated Introduction Fee.</strong> A one-time platform fee is due from the Search
+          Firm to Fredheim Technologies LLC at the moment the Search Firm confirms a curated
+          introduction with an Executive Member through the Platform. The fee is tiered by the
+          Executive Member's leadership scope as determined by the Platform's scope classification
+          model, and is charged at the point of introduction confirmation — <strong>not</strong> on
+          eventual hire. There is no separate placement fee, success fee, or fee on hire.
         </div>
         <table className="legal-table">
           <thead>
-            <tr><th>Role Level</th><th>Introduction Fee</th></tr>
+            <tr><th>Candidate Leadership Scope</th><th>Curated Introduction Fee</th></tr>
           </thead>
           <tbody>
-            <tr><td>C-Suite, VP, and equivalent</td><td><strong>$3,500 flat fee</strong></td></tr>
-            <tr><td>Director level and Senior Manager</td><td><strong>$1,500 flat fee</strong></td></tr>
+            <tr><td>C-Suite, EVP</td><td><strong>$495 (one-time)</strong></td></tr>
+            <tr><td>SVP, VP</td><td><strong>$295 (one-time)</strong></td></tr>
+            <tr><td>Senior Director, Director</td><td><strong>$149 (one-time)</strong></td></tr>
+            <tr><td>Senior Manager, Manager</td><td><strong>$79 (one-time)</strong></td></tr>
+            <tr><td>Early Career, Individual Contributor</td><td>Complimentary</td></tr>
           </tbody>
         </table>
         <p>
-          The Introduction Fee is invoiced upon confirmation of placement and due within
-          30 days. Late payments accrue interest at 1.5% per month. The fee is owed regardless
-          of whether the hire resulted from the platform introduction alone or in combination
-          with other channels.
+          The Curated Introduction Fee is charged via the Search Firm's saved payment method
+          at the moment of introduction confirmation. Founding Partner cohort recruiters pay
+          no introduction fees during the founding window (through 2026-12-31). After
+          introduction, the candidate-recruiter relationship is direct; the Platform charges
+          no further fees related to that engagement.
         </p>
 
         <h3>3.4 Candidate Confidentiality</h3>
@@ -8508,8 +8527,10 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
               <textarea className="form-input" rows={2} value={pf.notes} onChange={e=>setPfField('notes',e.target.value)} style={{resize:'vertical'}} />
             </div>
             <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1.25rem',marginTop:'1rem',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
-              The standard Fredheim placement fee applies at the rate confirmed in your terms.
-              Placement data is locked after admin approval and cannot be edited by the firm.
+              Placement reporting earns a credit toward a future curated introduction.
+              There is no placement fee under Phase 1 - the curated introduction fee was
+              charged at the moment of introduction. Placement data is locked after admin
+              approval and cannot be edited by the firm.
             </div>
             <div className="workflow-actions">
               <button className="workflow-close-btn" onClick={()=>setStep('source')}>← Back</button>
