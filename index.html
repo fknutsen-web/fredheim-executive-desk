@@ -4697,6 +4697,193 @@
   .compensation-alignment-flag.material_mismatch { background:rgba(139,26,26,0.06); color:#8b1a1a; border:1px solid #d8b8b8; }
   .compensation-alignment-flag.recruiter_below_market { background:rgba(139,26,26,0.04); color:#8b1a1a; border:1px dashed #d8b8b8; }
 
+
+  /* ============================================================
+     DOCUMENT INTAKE - DROPZONE + PARSE REVIEW
+     ============================================================ */
+  .intake-dropzone-wrap { margin-bottom: 1.25rem; }
+  .intake-dropzone {
+    position: relative;
+    border: 2px dashed var(--rule);
+    border-radius: 6px;
+    padding: 1.5rem 1.5rem 1.625rem;
+    background: var(--paper);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+  }
+  .intake-dropzone:hover { border-color: var(--gold-rule); background: var(--gold-bg); }
+  .intake-dropzone.dragover {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    transform: scale(1.005);
+  }
+  .intake-dropzone.parsing { cursor: wait; opacity: 0.7; }
+  .intake-dropzone-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    margin-bottom: 0.4rem;
+  }
+  .intake-dropzone-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--ink-1);
+    margin-bottom: 0.4rem;
+    line-height: 1.4;
+  }
+  .intake-dropzone-blurb {
+    font-size: 0.75rem;
+    color: var(--ink-4);
+    line-height: 1.55;
+    max-width: 540px;
+    margin: 0 auto;
+  }
+  .intake-dropzone-paste-btn {
+    margin-top: 0.625rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--ink-3);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    letter-spacing: 0.05em;
+  }
+  .intake-dropzone-paste-btn:hover { color: var(--gold); }
+  .intake-dropzone-paste-area {
+    margin-top: 0.625rem;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.75rem;
+    background: var(--paper);
+  }
+  .intake-dropzone-error {
+    margin-top: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.74rem;
+    color: #8b1a1a;
+    border: 1px solid #d8b8b8;
+    border-radius: 3px;
+    background: rgba(139,26,26,0.04);
+  }
+
+  /* ============================================================
+     PARSE REVIEW MODAL
+     ============================================================ */
+  .modal.modal-parse-review { max-width: 900px; width: 96%; max-height: 92vh; overflow-y: auto; }
+  .parse-review-blurb {
+    color: var(--ink-3);
+    font-size: 0.85rem;
+    line-height: 1.65;
+    margin: 0.5rem 0 1rem;
+  }
+  .parse-review-summary {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-3);
+    padding: 0.5rem 0.75rem;
+    background: rgba(0,0,0,0.03);
+    border-radius: 3px;
+    margin-bottom: 1rem;
+    letter-spacing: 0.04em;
+  }
+  .parse-review-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+  .parse-review-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper);
+  }
+  .parse-review-row.conf-low { border-left: 3px solid #c08800; }
+  .parse-review-row.conf-missing { border-left: 3px solid var(--rule); opacity: 0.6; }
+  .parse-review-row.conf-high { border-left: 3px solid var(--gold); }
+  .parse-review-row.conf-medium { border-left: 3px solid #6e9bbd; }
+  .parse-review-row.rejected { opacity: 0.5; }
+  .parse-review-field-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .parse-review-field-name code {
+    font-size: 0.72rem;
+    color: var(--ink-1);
+    background: transparent;
+    padding: 0;
+  }
+  .confidence-pill {
+    display: inline-block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55rem;
+    padding: 0.12rem 0.4rem;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-right: 0.3rem;
+    border: 1px solid var(--rule);
+  }
+  .confidence-pill.high    { background: var(--gold-bg); color: var(--ink-1); border-color: var(--gold); }
+  .confidence-pill.medium  { background: rgba(110,155,189,0.08); color: #1e4d7a; border-color: #c7d5e3; }
+  .confidence-pill.low     { background: rgba(192,136,0,0.06); color: #8a5e00; border-color: #d4b86b; }
+  .confidence-pill.missing { background: rgba(0,0,0,0.03); color: var(--ink-4); }
+  .confidence-pill.hidden  { background: rgba(0,0,0,0.04); color: var(--ink-3); }
+  .parse-review-actions {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: flex-end;
+  }
+  .parse-action {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-3);
+    border-radius: 2px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .parse-action:hover { color: var(--ink-1); }
+  .parse-action.on {
+    background: var(--ink-1);
+    color: var(--paper);
+    border-color: var(--ink-1);
+  }
+  .parse-review-warning {
+    font-size: 0.74rem;
+    padding: 0.6rem 0.875rem;
+    border: 1px dashed #d4b86b;
+    background: rgba(192,136,0,0.06);
+    color: #8a5e00;
+    border-radius: 3px;
+    margin-bottom: 0.75rem;
+  }
+  .parse-review-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.625rem;
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+  }
+  .parse-review-fineprint {
+    margin-top: 0.625rem;
+    font-size: 0.7rem;
+    color: var(--ink-4);
+    line-height: 1.55;
+    text-align: center;
+  }
+  @media (max-width: 700px) {
+    .parse-review-row { grid-template-columns: 1fr; }
+    .parse-review-actions { justify-content: flex-start; }
+  }
+
 </style>
 </head>
 <body>
