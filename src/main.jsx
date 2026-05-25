@@ -7698,7 +7698,19 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           status-style tiers like "By Application" and "By Invitation").
           A null `cta` suppresses the action button entirely - used for
           tiers that communicate exclusivity over availability. */}
-      <div className="plans-grid">
+      {/* Grid columns track the actual plan count so a 2-plan audience does
+          not render an empty 3rd container. Inline style overrides the
+          default repeat(3, 1fr). Max-width centers a narrower 2-plan grid
+          rather than letting the two cards stretch into oversized blocks. */}
+      <div
+        className={`plans-grid plans-grid-count-${plans.length}`}
+        style={{
+          gridTemplateColumns: `repeat(${plans.length}, 1fr)`,
+          maxWidth: plans.length === 2 ? '780px' : 'none',
+          marginLeft: plans.length === 2 ? 'auto' : undefined,
+          marginRight: plans.length === 2 ? 'auto' : undefined,
+        }}
+      >
         {plans.map(plan => (
           <div key={plan.name} className={`plan-card ${plan.recommended?'recommended':''}`}>
             {plan.recommended && <div className="recommended-badge">Most Popular</div>}
