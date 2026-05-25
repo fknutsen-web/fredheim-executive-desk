@@ -13771,12 +13771,55 @@ function App() {
     setTimeout(() => document.getElementById(id)?.scrollIntoView({behavior:'smooth'}), 50);
   }
 
+  // Views that participate in URL hash navigation. Bookmarkable, deep-linkable,
+  // and back/forward navigable. Other internal views (signin, myprofile,
+  // recruiter-dash, etc.) are state-only and don't push hashes - they are not
+  // public anchor destinations.
+  const HASHABLE_VIEWS = ['jobs','early-careers','consulting','pricing','about','terms','privacy'];
+
   function goToView(view) {
-    // 'profile' view shows the ProfileForm — accessible to all users whether authed or not
+    // 'profile' view shows the ProfileForm - accessible to all users whether authed or not
     // Authenticated users with an existing profile are informed via the isUpdate flag in the form
     setActiveView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Sync URL hash for shareable / refreshable / back-forward navigation.
+    // Use replaceState if landing on the implicit default ('jobs'), otherwise
+    // pushState so the browser back button takes the user to the previous view.
+    if (HASHABLE_VIEWS.includes(view)) {
+      const newHash = view === 'jobs' ? '' : '#' + view;
+      const newUrl  = window.location.pathname + window.location.search + newHash;
+      try { window.history.pushState({ view }, '', newUrl); } catch(_) {}
+    }
+
+    // Two-phase scroll so the user perceives immediate movement. Instant jump
+    // to top first guarantees the new view's top is visible; smooth follow-up
+    // gives a polished transition feel without leaving the user staring at the
+    // wrong content waiting for the smooth scroll to start.
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
+
+  // Restore the right view from URL hash on initial mount and on browser back/forward.
+  useEffect(() => {
+    function applyHash() {
+      const hash = (window.location.hash || '').replace(/^#/, '');
+      if (HASHABLE_VIEWS.includes(hash)) {
+        setActiveView(hash);
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      } else if (hash === '') {
+        // Empty hash = default jobs view; only apply if currently on a hashable
+        // view (don't yank a user out of a sign-in / dashboard flow).
+        // No-op - leave activeView as is.
+      }
+    }
+    applyHash(); // initial mount
+    window.addEventListener('hashchange', applyHash);
+    window.addEventListener('popstate', applyHash);
+    return () => {
+      window.removeEventListener('hashchange', applyHash);
+      window.removeEventListener('popstate', applyHash);
+    };
+  }, []);
 
   async function handleSignOut() {
     try {
