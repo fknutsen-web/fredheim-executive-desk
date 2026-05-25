@@ -3652,6 +3652,1012 @@
     color: var(--ink-3);
   }
 
+  /* =========================================================================
+     RECRUITER INTAKE WORKFLOW + ADMIN SCHEMA + RECRUITER QUALITY
+     8-step intake replacing the legacy single-page recruiter form.
+     ========================================================================= */
+
+  .modal.modal-intake {
+    max-width: 920px;
+    width: 96%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .intake-modal-blurb {
+    color: var(--ink-3);
+    font-size: 0.875rem;
+    margin-bottom: 0.875rem;
+    line-height: 1.7;
+  }
+
+  .intake-founding-banner {
+    background: var(--gold-bg);
+    border: 1px solid var(--gold-rule);
+    border-left: 3px solid var(--gold);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    letter-spacing: 0.02em;
+  }
+
+  .intake-workflow { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  /* Progress bar across the top of the intake */
+  .intake-progress {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.375rem;
+    margin-bottom: 0.5rem;
+  }
+  .intake-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.25rem;
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--ink-4);
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .intake-progress-step:hover { border-color: var(--gold-rule); color: var(--ink-2); }
+  .intake-progress-step.done  { border-color: var(--gold-rule); background: var(--gold-bg); color: var(--ink-2); }
+  .intake-progress-step.active{
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--ink-1);
+    box-shadow: inset 0 -2px 0 var(--gold);
+  }
+  .intake-progress-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .intake-progress-label {
+    font-size: 0.62rem;
+    text-align: center;
+    line-height: 1.2;
+    letter-spacing: 0.04em;
+  }
+
+  /* Step header */
+  .intake-step-header {
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-bottom: 0.25rem;
+  }
+  .intake-step-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 0.4rem;
+  }
+  .intake-step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin: 0 0 0.4rem 0;
+    color: var(--ink-1);
+  }
+  .intake-step-tagline {
+    font-size: 0.85rem;
+    color: var(--ink-3);
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  /* Step body and groups */
+  .intake-step-body { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .intake-group {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1.125rem 1.125rem;
+    background: var(--paper);
+  }
+  .intake-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.875rem;
+  }
+  .intake-group-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    color: var(--ink-1);
+    margin-bottom: 0.2rem;
+  }
+  .intake-group-subtitle {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    line-height: 1.5;
+  }
+  .intake-group-toggle {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--gold);
+    cursor: pointer;
+    user-select: none;
+  }
+  .intake-group-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.875rem 1rem;
+  }
+  .intake-group-fields .intake-field.full,
+  .intake-group-fields .intake-field:has(textarea),
+  .intake-group-fields .intake-field:has(.intake-chip-row),
+  .intake-group-fields .intake-field:has(.intake-priority-table) {
+    grid-column: 1 / -1;
+  }
+
+  /* Single field */
+  .intake-field { display: flex; flex-direction: column; gap: 0.375rem; }
+  .intake-field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .intake-field-label {
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+
+  .intake-tier-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.56rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.15rem 0.45rem;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+    background: transparent;
+    color: var(--ink-4);
+  }
+  .intake-tier-badge.required {
+    color: #8b1a1a;
+    border-color: #d8b8b8;
+    background: rgba(139, 26, 26, 0.04);
+  }
+  .intake-tier-badge.encouraged {
+    color: var(--gold);
+    border-color: var(--gold-rule);
+    background: var(--gold-bg);
+  }
+  .intake-tier-badge.optional {
+    color: var(--ink-4);
+    border-color: var(--rule);
+  }
+
+  .intake-input, .intake-textarea {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-1);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 3px;
+    transition: border-color 0.15s ease;
+  }
+  .intake-input:focus, .intake-textarea:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
+  .intake-textarea {
+    min-height: 64px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  /* Chip rows (single and multi) */
+  .intake-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+  .intake-chip {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-2);
+    font-family: inherit;
+    font-size: 0.74rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    letter-spacing: 0.01em;
+  }
+  .intake-chip:hover {
+    border-color: var(--gold-rule);
+    color: var(--ink-1);
+  }
+  .intake-chip.selected {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--ink-1);
+    box-shadow: 0 0 0 1px var(--gold) inset;
+  }
+
+  /* Required-warning ribbon */
+  .intake-required-warning {
+    font-size: 0.74rem;
+    color: #8b1a1a;
+    padding: 0.6rem 0.875rem;
+    border: 1px dashed #d8b8b8;
+    background: rgba(139, 26, 26, 0.04);
+    border-radius: 3px;
+    line-height: 1.5;
+  }
+
+  /* Step actions */
+  .intake-step-actions {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--rule);
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+  }
+  .intake-btn-ghost, .intake-btn-primary {
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.15s ease;
+  }
+  .intake-btn-ghost {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+  }
+  .intake-btn-ghost:hover { color: var(--ink-1); border-color: var(--ink-3); }
+  .intake-btn-primary {
+    background: var(--ink-1);
+    color: var(--paper);
+    border: 1px solid var(--ink-1);
+  }
+  .intake-btn-primary:hover { background: var(--gold); border-color: var(--gold); color: #1a1a1a; }
+  .intake-btn-primary:disabled { opacity: 0.55; cursor: wait; }
+
+  /* Priority matrix (Step 6) */
+  .intake-priority-table {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .intake-priority-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.6rem 0.875rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .intake-priority-row:last-child { border-bottom: none; }
+  .intake-priority-row:nth-child(even) { background: rgba(0,0,0,0.015); }
+  .intake-priority-label {
+    font-size: 0.82rem;
+    color: var(--ink-2);
+  }
+  .intake-priority-actions {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+  .intake-priority-chip {
+    font-family: inherit;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-3);
+    transition: all 0.12s ease;
+    letter-spacing: 0.02em;
+  }
+  .intake-priority-chip:hover { color: var(--ink-1); }
+  .intake-priority-chip.red.selected   { background:#8b1a1a; border-color:#8b1a1a; color:#fff; }
+  .intake-priority-chip.gold.selected  { background: var(--gold); border-color: var(--gold); color:#1a1a1a; }
+  .intake-priority-chip.blue.selected  { background:#1e4d7a; border-color:#1e4d7a; color:#fff; }
+  .intake-priority-chip.grey.selected  { background:#6b6b6b; border-color:#6b6b6b; color:#fff; }
+
+  /* Step 8 - Review */
+  .intake-review { display: flex; flex-direction: column; gap: 1.5rem; }
+  .intake-review-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+  .intake-review-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--ink-1);
+    line-height: 1.4;
+    border-left: 3px solid var(--gold);
+    padding-left: 1rem;
+  }
+  .intake-review-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .intake-summary-card {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+    background: var(--paper);
+  }
+  .intake-summary-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.625rem;
+  }
+  .intake-summary-line {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 0.75rem;
+    padding: 0.3rem 0;
+    font-size: 0.78rem;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-2);
+  }
+  .intake-summary-line:first-of-type { border-top: none; }
+  .intake-summary-line span { color: var(--ink-4); }
+  .intake-summary-line strong { color: var(--ink-1); font-weight: 500; }
+
+  .intake-weighting { border: 1px solid var(--rule); border-radius: 4px; padding: 1rem 1.125rem; }
+  .intake-weighting-bars { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.625rem; }
+  .intake-weight-bar {
+    display: grid;
+    grid-template-columns: 160px 1fr 40px;
+    gap: 0.625rem;
+    align-items: center;
+  }
+  .intake-weight-label {
+    font-size: 0.74rem;
+    color: var(--ink-2);
+    text-transform: capitalize;
+  }
+  .intake-weight-track {
+    background: var(--rule);
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .intake-weight-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--ink-2));
+  }
+  .intake-weight-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-3);
+    text-align: right;
+  }
+
+  .intake-priority-summary { border: 1px solid var(--rule); border-radius: 4px; padding: 1rem 1.125rem; }
+  .intake-priority-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.625rem;
+    margin-top: 0.625rem;
+  }
+  .intake-priority-cell {
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 0.625rem 0.75rem;
+    background: var(--paper);
+  }
+  .intake-priority-cell.must_have { border-color:#d8b8b8; background: rgba(139, 26, 26, 0.04); }
+  .intake-priority-cell.preferred { border-color: var(--gold-rule); background: var(--gold-bg); }
+  .intake-priority-cell.nice      { border-color:#c7d5e3; background: rgba(30, 77, 122, 0.04); }
+  .intake-priority-cell.irrelevant{ border-color: var(--rule); background: rgba(0,0,0,0.02); }
+  .intake-priority-cell-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+    color: var(--ink-3);
+  }
+  .intake-priority-cell-body { font-size: 0.74rem; color: var(--ink-2); line-height: 1.5; }
+
+  .intake-quality-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+  .intake-quality-pill {
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    padding: 0.5rem 0.75rem;
+    border-radius: 3px;
+    font-size: 0.74rem;
+    color: var(--ink-2);
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .intake-quality-pill.executive_structured { border-color: var(--gold); background: var(--gold-bg); }
+  .intake-quality-pill.transparent          { border-color: var(--gold-rule); background: var(--gold-bg); }
+  .intake-quality-pill.basic                { border-color:#c7d5e3; background: rgba(30,77,122,0.04); }
+  .intake-quality-pill.minimal              { border-color:#d8b8b8; background: rgba(139,26,26,0.04); color:#8b1a1a; }
+  .intake-quality-sub {
+    color: var(--ink-4);
+    font-size: 0.68rem;
+    margin-left: 0.4rem;
+  }
+
+  .intake-confidence-note {
+    font-size: 0.74rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+    padding: 0.875rem 1rem;
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+
+  .intake-submitted {
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+  .intake-submit-footer {
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    color: var(--ink-4);
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  /* =========================================================================
+     ADMIN INTAKE SCHEMA VIEW
+     ========================================================================= */
+  .admin-schema { display: flex; flex-direction: column; gap: 1rem; }
+  .admin-schema-intro {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    background: var(--paper);
+  }
+  .admin-schema-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 0.5rem;
+  }
+  .admin-schema-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--ink-1);
+    margin: 0 0 0.625rem 0;
+  }
+  .admin-schema-blurb {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .admin-schema-blurb code,
+  .admin-schema-footer code {
+    background: rgba(0,0,0,0.04);
+    padding: 0.05rem 0.3rem;
+    border-radius: 2px;
+    font-size: 0.78em;
+  }
+  .admin-schema-weighting {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .admin-schema-weight {
+    border: 1px solid var(--rule);
+    padding: 0.5rem;
+    border-radius: 3px;
+    text-align: center;
+  }
+  .admin-schema-weight-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .admin-schema-weight-pct {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--ink-1);
+    margin-top: 0.2rem;
+  }
+
+  .admin-schema-step {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .admin-schema-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1.125rem;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .admin-schema-step-header:hover { background: rgba(0,0,0,0.02); }
+  .admin-schema-step-header.open { border-left-color: var(--gold); background: var(--gold-bg); }
+  .admin-schema-step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+  .admin-schema-step-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--ink-1);
+    margin-top: 0.15rem;
+  }
+  .admin-schema-step-tagline {
+    font-size: 0.74rem;
+    color: var(--ink-4);
+    margin-top: 0.2rem;
+  }
+  .admin-schema-step-toggle {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.25rem;
+    color: var(--gold);
+  }
+  .admin-schema-step-body {
+    padding: 0.5rem 1.125rem 1.125rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .admin-schema-group {
+    border-top: 1px solid var(--rule);
+    padding-top: 0.875rem;
+  }
+  .admin-schema-group:first-child { border-top: none; padding-top: 0.25rem; }
+  .admin-schema-group-title {
+    font-size: 0.85rem;
+    color: var(--ink-1);
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+  .admin-schema-group-subtitle {
+    font-size: 0.74rem;
+    color: var(--ink-4);
+    margin-bottom: 0.5rem;
+  }
+  .admin-schema-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+  }
+  .admin-schema-table th,
+  .admin-schema-table td {
+    text-align: left;
+    padding: 0.45rem 0.5rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .admin-schema-table th {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border-bottom: 1px solid var(--ink-3);
+  }
+  .admin-schema-field-label { color: var(--ink-1); font-weight: 500; }
+  .admin-schema-field-key {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-4);
+    margin-top: 0.15rem;
+  }
+  .admin-schema-weight-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--gold);
+    background: var(--gold-bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+  }
+  .admin-schema-options { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+  .admin-schema-options-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--ink-4);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .admin-schema-option {
+    font-size: 0.68rem;
+    background: rgba(0,0,0,0.03);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 0.12rem 0.4rem;
+    color: var(--ink-2);
+  }
+  .admin-schema-option.lvl-red  { color:#8b1a1a; background: rgba(139,26,26,0.06); border-color:#d8b8b8; }
+  .admin-schema-option.lvl-gold { color: var(--gold); background: var(--gold-bg); border-color: var(--gold-rule); }
+  .admin-schema-option.lvl-blue { color:#1e4d7a; background: rgba(30,77,122,0.06); border-color:#c7d5e3; }
+  .admin-schema-option.lvl-grey { color:#6b6b6b; }
+  .admin-schema-option-empty {
+    font-size: 0.7rem;
+    color: var(--ink-4);
+    font-style: italic;
+  }
+
+  .admin-schema-review-blurb {
+    font-size: 0.82rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+    margin: 0;
+  }
+  .admin-schema-footer {
+    border: 1px dashed var(--rule);
+    background: rgba(0,0,0,0.015);
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    color: var(--ink-3);
+    line-height: 1.6;
+  }
+  .admin-schema-footer p { margin: 0; }
+
+  /* =========================================================================
+     ADMIN RECRUITER QUALITY DASHBOARD
+     ========================================================================= */
+  .admin-quality { display: flex; flex-direction: column; gap: 1rem; }
+  .admin-quality-controls {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .admin-quality-sort {
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.875rem;
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    color: var(--ink-3);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.12s ease;
+  }
+  .admin-quality-sort:hover { color: var(--ink-1); }
+  .admin-quality-sort.active {
+    background: var(--gold-bg);
+    border-color: var(--gold);
+    color: var(--ink-1);
+  }
+  .admin-quality-table td { vertical-align: middle; }
+  .admin-quality-meter {
+    position: relative;
+    background: var(--rule);
+    height: 14px;
+    border-radius: 3px;
+    overflow: hidden;
+    min-width: 120px;
+  }
+  .admin-quality-meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--gold), var(--ink-2));
+  }
+  .admin-quality-meter-pct {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--ink-1);
+  }
+
+  /* Mobile collapse */
+  @media (max-width: 700px) {
+    .intake-progress { grid-template-columns: repeat(4, 1fr); }
+    .intake-progress-step:nth-child(n+5) { display: none; }
+    .intake-group-fields { grid-template-columns: 1fr; }
+    .intake-review-grid { grid-template-columns: 1fr; }
+    .intake-priority-grid { grid-template-columns: 1fr; }
+    .intake-priority-row { grid-template-columns: 1fr; gap: 0.4rem; }
+    .intake-weight-bar { grid-template-columns: 1fr; }
+    .intake-summary-line { grid-template-columns: 1fr; gap: 0.1rem; }
+    .admin-schema-weighting { grid-template-columns: repeat(3, 1fr); }
+    .admin-schema-table { font-size: 0.7rem; }
+  }
+
+  /* =========================================================================
+     CANDIDATE OPERATING PROFILE + MATCH TRANSPARENCY
+     Premium consultative styling that mirrors the recruiter intake.
+     ========================================================================= */
+
+  .candprofile {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.25rem;
+    margin-top: 0.5rem;
+  }
+  .candprofile-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    margin-bottom: 0.4rem;
+  }
+  .candprofile-headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    color: var(--ink-1);
+    line-height: 1.5;
+    margin: 0 0 1.25rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--gold);
+  }
+
+  .candprofile-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+  }
+  .candprofile-tab {
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.45rem 0.5rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    color: var(--ink-3);
+    transition: all 0.12s ease;
+  }
+  .candprofile-tab:hover { border-color: var(--gold-rule); color: var(--ink-1); }
+  .candprofile-tab.active {
+    border-color: var(--gold);
+    background: var(--gold-bg);
+    color: var(--ink-1);
+    box-shadow: inset 0 -2px 0 var(--gold);
+  }
+  .candprofile-tab-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+  }
+  .candprofile-tab-label {
+    font-size: 0.74rem;
+    margin-top: 0.15rem;
+  }
+
+  .candprofile-step {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1rem 1.125rem;
+    background: var(--paper);
+  }
+  .candprofile-step-tagline {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    margin-bottom: 0.875rem;
+    line-height: 1.55;
+  }
+  .candprofile-field-label {
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    font-weight: 500;
+    margin-bottom: 0.4rem;
+  }
+  .candprofile-body { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  .candprofile-comp-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.875rem 1rem;
+  }
+
+  .candprofile-ranked {
+    margin-top: 1rem;
+    border-top: 1px dashed var(--rule);
+    padding-top: 0.875rem;
+  }
+  .candprofile-rank-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 0.625rem;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .candprofile-rank-row:last-child { border-bottom: none; }
+  .candprofile-rank-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    color: var(--gold);
+    text-align: center;
+  }
+  .candprofile-rank-label {
+    font-size: 0.82rem;
+    color: var(--ink-1);
+  }
+  .candprofile-rank-actions { display: flex; gap: 0.3rem; }
+  .candprofile-rank-actions button {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-3);
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .candprofile-rank-actions button:hover { color: var(--ink-1); }
+  .candprofile-rank-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .candprofile-toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+  }
+  .candprofile-toggle {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.4rem 0.625rem;
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    background: var(--paper);
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--ink-2);
+    transition: all 0.12s ease;
+  }
+  .candprofile-toggle:hover { border-color: var(--gold-rule); }
+  .candprofile-toggle input { accent-color: var(--gold); }
+
+  .candprofile-achievement {
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 0.875rem 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    background: var(--paper);
+  }
+  .candprofile-achievement-header {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+  }
+  .candprofile-achievement-header select { flex: 1; }
+
+  .candprofile-step-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--rule);
+    padding-top: 0.875rem;
+    margin-top: 1rem;
+  }
+  .candprofile-step-pos {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--ink-4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Match Transparency card */
+  .match-transparency {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .match-transparency-fit {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.875rem 1.125rem;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+  }
+  .match-transparency-fit.gold { background: var(--gold-bg); border-color: var(--gold); }
+  .match-transparency-fit.blue { background: rgba(30,77,122,0.05); border-color: #c7d5e3; }
+  .match-transparency-fit.red  { background: rgba(139,26,26,0.05); border-color: #d8b8b8; }
+  .match-transparency-fit-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: var(--ink-1);
+  }
+  .match-transparency-fit-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem;
+    color: var(--ink-2);
+    letter-spacing: 0.04em;
+  }
+  .match-transparency-section { display: flex; flex-direction: column; gap: 0.4rem; }
+  .match-transparency-list { margin: 0; padding-left: 1.2rem; font-size: 0.82rem; line-height: 1.6; }
+  .match-transparency-list.good li { color: var(--ink-1); }
+  .match-transparency-list.bad li  { color: #8b1a1a; }
+  .match-transparency-empty {
+    font-size: 0.78rem;
+    color: var(--ink-4);
+    font-style: italic;
+  }
+  .match-transparency-confidentiality {
+    font-size: 0.8rem;
+    color: var(--ink-2);
+    line-height: 1.6;
+    padding: 0.625rem 0.875rem;
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+  .match-transparency-actions {
+    display: flex;
+    gap: 0.625rem;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+  }
+  .match-transparency-fineprint {
+    font-size: 0.7rem;
+    color: var(--ink-4);
+    line-height: 1.55;
+    text-align: center;
+    border-top: 1px dashed var(--rule);
+    padding-top: 0.75rem;
+  }
+
+  @media (max-width: 700px) {
+    .candprofile-tabs { grid-template-columns: repeat(2, 1fr); }
+    .candprofile-comp-grid { grid-template-columns: 1fr; }
+    .candprofile-toggle-grid { grid-template-columns: 1fr; }
+    .candprofile-rank-row { grid-template-columns: 28px 1fr; }
+    .candprofile-rank-actions { grid-column: 1 / -1; }
+  }
+
 </style>
 </head>
 <body>
