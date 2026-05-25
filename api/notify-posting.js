@@ -34,6 +34,56 @@ module.exports = async function handler(req, res) {
   const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimtech.com';
   const zapierUrl   = process.env.ZAPIER_DESK_WEBHOOK;
 
+  // -- ACTIVE SEARCH LIMIT GUARD --
+  // Cap concurrent active searches per firm. Default 5 for standard tier.
+  // Skipped entirely for intern postings and when the firm cannot be resolved.
+  if (!isIntern && firm_name) {
+    try {
+      const { createClient } = require('@supabase/supabase-js');
+      const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+      // Pull configurable limit from fed_pricing_config (defaults to 5).
+      const { data: limitRow } = await sb
+        .from('fed_pricing_config')
+        .select('value_int')
+        .eq('key', 'active_searches_standard')
+        .maybeSingle();
+      const standardLimit = (limitRow && limitRow.value_int) || 5;
+
+      // Count active, non-expired postings for this firm.
+      const nowIso = new Date().toISOString();
+      const { count } = await sb
+        .from('fed_jobs')
+        .select('id', { count: 'exact', head: true })
+        .eq('firm_name', firm_name)
+        .eq('status', 'active')
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+
+      // Look up the firm's tier - 'enterprise' gets the higher limit.
+      const { data: firmRow } = await sb
+        .from('talent_recruiters')
+        .select('tier')
+        .eq('firm_name', firm_name)
+        .maybeSingle();
+      const tier = (firmRow && firmRow.tier) || 'standard';
+      const effectiveLimit = tier === 'enterprise'
+        ? ((await sb.from('fed_pricing_config').select('value_int').eq('key','active_searches_enterprise').maybeSingle()).data?.value_int || 25)
+        : standardLimit;
+
+      if ((count || 0) >= effectiveLimit) {
+        return res.status(429).json({
+          error: `Active search limit reached - ${count} of ${effectiveLimit} concurrent searches in use. Close or archive an existing search, or contact desk@fredheimtech.com about enterprise tier.`,
+          active_count: count,
+          limit: effectiveLimit,
+          tier,
+        });
+      }
+    } catch (e) {
+      // Limit check is non-blocking on infrastructure failure - log and proceed.
+      console.warn('active search limit check failed:', e.message);
+    }
+  }
+
   async function send(payload) {
     if (!zapierUrl) {
       // Caller used to silently drop notifications when the env var was

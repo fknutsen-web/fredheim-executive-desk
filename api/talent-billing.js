@@ -158,6 +158,94 @@ async function runCandidateInterestNotifications() {
   return sent;
 }
 
+// -- JOB 3b: INTRODUCTION REMINDERS + AUTO-ARCHIVE ---
+// 7-day reminder, 14-day reminder, 30-day archive on confirmed introductions
+// where neither party has updated status. Ghosting prevention.
+async function runIntroductionReminders() {
+  let reminders = 0, archived = 0;
+  const day7  = new Date(Date.now() -  7 * 86400000).toISOString();
+  const day14 = new Date(Date.now() - 14 * 86400000).toISOString();
+  const day30 = new Date(Date.now() - 30 * 86400000).toISOString();
+
+  // 30-day archive
+  const { data: stale } = await supabase
+    .from('talent_matches')
+    .select('id, talent_recruiters(email, contact_name), talent_candidates(first_name)')
+    .lt('engaged_at', day30)
+    .eq('recruiter_status', 'engaged')
+    .is('archived_at', null);
+
+  for (const m of stale || []) {
+    await supabase.from('talent_matches')
+      .update({ recruiter_status: 'archived', archived_at: new Date().toISOString() })
+      .eq('id', m.id);
+    if (m.talent_recruiters?.email) {
+      await supabase.rpc('fed_increment_recruiter_ghost', { p_email: m.talent_recruiters.email }).catch(()=>{});
+    }
+    archived++;
+  }
+
+  // 7-day and 14-day reminders
+  const buckets = [
+    { tag: 'reminder_7',  threshold: day7,  key: 'reminder_7_sent_at' },
+    { tag: 'reminder_14', threshold: day14, key: 'reminder_14_sent_at' },
+  ];
+  for (const bucket of buckets) {
+    const { data: due } = await supabase
+      .from('talent_matches')
+      .select('id, engaged_at, last_activity_at, talent_recruiters(email, contact_name), talent_candidates(first_name)')
+      .lt('engaged_at', bucket.threshold)
+      .eq('recruiter_status', 'engaged')
+      .is(bucket.key, null);
+
+    for (const m of due || []) {
+      await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+        type:           bucket.tag,
+        to_email:       m.talent_recruiters?.email,
+        recruiter_name: m.talent_recruiters?.contact_name,
+        candidate_name: m.talent_candidates?.first_name,
+        match_id:       m.id,
+        subject:        `Quick status check on ${m.talent_candidates?.first_name}?`,
+        body:           `Light reminder: a one-tap status update on this introduction helps our matching intelligence and keeps the relationship from ghosting.`,
+        update_url:     `https://desk.fredheimtech.com?view=recruiter-talent&match=${m.id}`,
+      });
+      await supabase.from('talent_matches').update({ [bucket.key]: new Date().toISOString() }).eq('id', m.id);
+      reminders++;
+    }
+  }
+  return { reminders_sent: reminders, archived_inactive: archived };
+}
+
+// -- JOB 3c: JOB LISTING EXPIRATION SWEEP ---
+// Move fed_jobs past expires_at to status='expired' and surface a one-time
+// expiration prompt to the recruiter via webhook. Skips listings already
+// reposted recently or already marked closed/archived.
+async function runJobListingExpiration() {
+  let expired = 0, prompted = 0;
+  const nowIso = new Date().toISOString();
+
+  const { data: due } = await supabase
+    .from('fed_jobs')
+    .select('id, title, firm_name, firm_email, status, expires_at, last_expiration_prompt_at')
+    .eq('status', 'active')
+    .lt('expires_at', nowIso)
+    .is('last_expiration_prompt_at', null);
+
+  for (const j of due || []) {
+    await supabase.from('fed_jobs').update({ status: 'expired', last_expiration_prompt_at: nowIso }).eq('id', j.id);
+    await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+      type:           'job_expired',
+      to_email:       j.firm_email,
+      subject:        `Search expired: ${j.title}`,
+      body:           `Your search for ${j.title} reached its 90-day window. Repost as-is, update, close, or archive from your dashboard.`,
+      dashboard_url:  'https://desk.fredheimtech.com?view=recruiter-dash',
+    });
+    expired++;
+    prompted++;
+  }
+  return { expired_listings: expired, expiration_prompts_sent: prompted };
+}
+
 // ── JOB 4: FOUNDING PARTNER CAP MONITORING ────────────────────
 // Alerts admin when available Founding Partner spots fall below thresholds.
 // Cap and deadline are configurable via env vars.

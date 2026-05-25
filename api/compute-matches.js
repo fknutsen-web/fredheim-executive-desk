@@ -470,13 +470,69 @@ function computeMatchScore(candidate, job) {
       else if (inSet(op.willing_industries))  reasons.industry_willing = true;
     }
 
-    // Compensation alignment - the candidate's desired range and minimum.
+    // Compensation alignment - structured Min / Target / Exceptional vs.
+    // candidate Min / Target / Desired Total + flexibility. Produces a
+    // human-readable alignment label that the front end displays.
     const comp = op.compensation || {};
-    const candMin = parseInt((comp.minimum_base || '').replace(/[^0-9]/g,''), 10);
-    if (job.salary_max && Number.isFinite(candMin) && candMin > job.salary_max) {
-      score -= 6; reasons.comp_fit = false;
+    const parseNum = (s) => {
+      if (s == null) return NaN;
+      const n = parseInt(String(s).replace(/[^0-9]/g,''), 10);
+      return Number.isFinite(n) ? n : NaN;
+    };
+    const candMin    = parseNum(comp.minimum_base);
+    const candTarget = parseNum(comp.target_base);
+    const flex       = comp.flexibility || '';
+    const jobFloor   = parseNum(job.comp_floor);
+    const jobLow     = parseNum(job.comp_target_low);
+    const jobHigh    = parseNum(job.comp_target_high);
+    const jobCeiling = parseNum(job.comp_exceptional_ceiling);
+    const negotiable = ['flexible','highly_flexible','dependent_on_scope','equity_ltip_adjust','open_exceptional'].includes(job.comp_negotiability);
+
+    let compAlignment = null;
+    let compBlurb = null;
+    if (Number.isFinite(candMin) && (Number.isFinite(jobHigh) || Number.isFinite(jobCeiling))) {
+      const effectiveCeiling = Number.isFinite(jobCeiling) ? jobCeiling : jobHigh;
+      const candCenter = Number.isFinite(candTarget) ? candTarget : candMin;
+
+      if (Number.isFinite(jobLow) && candCenter >= jobLow && candCenter <= (Number.isFinite(jobHigh) ? jobHigh : effectiveCeiling)) {
+        compAlignment = 'aligned';
+        compBlurb = 'Clear compensation alignment';
+        score += 6;
+      } else if (Number.isFinite(jobHigh) && candCenter > jobHigh && candCenter <= effectiveCeiling) {
+        compAlignment = 'stretch';
+        compBlurb = 'Candidate may stretch for exceptional role';
+        score += 3;
+      } else if (Number.isFinite(effectiveCeiling) && candMin > effectiveCeiling) {
+        const gapPct = ((candMin - effectiveCeiling) / effectiveCeiling) * 100;
+        if (gapPct >= 30) {
+          compAlignment = 'material_mismatch';
+          compBlurb = 'Material compensation mismatch';
+          score -= 8;
+        } else {
+          compAlignment = 'possible_gap';
+          compBlurb = negotiable ? 'Possible compensation gap - role is flagged negotiable' : 'Possible compensation gap';
+          score -= negotiable ? 2 : 5;
+        }
+      } else if (Number.isFinite(jobFloor) && candMin < jobFloor) {
+        compAlignment = 'below_market';
+        compBlurb = 'Recruiter compensation may be below market for required scope';
+        score += 1; // candidate benefits but flag to recruiter
+      }
+      if (['highly_flexible','open_exceptional'].includes(flex) && compAlignment === 'possible_gap') {
+        compAlignment = 'aligned';
+        compBlurb = 'Compensation gap offset by candidate flexibility';
+        score += 4;
+      }
+    } else if (job.salary_max && Number.isFinite(candMin) && candMin > job.salary_max) {
+      // Legacy fallback when only old salary_max is present
+      score -= 6; compAlignment = 'possible_gap'; compBlurb = 'Possible compensation gap';
     } else if (Number.isFinite(candMin)) {
-      reasons.comp_fit = true;
+      compAlignment = 'aligned'; compBlurb = 'Compensation aligned';
+    }
+    if (compAlignment) {
+      reasons.comp_alignment = compAlignment;
+      reasons.comp_alignment_blurb = compBlurb;
+      reasons.comp_fit = compAlignment === 'aligned' || compAlignment === 'stretch';
     }
 
     // Career intent compatibility - a permanent role for a candidate who
