@@ -340,6 +340,156 @@ function computeMatchScore(candidate, job) {
     score += Math.min(10, commercialPts);
   }
 
+  // ── 9. SCHEMA-ALIGNED INTAKE OVERLAY (additive, capped at +/- 8 pts) ───
+  // When the role was posted through the 8-step IntakeWorkflow the job has
+  // an `intake` JSONB with environment_tags, leadership_tags, complexity_tags,
+  // and a requirement_priority matrix. Use these to refine the score with
+  // direct culture / leadership / complexity overlap signals. Backward-
+  // compatible: jobs without an intake skip this entire block.
+  const intake = job.intake || (job.role_scope_requirements && job.role_scope_requirements.intake) || null;
+  if (intake) {
+    const candTags = (() => {
+      const s = candidate.candidate_scope || {};
+      const tags = new Set();
+      // Project candidate strategic/complexity flags into intake-style tags
+      // so single-source-of-truth tag comparison works.
+      if (s.complexity && s.complexity.multi_site)          tags.add('Multi-site operations');
+      if (s.complexity && s.complexity.industrial_24_7)     tags.add('24/7 operations');
+      if (s.complexity && s.complexity.regulated)           tags.add('Regulated environment');
+      if (s.complexity && s.complexity.union_environment)   tags.add('Union environment');
+      if (s.strategic  && s.strategic.greenfield)           tags.add('Greenfield startup');
+      if (s.strategic  && s.strategic.turnaround)           tags.add('Turnaround');
+      if (s.strategic  && s.strategic.transformation)       tags.add('Operational transformation');
+      if (s.strategic  && s.strategic.erp_implementation)   tags.add('ERP implementation');
+      return tags;
+    })();
+
+    const overlap = (jobList, candSet) => {
+      if (!Array.isArray(jobList) || jobList.length === 0) return null;
+      const hits = jobList.filter(t => candSet.has(t)).length;
+      return hits / jobList.length;
+    };
+
+    // Complexity overlap (up to +4 / -2)
+    const complexityOverlap = overlap(intake.complexity_tags, candTags);
+    if (complexityOverlap !== null) {
+      if (complexityOverlap >= 0.6) { score += 4; reasons.complexity_tags = true; }
+      else if (complexityOverlap > 0) { score += 2; reasons.complexity_tags = 'partial'; }
+      else { score -= 2; reasons.complexity_tags = false; }
+    }
+
+    // Requirement priority matrix - must-have items act as a soft floor:
+    // when the candidate clearly lacks a must-have, mark a reason; the
+    // matcher continues to score but the front end can label the gap.
+    const priority = intake.requirement_priority || {};
+    const mustHaves = Object.keys(priority).filter(k => priority[k] === 'must_have');
+    if (mustHaves.length) {
+      const candScope = candidate.candidate_scope || {};
+      const lacks = [];
+      mustHaves.forEach(k => {
+        if (k === 'international_exposure' && !(candScope.complexity && candScope.complexity.international)) lacks.push(k);
+        if (k === 'leadership_scope' && job.required_leadership_class && candidate.leadership_class) {
+          const cIdx = classIndex(LEADERSHIP_ORDER, candidate.leadership_class);
+          const rIdx = classIndex(LEADERSHIP_ORDER, job.required_leadership_class);
+          if (cIdx < rIdx) lacks.push(k);
+        }
+      });
+      if (lacks.length) {
+        reasons.must_have_gaps = lacks;
+        score -= Math.min(8, lacks.length * 3);
+      } else {
+        reasons.must_have_satisfied = true;
+      }
+    }
+  }
+
+  // -- 10. CANDIDATE OPERATING PROFILE OVERLAY (additive, capped at +/- 10) -
+  // When the candidate has filled the schema-driven operating profile, the
+  // matcher refines the score using career intent, environment fit, leadership
+  // style overlap, avoidance signals, and industry adjacency. Backward-
+  // compatible: candidates without an operating profile skip this block.
+  const op = candidate.candidate_operating_profile || null;
+  const jobIntake = intake; // already resolved above
+  if (op) {
+    // Leadership-style overlap (recruiter tags vs candidate tags - identical
+    // string pools by design, see CANDIDATE_LEADERSHIP_TAGS).
+    if (jobIntake && Array.isArray(jobIntake.leadership_tags) && Array.isArray(op.leadership_style)) {
+      const candSet = new Set(op.leadership_style);
+      const hits = jobIntake.leadership_tags.filter(t => candSet.has(t)).length;
+      if (jobIntake.leadership_tags.length > 0) {
+        const overlap = hits / jobIntake.leadership_tags.length;
+        if (overlap >= 0.6) { score += 4; reasons.leadership_style_fit = true; }
+        else if (overlap > 0) { score += 2; reasons.leadership_style_fit = 'partial'; }
+        else { reasons.leadership_style_fit = false; }
+      }
+    }
+
+    // Environment fit - did the candidate flag this role's environment as
+    // a place they perform best, or a place they want to avoid?
+    if (jobIntake && Array.isArray(jobIntake.environment_tags)) {
+      const preferred = new Set(op.environment_preferred || []);
+      const avoid     = new Set(op.environment_avoid || []);
+      const tagMatch = (recTag, candSet) => {
+        // Loose match - "PE-Backed" matches "PE-Backed" exactly in both lists.
+        return jobIntake.environment_tags.some(t => candSet.has(t));
+      };
+      if (tagMatch(null, preferred)) { score += 3; reasons.environment_fit = true; }
+      if (tagMatch(null, avoid))     { score -= 4; reasons.environment_avoid = true; }
+    }
+
+    // Role avoidance - the candidate's general avoidance list reduces score
+    // when the role's intake matches (e.g. "Heavy travel" + travel_pct > 50).
+    if (Array.isArray(op.role_avoidance) && op.role_avoidance.length) {
+      const avoidSet = new Set(op.role_avoidance);
+      const travel = jobIntake ? parseInt(jobIntake.travel_pct, 10) : NaN;
+      if (avoidSet.has('Heavy travel') && Number.isFinite(travel) && travel >= 50) {
+        score -= 5; reasons.role_avoidance = 'heavy_travel';
+      }
+      if (avoidSet.has('Relocation') && jobIntake && jobIntake.relocation_required === 'yes') {
+        score -= 5; reasons.role_avoidance = 'relocation';
+      }
+      if (avoidSet.has('Union environment') && Array.isArray(jobIntake?.complexity_tags)
+          && jobIntake.complexity_tags.includes('Union environment')) {
+        score -= 4; reasons.role_avoidance = 'union';
+      }
+      if (avoidSet.has('Startup chaos') && Array.isArray(jobIntake?.environment_tags)
+          && jobIntake.environment_tags.includes('Startup')) {
+        score -= 3; reasons.role_avoidance = 'startup';
+      }
+    }
+
+    // Industry adjacency - core/adjacent/willing all count, excluded blocks.
+    if (job.industry) {
+      const jIndustryLower = job.industry.toLowerCase();
+      const inSet = (arr) => Array.isArray(arr) && arr.some(t => t.toLowerCase() === jIndustryLower
+                                                              || jIndustryLower.includes(t.toLowerCase())
+                                                              || t.toLowerCase().includes(jIndustryLower));
+      if (inSet(op.excluded_industries)) { score -= 10; reasons.industry_excluded = true; }
+      else if (inSet(op.core_industries))     reasons.industry_core = true;
+      else if (inSet(op.adjacent_industries)) reasons.industry_adjacent = true;
+      else if (inSet(op.willing_industries))  reasons.industry_willing = true;
+    }
+
+    // Compensation alignment - the candidate's desired range and minimum.
+    const comp = op.compensation || {};
+    const candMin = parseInt((comp.minimum_base || '').replace(/[^0-9]/g,''), 10);
+    if (job.salary_max && Number.isFinite(candMin) && candMin > job.salary_max) {
+      score -= 6; reasons.comp_fit = false;
+    } else if (Number.isFinite(candMin)) {
+      reasons.comp_fit = true;
+    }
+
+    // Career intent compatibility - a permanent role for a candidate who
+    // signaled only Consultant/Advisor intent is a noisy match. Convert to
+    // a small negative weight rather than a hard filter.
+    if (Array.isArray(op.career_intent) && op.career_intent.length) {
+      const wantsPerm = op.career_intent.includes('permanent_executive')
+                    || op.career_intent.includes('operational_leader')
+                    || op.career_intent.includes('growth_builder');
+      if (!wantsPerm && jobIntake) score -= 4;
+    }
+  }
+
   // HARD GUARD: Block matches where candidate is more than two leadership
   // tiers below requirement. These introductions destroy recruiter trust
   // more than they create candidate optionality.
@@ -351,5 +501,5 @@ function computeMatchScore(candidate, job) {
     }
   }
 
-  return { score: Math.min(100, Math.round(score)), reasons };
+  return { score: Math.min(100, Math.max(0, Math.round(score))), reasons };
 }
