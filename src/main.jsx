@@ -11133,8 +11133,11 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
         <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{counts.all} MATCHES</span>
       </div>
 
-      {/* Compensation positioning advisory */}
-      <CandidateCompPositioning profile={profile} matches={matches} jobs={jobs} />
+      {/* Compensation positioning advisory.
+          CandidateMatchSection does not have the App-level `jobs` array in
+          scope - pass an empty array. CandidateCompPositioning falls back to
+          each match's nested fed_jobs join when the lookup map misses. */}
+      <CandidateCompPositioning profile={profile} matches={matches} jobs={[]} />
 
       {/* Match stats */}
       {counts.all > 0 && (
