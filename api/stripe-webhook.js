@@ -52,16 +52,24 @@ function recruiterTierFromPrice(priceId) {
   return null;
 }
 
-// ── ENGAGEMENT TYPE FROM PRICE ID ─────────────────────────────
-// All three price IDs represent the same event type (engagement unlock)
-// differentiated only by match age bracket at time of purchase
-function isEngagementPrice(priceId) {
+// -- CURATED INTRODUCTION PRICE CHECK -----------------------------
+// Phase 1: a single flat $249 introduction fee (PRICE_INTRO_FLAT).
+// Legacy: the deprecated age-based engagement-unlock prices remain in the
+// allowed set so existing in-flight checkouts complete cleanly.
+function isIntroductionPrice(priceId) {
   return [
-    process.env.PRICE_ENGAGE_FRESH,   // 0–30 day match: $500
-    process.env.PRICE_ENGAGE_WARM,    // 31–60 day match: $350
-    process.env.PRICE_ENGAGE_AGING,   // 61–90 day match: $200
-  ].includes(priceId);
+    process.env.PRICE_INTRO_FLAT,     // Phase 1: $249 flat
+    process.env.PRICE_ENGAGE_FRESH,   // legacy: 0-30 day match: $500
+    process.env.PRICE_ENGAGE_WARM,    // legacy: 31-60 day match: $350
+    process.env.PRICE_ENGAGE_AGING,   // legacy: 61-90 day match: $200
+    process.env.PRICE_INTRO_CSUITE,   // legacy tiered C-suite
+    process.env.PRICE_INTRO_VP,       // legacy tiered VP
+    process.env.PRICE_INTRO_DIRECTOR, // legacy tiered Director
+    process.env.PRICE_INTRO_MANAGER,  // legacy tiered Manager
+  ].filter(Boolean).includes(priceId);
 }
+// Back-compat alias - some callers below still reference the old name.
+const isEngagementPrice = isIntroductionPrice;
 
 // ── INTERN TIER FROM PRICE ID ─────────────────────────────────
 // Only one paid student tier: featured ($49/yr)
@@ -206,10 +214,15 @@ module.exports = async function handler(req, res) {
           break;
         }
 
-        // ── ENGAGEMENT UNLOCK FEE ─────────────────────────
-        // Fired when a recruiter pays to unlock a candidate introduction
+        // -- CURATED INTRODUCTION FEE (Phase 1: flat $249) --------
+        // Fired when a recruiter pays for a curated introduction.
+        // Accepts both the new meta.type='introduction' and the legacy
+        // 'engagement' tag so older checkouts complete cleanly.
+        // Updates BOTH fed_matches (executive product) and talent_matches
+        // (legacy talent product) so either match record advances.
         const matchId = meta.match_id;
-        if (meta.type === 'engagement' && matchId && isEngagementPrice(priceId)) {
+        if ((meta.type === 'introduction' || meta.type === 'engagement') && matchId && isIntroductionPrice(priceId)) {
+          await handleIntroductionPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
           await handleEngagementPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
           break;
         }
@@ -352,7 +365,72 @@ module.exports = async function handler(req, res) {
   return res.status(200).json({ received: true });
 };
 
-// ── ENGAGEMENT UNLOCK PAID HANDLER ────────────────────────────
+// -- CURATED INTRODUCTION PAID HANDLER (fed_matches / Phase 1) --
+// Updates the executive-product match record after Stripe confirms the
+// $249 curated introduction payment. Flips status to recruiter_interested
+// (or mutual_interest if candidate had already signaled), records payment
+// completion, and fires the bilateral introduction email.
+//
+// Safe to call even when the match_id belongs only to the legacy
+// talent_matches table - we silently skip if no fed_matches row is found.
+async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recruiterEmail) {
+  const now = new Date().toISOString();
+  // Look up the fed_matches row. If none, this match belongs to the legacy
+  // talent_matches table and handleEngagementPaid will handle it.
+  const { data: match, error: mErr } = await supabase
+    .from('fed_matches')
+    .select('*, fed_jobs(title, firm_name, firm_email)')
+    .eq('id', matchId)
+    .maybeSingle();
+  if (mErr || !match) return; // not a fed_matches record
+
+  // Decide the new status. If candidate already signaled, this becomes mutual.
+  const wasCandidateInterested = match.status === 'candidate_interested';
+  const newStatus = wasCandidateInterested ? 'mutual_interest' : 'recruiter_interested';
+
+  const update = {
+    status:                  newStatus,
+    recruiter_interested_at: now,
+    payment_completed_at:    now,
+    introduction_fee_paid:   true,
+    introduction_fee_amount: feeAmount || '$249',
+    introduction_fee_bracket:bracket || 'flat',
+  };
+  if (wasCandidateInterested) update.mutual_interest_at = now;
+
+  await supabase.from('fed_matches').update(update).eq('id', matchId);
+
+  // Notify candidate of the curated introduction (and pay-confirmed gate).
+  const jobTitle = match.fed_jobs?.title || 'a senior search';
+  const firmName = match.fed_jobs?.firm_name || 'A search firm';
+  await supabase.from('fed_notifications').insert({
+    recipient_email: match.candidate_email.toLowerCase(),
+    recipient_role:  'candidate',
+    type:            newStatus,
+    match_id:        matchId,
+    job_id:          match.job_id,
+    title:           newStatus === 'mutual_interest'
+      ? `Mutual interest confirmed - ${jobTitle}`
+      : `A search firm has confirmed a curated introduction`,
+    body:            newStatus === 'mutual_interest'
+      ? `${firmName} has paid for and confirmed the curated introduction. Fredheim will facilitate next steps.`
+      : `${firmName} has expressed interest in your profile for a ${jobTitle} role. You can accept, decline, or ignore this introduction.`,
+  });
+  await supabase.from('fed_notifications').insert({
+    recipient_email: recruiterEmail.toLowerCase(),
+    recipient_role:  'recruiter',
+    type:            'introduction_confirmed',
+    match_id:        matchId,
+    job_id:          match.job_id,
+    title:           `Curated introduction confirmed (${feeAmount || '$249'})`,
+    body:            newStatus === 'mutual_interest'
+      ? `Mutual interest with the candidate. You can now connect directly via the dashboard.`
+      : `Interest signaled to candidate. They will be notified and can accept, decline, or ignore.`,
+  });
+  console.log(`Fredheim curated introduction paid: match ${matchId} -> ${newStatus} (${feeAmount || '$249'})`);
+}
+
+// ── ENGAGEMENT UNLOCK PAID HANDLER (legacy talent_matches) ─────
 // Called when checkout.session.completed fires for an engagement unlock.
 // Records the payment, marks the match engaged, and fires the introduction email.
 async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruiterEmail) {
