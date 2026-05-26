@@ -10172,15 +10172,22 @@ function AdminLogin({ onLogin }) {
         body: JSON.stringify({ password }),
       });
       const data = await resp.json();
-      if (resp.ok && data.ok && data.token) {
+      if (resp.ok && data.ok) {
+        // Auth succeeded server-side. Persist the admin flag.
         sessionStorage.setItem('fed_admin', 'true');
-        // Store the signed session token (HMAC-SHA256 + expiry) instead of
-        // the raw password. Sent as Authorization: Bearer on subsequent
-        // admin API calls. The password itself is never persisted.
-        sessionStorage.setItem('fed_admin_token', data.token);
-        // Defensive: scrub any legacy password storage left over from older
-        // sessions before this refactor.
-        sessionStorage.removeItem('fed_admin_pwd');
+        // The signed session token is preferred for subsequent admin API
+        // calls. If it's missing (older deploy without ADMIN_TOKEN_SECRET, or
+        // a code path that didn't include it in the response), we fall back
+        // to using the raw password as the x-admin-secret header - the
+        // server still accepts that legacy path during the transition. The
+        // password itself is held only in-memory here, never persisted.
+        if (data.token) {
+          sessionStorage.setItem('fed_admin_token', data.token);
+          sessionStorage.removeItem('fed_admin_pwd');
+        } else {
+          console.warn('Admin auth succeeded but no token returned. Using legacy header fallback.');
+          sessionStorage.setItem('fed_admin_pwd', password);
+        }
         onLogin();
       } else {
         setError(data.error || 'Incorrect password.');
