@@ -3606,7 +3606,7 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
-          <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics</span>
+          <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</span>
         </div>
       </div>
       <div className="nav-links">
@@ -14357,14 +14357,59 @@ function App() {
                 : 'No searches match your filters. Try broadening your criteria.'}
               </div>
             ) : (
-              <div className="jobs-grid">
-                {filtered.map(j => <JobCard key={j.id} job={j} onClick={async (job) => {
-                setSelectedJob(job);
-                sb.from('fed_jobs').update({ view_count: (job.view_count || 0) + 1 }).eq('id', job.id).then(() => {
-                  setJobs(prev => prev.map(x => x.id === job.id ? {...x, view_count: (x.view_count||0)+1} : x));
-                });
-              }} />)}
-              </div>
+              <>
+                {/* Public-side marketplace gate. Unauthenticated visitors see a
+                    sample of the first 3 searches; the rest are locked behind
+                    sign-in. The strategic doc prohibits open marketplace
+                    browsing to protect candidate confidentiality and prevent
+                    recruiter harvesting. */}
+                <div className="jobs-grid">
+                  {(authUser ? filtered : filtered.slice(0, 3)).map(j => (
+                    <JobCard key={j.id} job={j} onClick={async (job) => {
+                      setSelectedJob(job);
+                      sb.from('fed_jobs').update({ view_count: (job.view_count || 0) + 1 }).eq('id', job.id).then(() => {
+                        setJobs(prev => prev.map(x => x.id === job.id ? {...x, view_count: (x.view_count||0)+1} : x));
+                      });
+                    }} />
+                  ))}
+                </div>
+                {!authUser && filtered.length > 3 && (
+                  <div style={{
+                    marginTop:'1.5rem',
+                    padding:'1.5rem 1.75rem',
+                    border:'1px solid var(--gold-rule)',
+                    background:'var(--gold-bg)',
+                    borderRadius:'4px',
+                    textAlign:'center',
+                  }}>
+                    <div style={{
+                      fontFamily:"'DM Mono',monospace",
+                      fontSize:'0.62rem',
+                      color:'var(--gold)',
+                      textTransform:'uppercase',
+                      letterSpacing:'0.14em',
+                      marginBottom:'0.6rem',
+                    }}>Curated marketplace</div>
+                    <div style={{
+                      fontFamily:"'Playfair Display',serif",
+                      fontSize:'1.2rem',
+                      color:'var(--ink-1)',
+                      marginBottom:'0.5rem',
+                    }}>
+                      {filtered.length - 3} more {filtered.length - 3 === 1 ? 'search' : 'searches'} available to members
+                    </div>
+                    <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:560,margin:'0 auto 1rem'}}>
+                      Fredheim Desk is a private executive marketplace. Sign in or create a
+                      free executive profile to browse the full set of curated searches and
+                      signal interest confidentially.
+                    </p>
+                    <div style={{display:'flex',gap:'0.625rem',justifyContent:'center',flexWrap:'wrap'}}>
+                      <button className="btn-primary" onClick={() => goToView('profile')}>Create Executive Profile</button>
+                      <button className="btn-outline" onClick={() => setActiveView('signin')}>Sign In</button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {/* Social proof — shown below the job grid; hidden if both sources empty */}
@@ -14400,7 +14445,7 @@ function App() {
                 <li>Email alerts when a matching search is posted</li>
                 <li>Confidential Profile ($299/yr) — your name and employer stay hidden until you approve</li>
                 <li>Priority matching — surface in recruiter searches ahead of free profiles</li>
-                <li>Maritime · Ports · Energy · Industrial Logistics only</li>
+                <li>Industrial focus: Maritime · Ports · Energy · Logistics · Industrial Technology</li>
               </ul>
             </div>
             <div className="profile-right">
@@ -14503,7 +14548,6 @@ function App() {
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
               <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
-                desk@fredheimtech.com
               </a>
             </p>
           </div>
