@@ -37,10 +37,16 @@ const PLACEMENT_FEE_FLOW_ENABLED  = false;
 // when the API is unavailable.
 const PRICING_CONFIG_DEFAULTS = {
   recruiter_subscription_monthly:    199,
-  introduction_csuite:               495,
-  introduction_vp_svp:               295,
-  introduction_director:             149,
-  introduction_consultant:            79,
+  // Phase 1 pivot: flat curated introduction fee for every leadership class.
+  // Removes title-classification disputes and simplifies the brokered
+  // market-access economics. The legacy tiered keys are kept below so any
+  // analytics or fed_pricing_config row that still references them continues
+  // to read cleanly, but they all resolve to the same flat amount.
+  introduction_flat:                 249,
+  introduction_csuite:               249,
+  introduction_vp_svp:               249,
+  introduction_director:             249,
+  introduction_consultant:           249,
   introduction_early_career:           0,
   candidate_executive_tier:          299,
   intern_featured_tier:               49,
@@ -48,17 +54,18 @@ const PRICING_CONFIG_DEFAULTS = {
   founding_partner_monthly_postings:  1,
 };
 
-// Mapping leadership_class -> introduction fee config key. Mirrors
+// Mapping leadership_class -> introduction fee config key. Every class now
+// maps to the same flat key. Early-career remains complimentary. Mirrors
 // fed_introduction_fee_by_class in the database.
 const INTRODUCTION_FEE_BY_CLASS_DEFAULTS = {
-  c_suite:         'introduction_csuite',
-  evp:             'introduction_csuite',
-  svp:             'introduction_vp_svp',
-  vp:              'introduction_vp_svp',
-  senior_director: 'introduction_director',
-  director:        'introduction_director',
-  senior_manager:  'introduction_consultant',
-  manager:         'introduction_consultant',
+  c_suite:         'introduction_flat',
+  evp:             'introduction_flat',
+  svp:             'introduction_flat',
+  vp:              'introduction_flat',
+  senior_director: 'introduction_flat',
+  director:        'introduction_flat',
+  senior_manager:  'introduction_flat',
+  manager:         'introduction_flat',
 };
 
 // Returns true if today's date is on or before the Founding Partner window
@@ -3864,17 +3871,13 @@ function TosModal({ onAgree, onCancel }) {
           </div>
 
           <div className="tos-clause">
-            <strong>Curated Introduction Fee.</strong> A one-time introduction fee is charged
-            <em> at the moment you confirm a curated introduction</em> with a candidate. The fee
-            is tiered by the candidate's leadership scope:
-            {' '}<strong>$495</strong> (C-Suite),
-            {' '}<strong>$295</strong> (VP / SVP),
-            {' '}<strong>$149</strong> (Director),
-            {' '}<strong>$79</strong> (Senior Manager / Manager).
-            Early-career candidates are complimentary. There is <strong>no placement fee, no
-            success fee, and no fee on hire</strong> — the curated-introduction fee is the only
-            transactional charge. Founding cohort recruiters pay no introduction fees during the
-            founding window.
+            <strong>Curated Introduction Fee.</strong> A flat one-time introduction fee of
+            {' '}<strong>$249</strong> is charged <em>at the moment you confirm a curated
+            introduction</em> with a candidate. The fee is the same for every leadership
+            scope — no classification disputes. Early-career candidates are complimentary.
+            There is <strong>no placement fee, no success fee, and no fee on hire</strong> —
+            the curated-introduction fee is the only transactional charge. Founding cohort
+            recruiters pay no introduction fees during the founding window.
           </div>
 
           <div className="tos-clause">
@@ -3898,10 +3901,9 @@ function TosModal({ onAgree, onCancel }) {
         <div className="tos-check-row" onClick={() => setChecked1(!checked1)}>
           <div className={`tos-checkbox ${checked1?'checked':''}`} />
           <div className="tos-check-label">
-            I agree to the <strong>$199/month subscription</strong> and the
-            {' '}<strong>curated introduction fees</strong> ($495 / $295 / $149 / $79 by candidate
-            leadership scope), charged at the moment of confirmed introduction. I understand
-            there is no placement fee on hire.
+            I agree to the <strong>$199/month subscription</strong> and the flat
+            {' '}<strong>$249 curated introduction fee</strong>, charged at the moment of
+            confirmed introduction. I understand there is no placement fee on hire.
           </div>
         </div>
 
@@ -5859,7 +5861,7 @@ const CANDIDATE_PROFILE_STEPS = [
   { id:'avoidance',       number:7,  title:'Role Avoidance Signals',        tagline:'What you do not want. Reduces noise in your match list.' },
   { id:'confidentiality', number:8,  title:'Confidentiality Controls',      tagline:'Decide exactly what recruiters see before any introduction.' },
   { id:'industry_tech',   number:9,  title:'Industry & Technology',         tagline:'Industries you lead in - and the tech systems you operate.' },
-  { id:'achievements',    number:10, title:'Structured Achievements',       tagline:'Situation, action, measurable result. The signal AI matching reads.' },
+  { id:'achievements',    number:10, title:'Structured Achievements',       tagline:'Situation, action, measurable result. The signal compatibility matching reads.' },
 ];
 
 // -----------------------------------------------------------------------------
@@ -6151,7 +6153,7 @@ function CandidateOperatingProfile({ value, onChange }) {
         {currentStep.id === 'achievements' && (
           <div className="candprofile-body">
             <div className="candprofile-field-label">
-              Structured achievements drive AI matching and the recruiter-facing
+              Structured achievements drive compatibility matching and the recruiter-facing
               summary. Add at least three.
             </div>
             {(v.achievements || []).map((a, i) => (
@@ -7801,50 +7803,27 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           introduction is confirmed - never on speculative or unilateral outreach. */}
       <div className="intro-fee-box">
         <div>
-          <div className="intro-fee-eyebrow">Curated Introduction Fees</div>
-          <div className="intro-fee-title">Pay per confirmed introduction</div>
+          <div className="intro-fee-eyebrow">Curated Introduction Fee</div>
+          <div className="intro-fee-title">One flat fee. Every leadership scope.</div>
           <p className="intro-fee-desc">
             The fee is triggered when a recruiter confirms a curated introduction to a
             qualified, mutually interested candidate. No placement fees. No commission.
-            No tail-period monitoring. Candidates are never charged any fee, ever.
-            Founding Partners are exempt from introduction fees through {cfg.founding_partner_window_end || '2026-12-31'}.
+            No tail-period monitoring. No classification disputes. Candidates are never
+            charged any fee, ever. Founding Partners are exempt from introduction fees
+            through {cfg.founding_partner_window_end || '2026-12-31'}.
           </p>
         </div>
-        <div className="intro-fee-amount">
-          <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.85rem'}}>
-            <tbody>
-              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
-                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>C-Suite</td>
-                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
-                  {fmtPrice(cfg.introduction_csuite)}
-                </td>
-              </tr>
-              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
-                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>VP / SVP</td>
-                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
-                  {fmtPrice(cfg.introduction_vp_svp)}
-                </td>
-              </tr>
-              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
-                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Director</td>
-                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
-                  {fmtPrice(cfg.introduction_director)}
-                </td>
-              </tr>
-              <tr style={{borderBottom:'1px solid var(--gold-rule)'}}>
-                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Consultant / Interim</td>
-                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--ink)',fontWeight:500}}>
-                  {fmtPrice(cfg.introduction_consultant)}
-                </td>
-              </tr>
-              <tr>
-                <td style={{padding:'0.5rem 0',color:'var(--ink-2)'}}>Early Career</td>
-                <td style={{padding:'0.5rem 0',textAlign:'right',fontFamily:"'Playfair Display',serif",fontSize:'1.15rem',color:'var(--green)',fontWeight:500}}>
-                  {fmtPrice(cfg.introduction_early_career)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div className="intro-fee-amount" style={{textAlign:'center'}}>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'3rem',color:'var(--ink)',fontWeight:500,lineHeight:1}}>
+            {fmtPrice(cfg.introduction_flat || 249)}
+          </div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.7rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase',marginTop:'0.4rem'}}>
+            Per confirmed introduction
+          </div>
+          <div style={{fontSize:'0.78rem',color:'var(--ink-3)',marginTop:'0.875rem',lineHeight:1.55}}>
+            Same fee for every executive scope - C-Suite through Manager.
+            Early Career: <strong style={{color:'var(--ink-1)'}}>complimentary</strong>.
+          </div>
         </div>
       </div>
 
@@ -8029,10 +8008,7 @@ function TermsPage() {
             <tr><th>Candidate Leadership Scope</th><th>Curated Introduction Fee</th></tr>
           </thead>
           <tbody>
-            <tr><td>C-Suite, EVP</td><td><strong>$495 (one-time)</strong></td></tr>
-            <tr><td>SVP, VP</td><td><strong>$295 (one-time)</strong></td></tr>
-            <tr><td>Senior Director, Director</td><td><strong>$149 (one-time)</strong></td></tr>
-            <tr><td>Senior Manager, Manager</td><td><strong>$79 (one-time)</strong></td></tr>
+            <tr><td>All executive scopes (C-Suite through Manager)</td><td><strong>$249 (one-time, flat)</strong></td></tr>
             <tr><td>Early Career, Individual Contributor</td><td>Complimentary</td></tr>
           </tbody>
         </table>
