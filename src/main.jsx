@@ -9106,7 +9106,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Posted</th><th>Title</th><th>Firm</th><th>Industry</th>
+                  <th>Posted</th><th>Title</th><th>Firm</th><th>Submitter</th><th>Industry</th>
                   <th>Location</th><th>Salary</th><th>Views</th><th>Interests</th>
                   <th>Status</th><th>Demo</th><th>Actions</th>
                 </tr>
@@ -9117,6 +9117,10 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                     <td>{fmt(j.created_at)}</td>
                     <td><strong>{j.title}</strong></td>
                     <td>{j.firm_name}</td>
+                    <td>
+                      <div style={{fontSize:'0.78rem'}}>{j.firm_email || '-'}</div>
+                      <div style={{fontSize:'0.68rem',color:'var(--ink-4)'}}>via Recruiter Submissions</div>
+                    </td>
                     <td>{j.industry}</td>
                     <td>{j.location}</td>
                     <td style={{whiteSpace:'nowrap'}}>{j.salary_display}</td>
@@ -14396,7 +14400,7 @@ function App() {
                       color:'var(--ink-1)',
                       marginBottom:'0.5rem',
                     }}>
-                      {filtered.length - 3} more {filtered.length - 3 === 1 ? 'search' : 'searches'} available to members
+                      More searches available to members
                     </div>
                     <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:560,margin:'0 auto 1rem'}}>
                       Fredheim Desk is a private executive marketplace. Sign in or create a
@@ -14580,7 +14584,7 @@ function App() {
         </div>
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
-          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
+          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</div>
         </div>
       </footer>
 
