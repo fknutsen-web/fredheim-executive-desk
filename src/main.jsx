@@ -12101,20 +12101,51 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
   async function indicateInterest(matchId) {
     setActionLoading(p => ({...p, [matchId]: true}));
     try {
-      const { data: { session } } = await sb.auth.getSession();
-      const resp = await fetch('/api/match-action', {
+      // Step 1: Trigger the $249 curated introduction checkout. Skipped
+      // automatically by the server when the recruiter is a founding cohort
+      // member (returns {complimentary: true}) or when the candidate is
+      // early-career (also complimentary). For all other introductions,
+      // Stripe Checkout opens in the same tab and the success_url returns
+      // the recruiter to the dashboard with ?checkout=engaged&match=<id>.
+      // The match status flips to recruiter_interested via the stripe-webhook
+      // handler when Stripe confirms payment.
+      const checkout = await fetch('/api/create-checkout-session', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
-        body: JSON.stringify({ action: 'recruiter_interest', match_id: matchId }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'introduction', match_id: matchId, email: userEmail }),
       });
-      const data = await resp.json();
-      if (resp.ok) {
-        onMatchUpdate(matchId, data.status);
-        showToast(data.status === 'mutual_interest' ? '✓ Mutual interest! Fredheim will facilitate the introduction.' : '✓ Interest sent. Candidate will be notified.');
-      } else {
-        showToast(data.error || 'Could not send interest.');
+      const cdata = await checkout.json();
+      if (!checkout.ok) {
+        showToast(cdata.error || 'Could not start curated introduction.');
+        setActionLoading(p => ({...p, [matchId]: false}));
+        return;
       }
-    } catch(e) { showToast('Error sending interest.'); }
+      if (cdata.complimentary) {
+        // No payment required - proceed straight to the state transition.
+        const { data: { session } } = await sb.auth.getSession();
+        const resp = await fetch('/api/match-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+          body: JSON.stringify({ action: 'recruiter_interest', match_id: matchId }),
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          onMatchUpdate(matchId, data.status);
+          showToast(data.status === 'mutual_interest'
+            ? '✓ Mutual interest. Complimentary introduction confirmed.'
+            : '✓ Complimentary curated introduction sent.');
+        } else {
+          showToast(data.error || 'Could not send interest.');
+        }
+      } else if (cdata.url) {
+        // Hand off to Stripe Checkout. On payment success, Stripe webhook
+        // updates the match record server-side.
+        window.location.href = cdata.url;
+        return;
+      } else {
+        showToast('Unexpected checkout response. Please try again.');
+      }
+    } catch(e) { showToast('Error starting curated introduction.'); }
     setActionLoading(p => ({...p, [matchId]: false}));
   }
 
@@ -12342,6 +12373,145 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
   );
 }
 
+// -- RECRUITER POSTINGS TAB ---------------------------------------------------
+// Lets the recruiter manage their own job postings: see live searches,
+// expire (close to candidates immediately), archive (hide and stop matching),
+// reactivate (when an expired listing should run again), or open the intake
+// modal to post a new search. Edits to the substantive role content go
+// through admin review (intake modal); lifecycle actions are direct.
+function RecruiterPostingsTab({ jobs, userEmail, showToast, openPostModal, onJobUpdate }) {
+  const [busy, setBusy] = useState({});
+  const myJobs = (jobs || []).filter(j => !j.demo_post);
+
+  function fmtDate(ts) {
+    if (!ts) return '-';
+    return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  }
+
+  async function setStatus(jobId, newStatus, label) {
+    if (busy[jobId]) return;
+    setBusy(p => ({...p, [jobId]: true}));
+    try {
+      const patch = { status: newStatus };
+      if (newStatus === 'archived') patch.archived_at = new Date().toISOString();
+      if (newStatus === 'active')   patch.expires_at  = new Date(Date.now() + 90 * 86400000).toISOString();
+      const { error } = await sb.from('fed_jobs').update(patch).eq('id', jobId);
+      if (error) { showToast('Update failed: ' + error.message); }
+      else {
+        onJobUpdate(jobId, patch);
+        showToast(label);
+      }
+    } catch(e) { showToast('Error updating posting.'); }
+    setBusy(p => ({...p, [jobId]: false}));
+  }
+
+  async function deletePosting(jobId, title) {
+    if (busy[jobId]) return;
+    const confirmed = window.confirm(
+      `Permanently delete posting "${title}"?\n\n` +
+      `This removes the search from the marketplace entirely. ` +
+      `Existing candidate matches against this role will also be archived. ` +
+      `This cannot be undone.\n\n` +
+      `Click OK to delete, Cancel to keep the listing.`
+    );
+    if (!confirmed) return;
+    setBusy(p => ({...p, [jobId]: true}));
+    try {
+      // Soft delete: flip to 'deleted' + archive. We do NOT hard-delete to
+      // preserve match history and audit trail; the matcher and public
+      // listings ignore non-active rows.
+      const { error } = await sb.from('fed_jobs').update({
+        status:      'deleted',
+        archived_at: new Date().toISOString(),
+      }).eq('id', jobId);
+      if (error) { showToast('Delete failed: ' + error.message); }
+      else {
+        onJobUpdate(jobId, { status: 'deleted' });
+        showToast('Posting deleted.');
+      }
+    } catch(e) { showToast('Error deleting posting.'); }
+    setBusy(p => ({...p, [jobId]: false}));
+  }
+
+  return (
+    <div className="recruiter-postings">
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
+        <div>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',color:'var(--gold)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'0.35rem'}}>My Postings</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.2rem',color:'var(--ink-1)'}}>Manage your active searches</div>
+        </div>
+        <button className="btn-primary" onClick={openPostModal}>Post a New Search</button>
+      </div>
+
+      {myJobs.length === 0 ? (
+        <div style={{textAlign:'center',padding:'3rem',color:'var(--ink-4)',fontSize:'0.875rem',border:'1px dashed var(--rule)',borderRadius:'4px'}}>
+          You have no searches yet. Click <strong>Post a New Search</strong> to start.
+        </div>
+      ) : (
+        <table className="admin-table" style={{width:'100%'}}>
+          <thead>
+            <tr>
+              <th>Title</th><th>Industry</th><th>Posted</th><th>Expires</th>
+              <th>Views</th><th>Interests</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {myJobs.map(j => {
+              const isActive   = j.status === 'active';
+              const isExpired  = j.status === 'expired';
+              const isArchived = j.status === 'archived' || j.status === 'deleted';
+              return (
+                <tr key={j.id}>
+                  <td><strong>{j.title}</strong><div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{j.location}</div></td>
+                  <td>{j.industry}</td>
+                  <td style={{whiteSpace:'nowrap'}}>{fmtDate(j.created_at)}</td>
+                  <td style={{whiteSpace:'nowrap'}}>{fmtDate(j.expires_at)}</td>
+                  <td style={{textAlign:'center'}}>{j.view_count || 0}</td>
+                  <td style={{textAlign:'center'}}>{j.interest_count || 0}</td>
+                  <td><span className={`admin-pill ${j.status}`}>{(j.status || 'unknown').replace(/_/g,' ')}</span></td>
+                  <td>
+                    <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
+                      {isActive && (
+                        <button className="admin-action-btn" disabled={busy[j.id]}
+                          onClick={() => setStatus(j.id, 'expired', 'Posting closed to candidates.')}>
+                          Close
+                        </button>
+                      )}
+                      {(isExpired || isArchived) && (
+                        <button className="admin-action-btn approve" disabled={busy[j.id]}
+                          onClick={() => setStatus(j.id, 'active', 'Posting reactivated for 90 days.')}>
+                          Reactivate
+                        </button>
+                      )}
+                      {!isArchived && (
+                        <button className="admin-action-btn" disabled={busy[j.id]}
+                          onClick={() => setStatus(j.id, 'archived', 'Posting archived.')}>
+                          Archive
+                        </button>
+                      )}
+                      <button className="admin-action-btn danger" disabled={busy[j.id]}
+                        onClick={() => deletePosting(j.id, j.title)}>
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      )}
+      <div style={{fontSize:'0.74rem',color:'var(--ink-4)',marginTop:'1rem',lineHeight:1.55}}>
+        <strong>Close</strong> immediately hides the search from candidate matches but keeps the record visible to you.
+        {' '}<strong>Reactivate</strong> sets a fresh 90-day window.
+        {' '}<strong>Archive</strong> hides it from your default view.
+        {' '}<strong>Delete</strong> is a soft delete - the record is preserved for audit but is no longer matched or shown publicly.
+        To change role content (title, comp, requirements), use the <strong>Post a New Search</strong> button and the original posting can then be closed.
+      </div>
+    </div>
+  );
+}
+
 // ── RECRUITER DASHBOARD ───────────────────────────────────────────────────────
 function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   const [submissions, setSubmissions] = useState([]);
@@ -12508,6 +12678,9 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
         <button className={`match-tab ${dashTab==='overview'?'active':''}`} onClick={() => setDashTab('overview')}>
           Overview
         </button>
+        <button className={`match-tab ${dashTab==='postings'?'active':''}`} onClick={() => setDashTab('postings')}>
+          My Postings {jobs.filter(j=>j.status==='active').length > 0 && `(${jobs.filter(j=>j.status==='active').length})`}
+        </button>
         <button className={`match-tab ${dashTab==='matches'?'active':''}`} onClick={() => setDashTab('matches')}>
           Candidate Matches {matches.length > 0 && `(${matches.length})`}
         </button>
@@ -12523,6 +12696,16 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
           onMatchUpdate={(matchId, newStatus) => {
             setMatches(prev => prev.map(m => m.id === matchId ? {...m, status: newStatus} : m));
           }}
+        />
+      )}
+
+      {dashTab === 'postings' && (
+        <RecruiterPostingsTab
+          jobs={jobs}
+          userEmail={userEmail}
+          showToast={showToast}
+          openPostModal={openPostModal}
+          onJobUpdate={(jobId, patch) => setJobs(prev => prev.map(j => j.id === jobId ? {...j, ...patch} : j))}
         />
       )}
 
@@ -14456,7 +14639,7 @@ function App() {
                 <li>Email alerts when a matching search is posted</li>
                 <li>Confidential Profile ($299/yr) — your name and employer stay hidden until you approve</li>
                 <li>Priority matching — surface in recruiter searches ahead of free profiles</li>
-                <li>Industrial focus: Maritime · Ports · Energy · Logistics · Industrial Technology</li>
+                <li>Maritime · Ports · Energy · Industrial Logistics only</li>
               </ul>
             </div>
             <div className="profile-right">
@@ -14559,6 +14742,7 @@ function App() {
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
               <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
+                desk@fredheimtech.com
               </a>
             </p>
           </div>
@@ -14591,7 +14775,7 @@ function App() {
         </div>
         <div className="footer-bottom">
           <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com <span className="footer-gold">·</span> desk@fredheimtech.com</div>
-          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</div>
+          <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>
 
