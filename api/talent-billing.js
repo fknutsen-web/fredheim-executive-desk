@@ -13,6 +13,7 @@
 // After unlock, the recruiter-candidate relationship is direct and requires no further billing.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendEmail, brandedHtml } = require('./lib/email');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -25,17 +26,20 @@ function daysSince(dateStr) {
   return Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
 }
 
-async function notify(webhookUrl, payload) {
-  if (!webhookUrl) return;
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  } catch (e) {
-    console.log('Notify failed (non-critical):', e.message);
-  }
+// Native email send. Non-critical: a failure is logged but never throws,
+// so a single bad address cannot abort a cron sweep.
+async function notify(payload) {
+  if (!payload || !payload.to_email) return { ok: false, skipped: true };
+  const subject = payload.subject || 'Fredheim';
+  const body = payload.body || '';
+  const result = await sendEmail({
+    to: payload.to_email,
+    subject,
+    text: body,
+    html: brandedHtml(body, { heading: subject }),
+  });
+  if (!result.ok) console.log('Notify failed (non-critical):', result.error);
+  return result;
 }
 
 // ── JOB 1: COLD ENGAGEMENT CHECK-IN (14 days no activity) ─────
@@ -57,7 +61,7 @@ async function runColdEngagementCheckins() {
     .is('cold_checkin_sent_at', null);
 
   for (const eng of coldEngagements || []) {
-    await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+    await notify({
       type:           'cold_engagement_checkin',
       to_email:       eng.talent_recruiters?.email,
       recruiter_name: eng.talent_recruiters?.contact_name,
@@ -98,7 +102,7 @@ async function runAutoArchive() {
       .update({ recruiter_status: 'archived', archived_at: now })
       .eq('id', eng.id);
 
-    await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+    await notify({
       type:           'engagement_archived',
       to_email:       eng.talent_recruiters?.email,
       recruiter_name: eng.talent_recruiters?.contact_name,
@@ -137,7 +141,7 @@ async function runCandidateInterestNotifications() {
     const acceptUrl  = `https://desk.fredheimtech.com?view=talent-accept&match=${m.id}`;
     const declineUrl = `https://desk.fredheimtech.com?view=talent-decline&match=${m.id}`;
 
-    await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
+    await notify({
       type:           'recruiter_interest',
       to_email:       m.talent_candidates?.email,
       candidate_name: m.talent_candidates?.first_name,
@@ -199,7 +203,7 @@ async function runIntroductionReminders() {
       .is(bucket.key, null);
 
     for (const m of due || []) {
-      await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+      await notify({
         type:           bucket.tag,
         to_email:       m.talent_recruiters?.email,
         recruiter_name: m.talent_recruiters?.contact_name,
@@ -233,7 +237,7 @@ async function runJobListingExpiration() {
 
   for (const j of due || []) {
     await supabase.from('fed_jobs').update({ status: 'expired', last_expiration_prompt_at: nowIso }).eq('id', j.id);
-    await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+    await notify({
       type:           'job_expired',
       to_email:       j.firm_email,
       subject:        `Search expired: ${j.title}`,
@@ -264,7 +268,7 @@ async function runFoundingCapCheck() {
 
   // Alert admin at milestone thresholds
   if ([5, 2, 1].includes(remaining) || (daysToDeadline > 0 && daysToDeadline <= 30)) {
-    await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+    await notify({
       type:             'founding_cap_alert',
       to_email:         process.env.ADMIN_EMAIL || 'desk@fredheimtech.com',
       subject:          `Founding Partner Program — ${remaining} spots remaining`,
@@ -312,7 +316,7 @@ async function handlePlacementReport(matchId, recruiterId) {
     total_placements:  (recruiter?.total_placements  || 0) + 1,
   }).eq('id', recruiterId);
 
-  await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
+  await notify({
     type:           'placement_reported',
     to_email:       match.talent_recruiters?.email,
     recruiter_name: match.talent_recruiters?.contact_name,

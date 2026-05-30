@@ -4,21 +4,14 @@
 //   introduction:   "Forward introduction" — reveals candidate email. Requires X-Admin-Secret header.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendEmail, sendAdminAlert, brandedHtml } = require('./lib/email');
 
 const admin = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
-
-async function sendZapier(payload) {
-  const url = process.env.ZAPIER_DESK_WEBHOOK;
-  if (!url) return;
-  try {
-    await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-  } catch(e) { console.error('Zapier notify failed:', e.message); }
-}
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Secret');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Secret, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed.' });
 
@@ -29,8 +22,10 @@ module.exports = async function handler(req, res) {
 
   // Introduction type exposes candidate PII — require admin authentication
   if (isIntro) {
-    const secret = req.headers['x-admin-secret'] || '';
-    if (!process.env.ADMIN_PASSWORD || secret !== process.env.ADMIN_PASSWORD) {
+    // Accept either the new signed Bearer token (preferred) OR the legacy
+    // X-Admin-Secret password header during the transition.
+    const { isAuthorizedAdmin } = require('./admin-auth');
+    if (!isAuthorizedAdmin(req)) {
       return res.status(403).json({ error: 'Admin authentication required.' });
     }
   }
@@ -39,38 +34,52 @@ module.exports = async function handler(req, res) {
     .from('fed_jobs').select('id,title,firm_name,firm_email,industry,location').eq('id', job_id).single();
   if (jobErr || !job) return res.status(404).json({ error: 'Job not found.' });
 
-  const adminEmail = process.env.ADMIN_EMAIL || 'desk@fredheimtech.com';
   const firmEmail  = job.firm_email;
   const dashUrl    = 'https://desk.fredheimtech.com?view=recruiter-dash';
   const adminUrl   = 'https://desk.fredheimtech.com?admin=true';
 
+  let firmResult = null;
+
   if (isIntro) {
+    // Contact reveal — admin-approved (and payment-gated upstream). Revealing
+    // the candidate's contact IS the deliverable here, so we surface failures.
     if (firmEmail) {
-      await sendZapier({
-        type:'candidate_introduction', to_email:firmEmail,
-        subject:`Fredheim Introduction — Candidate for ${job.title}`,
-        firm_name:job.firm_name, role_title:job.title, candidate_email, dashboard_url:dashUrl,
-        body:`We are pleased to facilitate a formal introduction for your search — ${job.title}.\n\nCandidate contact: ${candidate_email}\n\nThis candidate expressed interest in your posting and Fredheim has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.\n\nYour introduction confirmation fee has been applied for this search. All further communication is directly between your firm and the candidate.\n\nQuestions? desk@fredheimtech.com`,
-      });
+      const subject = `Fredheim Introduction — Candidate for ${job.title}`;
+      const body =
+`We are pleased to facilitate a formal introduction for your search — ${job.title}.
+
+Candidate contact: ${candidate_email}
+
+This candidate expressed interest in your posting and Fredheim has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.
+
+As a reminder, the platform introduction fee applies upon placement confirmation.
+
+Questions? desk@fredheimtech.com`;
+      firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
-    await sendZapier({ type:'intro_forwarded_admin', to_email:adminEmail,
-      subject:`Introduction forwarded — ${candidate_email} → ${job.firm_name}`,
-      body:`Introduction sent.\nCandidate: ${candidate_email}\nFirm: ${job.firm_name} (${firmEmail})\nRole: ${job.title}` });
+    await sendAdminAlert({
+      subject: `Introduction forwarded — ${candidate_email} → ${job.firm_name}`,
+      text: `Introduction sent.\nCandidate: ${candidate_email}\nFirm: ${job.firm_name} (${firmEmail})\nRole: ${job.title}`,
+    });
   } else {
+    // Confidential interest signal — notify the recruiter that a candidate has
+    // expressed interest WITHOUT revealing identity or contact details.
     if (firmEmail) {
-      await sendZapier({
-        type:'new_interest_signal', to_email:firmEmail,
-        subject:`New interest signal — ${job.title}`,
-        firm_name:job.firm_name, role_title:job.title, industry:job.industry, location:job.location, dashboard_url:dashUrl,
-        body:`A qualified executive has registered confidential interest in your search for ${job.title}.\n\nTheir identity is confidential at this stage — Fredheim will review and facilitate a formal introduction if there is a mutual fit.\n\nView your dashboard: ${dashUrl}\n\nQuestions? desk@fredheimtech.com`,
-      });
+      const subject = `New interest signal — ${job.title}`;
+      const body =
+`A qualified executive has registered confidential interest in your search for ${job.title}.
+
+Their identity is confidential at this stage — Fredheim will review and facilitate a formal introduction if there is a mutual fit.
+
+View your dashboard: ${dashUrl}
+
+Questions? desk@fredheimtech.com`;
+      firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
-    await sendZapier({
-      type:'interest_admin_alert', to_email:adminEmail,
-      subject:`Interest signal — ${job.title} (${job.firm_name})`,
-      candidate_email: candidate_email || 'anonymous',
-      role_title:job.title, firm_name:job.firm_name, firm_email:firmEmail||'not on file', admin_url:adminUrl,
-      body:`New interest signal.\n\nCandidate: ${candidate_email}\nRole: ${job.title}\nFirm: ${job.firm_name}\nFirm email: ${firmEmail||'not on file'}\n\nReview in admin: ${adminUrl}`,
+    // Admin alert carries full detail (admin is internal).
+    await sendAdminAlert({
+      subject: `Interest signal — ${job.title} (${job.firm_name})`,
+      text: `New interest signal.\n\nCandidate: ${candidate_email || 'anonymous'}\nRole: ${job.title}\nFirm: ${job.firm_name}\nFirm email: ${firmEmail || 'not on file'}\n\nReview in admin: ${adminUrl}`,
     });
     if (candidate_email) {
       await admin.from('fed_interests')
@@ -79,5 +88,9 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  return res.status(200).json({ ok:true, type:isIntro?'introduction':'signal', firm_notified:!!firmEmail });
+  return res.status(200).json({
+    ok: true,
+    type: isIntro ? 'introduction' : 'signal',
+    firm_notified: !!(firmResult && firmResult.ok),
+  });
 };

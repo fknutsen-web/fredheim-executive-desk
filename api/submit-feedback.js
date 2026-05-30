@@ -4,6 +4,7 @@
 // Negative flags (bypass, misrepresentation) auto-trigger admin review.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendAdminAlert } = require('./lib/email');
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -103,28 +104,13 @@ module.exports = async function handler(req, res) {
 
   // Notify admin for high-severity flags
   if (isHighSeverity) {
-    const zapierUrl = process.env.ZAPIER_DESK_WEBHOOK;
-    if (zapierUrl) {
-      const issues = [];
-      if (attempted_bypass) issues.push('Bypass attempt reported');
-      if (misrepresented_role) issues.push('Role misrepresentation reported');
-      try {
-        await fetch(zapierUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type:              'recruiter_feedback_flag',
-            to_email:          process.env.ADMIN_EMAIL || 'desk@fredheimtech.com',
-            subject:           `⚠ Recruiter complaint — ${issues.join(', ')}`,
-            recruiter_email:   recruiter_email,
-            candidate_email:   candidateEmail,
-            issues:            issues.join(', '),
-            admin_url:         'https://desk.fredheimtech.com?admin=true',
-            body:              `Recruiter complaint received.\n\nRecruiter: ${recruiter_email}\nIssues: ${issues.join(', ')}\nComments: ${comments || 'None'}\n\nReview: https://desk.fredheimtech.com?admin=true`,
-          }),
-        });
-      } catch(e) { console.error('Feedback flag notify failed:', e.message); }
-    }
+    const issues = [];
+    if (attempted_bypass) issues.push('Bypass attempt reported');
+    if (misrepresented_role) issues.push('Role misrepresentation reported');
+    await sendAdminAlert({
+      subject: `⚠ Recruiter complaint — ${issues.join(', ')}`,
+      text: `Recruiter complaint received.\n\nRecruiter: ${recruiter_email}\nCandidate: ${candidateEmail}\nIssues: ${issues.join(', ')}\nComments: ${comments || 'None'}\n\nReview: https://desk.fredheimtech.com?admin=true`,
+    });
   }
 
   return res.status(200).json({ ok: true, feedback_id: feedback?.id });

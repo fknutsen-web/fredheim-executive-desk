@@ -7,6 +7,7 @@
 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
+const { sendEmail, sendAdminAlert, brandedHtml } = require('./lib/email');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -78,18 +79,24 @@ function internTierFromPrice(priceId) {
   return null;
 }
 
-// ── SEND ZAPIER NOTIFICATION ──────────────────────────────────
-async function notify(webhookUrl, payload) {
-  if (!webhookUrl) return;
-  try {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-  } catch (e) {
-    console.log('Zapier notify failed (non-critical):', e.message);
-  }
+// ── SEND CUSTOMER EMAIL (native, via Resend) ──────────────────
+// Replaces the former Zapier webhook. Failures are logged and non-fatal:
+// the Stripe webhook must still return 200 so Stripe does not retry an
+// event whose database side effects have already been applied.
+async function notify(payload) {
+  if (!payload || !payload.to_email) return { ok: false, skipped: true };
+  const subject = payload.subject || 'Fredheim Executive Desk';
+  return sendEmail({
+    to:      payload.to_email,
+    subject,
+    text:    payload.body || '',
+    html:    brandedHtml(payload.body || '', { heading: subject }),
+  });
+}
+
+// Internal revenue alert to the desk for every Stripe money event.
+async function revenueAlert(subject, lines) {
+  return sendAdminAlert({ subject, text: lines });
 }
 
 // ── MAIN HANDLER ──────────────────────────────────────────────
@@ -148,13 +155,15 @@ module.exports = async function handler(req, res) {
           if (error) console.error('fed_profiles tier update failed:', error);
           else console.log(`✓ Candidate upgraded to confidential in fed_profiles: ${email}`);
 
-          await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
-            type:    'candidate_subscription',
+          await notify({
             to_email: email,
-            tier:    'confidential',
             subject: 'Your Fredheim confidential executive profile is now active',
             body:    'Your confidential profile is active. Your name, employer, location, and graduation year are hidden from recruiters until you approve a connection. You control every reveal.',
           });
+          await revenueAlert(
+            `Revenue — candidate confidential subscription activated (${email})`,
+            `Candidate confidential subscription activated.\n\nEmail: ${email}\nCustomer: ${custId}\nSubscription: ${subId}`
+          );
           break;
         }
 
@@ -199,18 +208,18 @@ module.exports = async function handler(req, res) {
 
           const feeLabel = recruiterTier === 'founding' ? '$7,500/yr' : '$499/mo';
 
-          await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
-            type:          'recruiter_subscription',
+          await notify({
             to_email:      email,
-            tier:          recruiterTier,
-            fee:           feeLabel,
-            is_founding:   recruiterTier === 'founding',
             subject:       `Welcome to Fredheim Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
-            body:          recruiterTier === 'founding'
+            body:          (recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
-              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`,
-            dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-dash',
+              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
+              + `\n\nYour dashboard: https://desk.fredheimtech.com?view=recruiter-dash`,
           });
+          await revenueAlert(
+            `Revenue — recruiter subscription activated (${recruiterTier}, ${feeLabel})`,
+            `Recruiter subscription activated.\n\nEmail: ${email}\nTier: ${recruiterTier}\nFee: ${feeLabel}\nCustomer: ${custId}\nSubscription: ${subId}`
+          );
           break;
         }
 
@@ -250,13 +259,15 @@ module.exports = async function handler(req, res) {
           if (error) console.error('fed_intern_profiles tier update failed:', error);
           else console.log(`✓ Student profile upgraded to featured: ${email}`);
 
-          await notify(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, {
-            type:    'intern_featured_active',
+          await notify({
             to_email: email,
-            tier:    'featured',
             subject: 'Your Fredheim Featured Student Profile is now active',
             body:    'Your Featured Student Profile is active. You now have priority placement in employer matches, profile analytics, and the optimization checklist. The subscription renews annually at $49/yr until cancelled.',
           });
+          await revenueAlert(
+            `Revenue — featured student profile activated (${email})`,
+            `Featured student profile activated.\n\nEmail: ${email}\nCustomer: ${custId}\nSubscription: ${subId}`
+          );
           break;
         }
 
@@ -310,6 +321,16 @@ module.exports = async function handler(req, res) {
         const obj     = event.data.object;
         const custId  = obj.customer;
         const priceId = obj.lines?.data?.[0]?.price?.id || obj.plan?.id;
+
+        // Admin alert on a failed payment so the desk can follow up before the
+        // grace period lapses. Subscription deletions are a normal lifecycle
+        // event and do not warrant a revenue alert.
+        if (event.type === 'invoice.payment_failed') {
+          await revenueAlert(
+            `Payment failed — customer ${custId}`,
+            `A subscription payment failed.\n\nCustomer: ${custId}\nAmount due: ${obj.amount_due != null ? '$' + (obj.amount_due / 100).toFixed(2) : 'unknown'}\nAttempt: ${obj.attempt_count || 'n/a'}\n\nReview in Stripe and follow up if needed.`
+          );
+        }
 
         // Downgrade candidate to free in fed_profiles
         if (candidateTierFromPrice(priceId)) {
@@ -427,6 +448,30 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
       ? `Mutual interest with the candidate. You can now connect directly via the dashboard.`
       : `Interest signaled to candidate. They will be notified and can accept, decline, or ignore.`,
   });
+  // Native emails. Contact details are NOT revealed here — the candidate must
+  // still accept before any unlock. Mutual interest means both have signaled,
+  // but direct contact is exchanged through the dashboard's unlock step.
+  const candidateSubject = newStatus === 'mutual_interest'
+    ? `Mutual interest confirmed — ${jobTitle}`
+    : `A search firm has confirmed a curated introduction`;
+  const candidateBody = newStatus === 'mutual_interest'
+    ? `${firmName} has paid for and confirmed the curated introduction for ${jobTitle}. Fredheim will facilitate next steps. Your identity remains confidential until contact is unlocked.`
+    : `${firmName} has expressed interest in your profile for a ${jobTitle} role. You can accept, decline, or ignore this introduction from your dashboard. Your identity remains confidential.`;
+  await notify({ to_email: match.candidate_email, subject: candidateSubject, body: candidateBody });
+
+  await notify({
+    to_email: recruiterEmail,
+    subject:  `Curated introduction confirmed (${feeAmount || '$249'})`,
+    body:     newStatus === 'mutual_interest'
+      ? `Mutual interest with the candidate is confirmed. You can complete the contact unlock from your dashboard to connect directly.`
+      : `Your interest has been signaled to the candidate. They will be notified and can accept, decline, or ignore. You will be notified when they respond.`,
+  });
+
+  await revenueAlert(
+    `Revenue — introduction fee paid (${feeAmount || '$249'})`,
+    `Introduction fee paid.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nStatus: ${newStatus}\nAmount: ${feeAmount || '$249'}\nCustomer: ${custId}`
+  );
+
   console.log(`Fredheim curated introduction paid: match ${matchId} -> ${newStatus} (${feeAmount || '$249'})`);
 }
 
@@ -467,23 +512,25 @@ async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruit
   const cName  = match.talent_candidates?.first_name;
   const rName  = match.talent_recruiters?.contact_name || match.talent_recruiters?.firm_name;
 
-  // Send bilateral introduction via Zapier
-  await notify(process.env.ZAPIER_TALENT_WEBHOOK, {
-    type:                 'engagement_introduction',
-    to_recruiter_email:   rEmail,
-    to_candidate_email:   cEmail,
-    recruiter_name:       rName,
-    candidate_first_name: cName,
-    candidate_email:      cEmail,
-    recruiter_email:      rEmail,
-    unlock_bracket:       bracket,
-    unlock_fee:           feeAmount,
-    subject_recruiter:    `Curated Introduction confirmed — ${cName}`,
-    subject_candidate:    `A search firm has been introduced to you`,
-    body_recruiter:       `Your curated introduction has been confirmed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`,
-    body_candidate:       `A retained search firm has expressed interest in your profile and you have accepted. Their contact: ${rEmail}. All further communication is between you directly.`,
-    match_id:             matchId,
-  });
+  // Send bilateral introduction via native email. This is the paid
+  // deliverable — it reveals contact details to both parties after the
+  // unlock fee is confirmed. Emails are still non-fatal to the webhook
+  // (Stripe must get a 200), but each delivery result is logged.
+  if (rEmail) {
+    const subject = `Curated introduction confirmed — ${cName}`;
+    const body = `Your curated introduction has been confirmed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`;
+    await sendEmail({ to: rEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
+  }
+  if (cEmail) {
+    const subject = `A search firm has been introduced to you`;
+    const body = `A retained search firm has expressed interest in your profile and you have accepted. Their contact: ${rEmail}. All further communication is between you directly.`;
+    await sendEmail({ to: cEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
+  }
+
+  await revenueAlert(
+    `Revenue — introduction/contact unlock completed (${feeAmount || 'complimentary'})`,
+    `Contact unlock completed.\n\nRecruiter: ${rEmail}\nCandidate: ${cEmail}\nBracket: ${bracket || 'n/a'}\nFee: ${feeAmount || 'complimentary'}\nMatch: ${matchId}`
+  );
 
   // Log the introduction in the notification table
   await supabase.from('talent_notifications').insert({

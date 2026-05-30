@@ -5,6 +5,7 @@
 // No hard deletes — all data preserved.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendAdminAlert } = require('./lib/email');
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -118,29 +119,11 @@ module.exports = async function handler(req, res) {
     .eq('job_id', job_id)
     .in('status', ['matched', 'recruiter_interested', 'candidate_interested']);
 
-  // 5. Notify admin via Zapier
-  const zapierUrl = process.env.ZAPIER_DESK_WEBHOOK;
-  if (zapierUrl) {
-    try {
-      await fetch(zapierUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type:              'job_closure_admin_alert',
-          to_email:          process.env.ADMIN_EMAIL || 'desk@fredheimtech.com',
-          subject:           `Job closed — ${job.title} (${CLOSE_REASONS[close_reason]})${shouldFlag ? ' ⚠ FLAGGED' : ''}`,
-          job_title:         job.title,
-          recruiter_email:   recruiterEmail,
-          close_reason:      CLOSE_REASONS[close_reason],
-          had_introductions: hadIntroductions,
-          intro_count:       introCount || 0,
-          flagged:           shouldFlag,
-          admin_url:         'https://desk.fredheimtech.com?admin=true',
-          body: `Job closed: ${job.title}\nRecruiter: ${recruiterEmail}\nReason: ${CLOSE_REASONS[close_reason]}\nIntroductions on file: ${introCount || 0}\n${shouldFlag ? '\n⚠ FLAGGED FOR REVIEW — filled_outside_platform with introductions on record.\n' : ''}\nReview: https://desk.fredheimtech.com?admin=true`,
-        }),
-      });
-    } catch(e) { console.error('Zapier notify failed:', e.message); }
-  }
+  // 5. Notify admin via native email
+  await sendAdminAlert({
+    subject: `Job closed — ${job.title} (${CLOSE_REASONS[close_reason]})${shouldFlag ? ' ⚠ FLAGGED' : ''}`,
+    text: `Job closed: ${job.title}\nRecruiter: ${recruiterEmail}\nReason: ${CLOSE_REASONS[close_reason]}\nIntroductions on file: ${introCount || 0}\n${shouldFlag ? '\n⚠ FLAGGED FOR REVIEW — filled_outside_platform with introductions on record.\n' : ''}\nReview: https://desk.fredheimtech.com?admin=true`,
+  });
 
   return res.status(200).json({
     ok: true,

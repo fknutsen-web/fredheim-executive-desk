@@ -1,9 +1,11 @@
 // api/notify-posting.js
 // Fires when a new search posting is submitted via the Post a Search modal,
 // or when an internship is submitted via the Early Careers InternEmployerModal.
-// Sends two notifications via Zapier:
+// Sends two notifications via native email:
 //   1. Admin alert with full submission details
 //   2. Confirmation email to the submitting firm/employer
+
+const { sendEmail, brandedHtml } = require('./lib/email');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -32,7 +34,6 @@ module.exports = async function handler(req, res) {
   const notes        = body.notes        || body.role_summary         || null;
 
   const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimtech.com';
-  const zapierUrl   = process.env.ZAPIER_DESK_WEBHOOK;
 
   // -- ACTIVE SEARCH LIMIT GUARD --
   // Cap concurrent active searches per firm. Default 5 for standard tier.
@@ -84,59 +85,35 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  async function send(payload) {
-    if (!zapierUrl) {
-      // Caller used to silently drop notifications when the env var was
-      // missing. Now we surface that in the response so production misconfig
-      // is visible rather than hidden behind a green check.
-      console.warn('ZAPIER_DESK_WEBHOOK not set — notification skipped:', payload.type);
-      return { skipped: true, error: 'ZAPIER_DESK_WEBHOOK not set' };
-    }
-    try {
-      const resp = await fetch(zapierUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      return { ok: resp.ok, status: resp.status };
-    } catch(e) {
-      console.error('Zapier notify failed:', e.message);
-      return { ok: false, error: e.message };
-    }
+  async function send({ to, subject, body }) {
+    return sendEmail({ to, subject, text: body, html: brandedHtml(body, { heading: subject }) });
   }
 
   // ── 1. Admin alert ────────────────────────────────────────────
+  const adminSubject = isIntern
+    ? `New internship posting — ${firm_name || 'Unknown employer'}: ${role_title || 'Untitled'}`
+    : `New search posting — ${firm_name || 'Unknown firm'}: ${role_title || 'Untitled'}`;
   const adminResult = await send({
-    type:         isIntern ? 'new_intern_posting_admin_alert' : 'new_posting_admin_alert',
-    to_email:     adminEmail,
-    subject:      isIntern
-      ? `New internship posting — ${firm_name || 'Unknown employer'}: ${role_title || 'Untitled'}`
-      : `New search posting — ${firm_name || 'Unknown firm'}: ${role_title || 'Untitled'}`,
-    firm_name,
-    contact_name,
-    submitter_email: email,
-    role_title,
-    role_level,
-    industry,
-    location,
-    salary_range,
-    notes,
-    submitted_at: new Date().toISOString(),
-    review_url:   'https://desk.fredheimtech.com?admin=true',
+    to:      adminEmail,
+    subject: adminSubject,
+    body:
+`New ${isIntern ? 'internship' : 'search'} posting submitted.
+
+Firm: ${firm_name || 'Unknown'}
+Contact: ${contact_name || 'n/a'} <${email || 'no email'}>
+Role: ${role_title || 'Untitled'}${role_level ? `\nLevel: ${role_level}` : ''}${industry ? `\nIndustry: ${industry}` : ''}${location ? `\nLocation: ${location}` : ''}${salary_range ? `\nCompensation: ${salary_range}` : ''}${notes ? `\nNotes: ${notes}` : ''}
+
+Review: https://desk.fredheimtech.com?admin=true`,
   });
 
   // ── 2. Submitter confirmation ─────────────────────────────────
   let submitterResult = null;
   if (email) {
     submitterResult = await send({
-      type:       isIntern ? 'new_intern_posting_confirmation' : 'new_posting_confirmation',
-      to_email:   email,
-      subject:    isIntern
+      to:      email,
+      subject: isIntern
         ? 'Fredheim Early Careers — Internship submission received'
         : 'Fredheim Executive Desk — Submission received',
-      firm_name,
-      contact_name,
-      role_title,
       body: isIntern
         ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Early Careers\ndesk@fredheimtech.com`
         : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`,
@@ -148,6 +125,5 @@ module.exports = async function handler(req, res) {
     type: isIntern ? 'intern_posting' : 'search_posting',
     admin_notified: !!adminResult?.ok,
     submitter_notified: !!submitterResult?.ok,
-    zapier_configured: !!zapierUrl,
   });
 };

@@ -10,6 +10,7 @@
 // during the 2026 founding period. After 2027-01-01, billing is required.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendAdminAlert } = require('./lib/email');
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -107,23 +108,10 @@ module.exports = async function handler(req, res) {
       }, { onConflict: 'recruiter_email' });
 
       // Notify admin
-      const zapierUrl = process.env.ZAPIER_DESK_WEBHOOK;
-      if (zapierUrl) {
-        await fetch(zapierUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type:              'invoice_billing_request',
-            to_email:          process.env.ADMIN_EMAIL || 'desk@fredheimtech.com',
-            subject:           `Invoice billing request — ${invoice_company_name}`,
-            recruiter_email:   email,
-            company_name:      invoice_company_name,
-            contact_email:     invoice_contact_email,
-            admin_url:         'https://desk.fredheimtech.com?admin=true',
-            body:              `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://desk.fredheimtech.com?admin=true`,
-          }),
-        }).catch(() => {});
-      }
+      await sendAdminAlert({
+        subject: `Invoice billing request — ${invoice_company_name}`,
+        text: `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://desk.fredheimtech.com?admin=true`,
+      });
 
       return res.status(200).json({ ok: true, status: 'invoice_billing_pending' });
     }

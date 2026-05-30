@@ -6,6 +6,7 @@
 //   pending_review      → admin review queue, job removed from active matching
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendAdminAlert } = require('./lib/email');
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
@@ -212,19 +213,8 @@ module.exports = async function handler(req, res) {
 };
 
 async function notifyAdmin({ type, subject, job, recruiterEmail, flagged, introCount, fee, candidate_email }) {
-  const url = process.env.ZAPIER_DESK_WEBHOOK;
-  if (!url) return;
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type, to_email: process.env.ADMIN_EMAIL || 'desk@fredheimtech.com',
-        subject, job_title: job.title, recruiter_email: recruiterEmail,
-        flagged, intro_count: introCount, fee_amount: fee, candidate_email,
-        admin_url: 'https://desk.fredheimtech.com?admin=true',
-        body: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://desk.fredheimtech.com?admin=true`,
-      }),
-    });
-  } catch(e) { console.error('Admin notify failed:', e.message); }
+  await sendAdminAlert({
+    subject,
+    text: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}${fee ? `\nFee: ${fee}` : ''}${candidate_email ? `\nCandidate: ${candidate_email}` : ''}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://desk.fredheimtech.com?admin=true`,
+  });
 }

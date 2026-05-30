@@ -3,6 +3,8 @@
 // Called immediately after fed_references INSERT succeeds.
 // The questionnaire link routes to ?ref=TOKEN which loads QuestionnairePage.
 
+const { sendEmail, brandedHtml } = require('./lib/email');
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -16,32 +18,16 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'ref_email and token required.' });
   }
 
-  const zapierUrl = process.env.ZAPIER_DESK_WEBHOOK;
   const questionnaireUrl = `https://desk.fredheimtech.com?ref=${encodeURIComponent(token)}`;
+  const subject = `${candidate_name || 'A colleague'} listed you as a reference — 5-minute questionnaire`;
+  const body = `Hi ${ref_name || 'there'},\n\n${candidate_name || 'A colleague'} has listed you as a professional reference on Fredheim Executive Desk, a curated executive opportunity platform.\n\nThey've asked if you'd complete a brief 5-minute questionnaire about your professional experience with them. No login is required.\n\nComplete the questionnaire here:\n${questionnaireUrl}\n\nThis link is unique to you. If you have any questions, contact desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`;
 
-  if (!zapierUrl) {
-    console.log('ZAPIER_DESK_WEBHOOK not set — reference email skipped. Token:', token);
-    console.log('Questionnaire URL:', questionnaireUrl);
-    return res.status(200).json({ ok: true, skipped: true, url: questionnaireUrl });
-  }
+  const result = await sendEmail({ to: ref_email, subject, text: body, html: brandedHtml(body, { heading: subject }) });
 
-  try {
-    await fetch(zapierUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type:              'reference_questionnaire',
-        to_email:          ref_email,
-        subject:           `${candidate_name || 'A colleague'} listed you as a reference — 5-minute questionnaire`,
-        ref_name:          ref_name,
-        candidate_name:    candidate_name,
-        questionnaire_url: questionnaireUrl,
-        body: `Hi ${ref_name || 'there'},\n\n${candidate_name || 'A colleague'} has listed you as a professional reference on Fredheim Executive Desk, a curated executive opportunity platform.\n\nThey've asked if you'd complete a brief 5-minute questionnaire about your professional experience with them. No login is required.\n\nComplete the questionnaire here:\n${questionnaireUrl}\n\nThis link is unique to you. If you have any questions, contact desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`,
-      }),
-    });
-    return res.status(200).json({ ok: true, url: questionnaireUrl });
-  } catch(e) {
-    console.error('Reference notification failed:', e.message);
-    return res.status(500).json({ error: 'Failed to send reference email.' });
+  if (!result.ok) {
+    console.error('Reference notification not delivered:', result.error, '— token:', token, 'url:', questionnaireUrl);
+    // Non-fatal: return the URL so the candidate can share it manually.
+    return res.status(200).json({ ok: false, sent: false, url: questionnaireUrl, error: result.error });
   }
+  return res.status(200).json({ ok: true, sent: true, url: questionnaireUrl });
 };

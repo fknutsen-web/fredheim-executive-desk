@@ -1,28 +1,31 @@
 // api/talent-notify.js
 // Notification dispatch: real-time alerts, daily digest, weekly summary
-// Uses Zapier webhook (same pattern as stripe-webhook.js) for email/SMS delivery
+// Uses native email (Resend) for delivery.
 
 const { createClient } = require('@supabase/supabase-js');
+const { sendEmail, brandedHtml } = require('./lib/email');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// Send via Zapier webhook — handles email + SMS routing
-async function sendViaZapier(webhookUrl, payload) {
-  if (!webhookUrl) {
-    // CRITICAL: callers used to treat `skipped: true` as success which marked
-    // the notification as delivered=true in the DB. That made misconfigured
-    // production environments look healthy while no emails actually fired.
-    return { ok: false, skipped: true, error: 'Zapier webhook URL not configured' };
-  }
-  const resp = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+// Send a notification via native email.
+// Returns { ok, error? } so callers record an accurate delivered status.
+// NOTE: callers must NOT treat a missing recipient or unconfigured provider
+// as success — a falsy `ok` keeps delivered=false in the DB so misconfigured
+// environments are visible rather than silently green.
+async function sendNotification(payload) {
+  const to = payload.to_email;
+  if (!to) return { ok: false, error: 'No recipient email' };
+  const subject = payload.subject || 'Fredheim Talent Match';
+  const body = payload.body || '';
+  return sendEmail({
+    to,
+    subject,
+    text: body,
+    html: brandedHtml(body, { heading: subject }),
   });
-  return { ok: resp.ok, status: resp.status };
 }
 
 // Mark notification as sent in log
@@ -57,29 +60,28 @@ async function dispatchRealtimeAlerts() {
     const toPhone = role?.notify_phone || recruiter?.phone;
     const matchUrl = `https://desk.fredheimtech.com?view=recruiter-talent&candidate=${n.candidate_id}&role=${n.role_id}`;
 
+    const badges = [
+      c?.badge_seasoned_exec ? 'Seasoned Executive' : null,
+      c?.badge_tech_forward  ? 'Technology-Forward' : null,
+      c?.badge_pivot         ? 'Career Pivot'       : null,
+    ].filter(Boolean).join(' · ');
+
     const payload = {
       type: 'realtime_alert',
       to_email: toEmail,
-      to_phone: toPhone,
-      send_sms: role?.notify_sms,
-      subject: `⭐ New ${c?.score_composite}% match for ${role?.title}`,
-      candidate_first_name: c?.first_name,
-      match_pct: c?.score_composite,
-      role_title: role?.title,
-      badge_seasoned: c?.badge_seasoned_exec,
-      badge_tech: c?.badge_tech_forward,
-      badge_pivot: c?.badge_pivot,
-      score_exec: c?.score_executive_fit,
-      score_tech: c?.score_technology,
-      score_change: c?.score_change_mgmt,
-      score_bg: c?.score_background,
-      review_url: matchUrl,
-      sms_text: `New ${c?.score_composite}% match for ${role?.title} — ${c?.first_name}${c?.badge_seasoned_exec ? ', ⭐ Seasoned Exec' : ''}. Review: ${matchUrl}`,
+      subject: `New ${c?.score_composite}% match for ${role?.title}`,
+      body:
+`A new candidate matches your search for ${role?.title}.
+
+Match: ${c?.score_composite}%
+Candidate: ${c?.first_name}${badges ? `\nProfile: ${badges}` : ''}
+
+Review the match: ${matchUrl}`,
     };
 
     try {
-      const result = await sendViaZapier(process.env.ZAPIER_TALENT_WEBHOOK, payload);
-      await markSent(n.id, result.ok, result.error || (result.ok ? null : `HTTP ${result.status}`));
+      const result = await sendNotification(payload);
+      await markSent(n.id, result.ok, result.ok ? null : (result.error || 'send failed'));
       if (result.ok) sent++;
     } catch (e) {
       await markSent(n.id, false, e.message);
@@ -124,19 +126,27 @@ async function dispatchDailyDigests() {
       industry: m.talent_candidates?.answers?.B1,
     }));
 
+    const digestLines = candidateRows.map(r => {
+      const tags = [r.seasoned ? 'Seasoned Exec' : null, r.tech ? 'Tech-Forward' : null, r.pivot ? 'Pivot' : null].filter(Boolean).join(', ');
+      return `• ${r.match_pct}% — ${r.name} for ${r.role}${tags ? ` (${tags})` : ''}`;
+    }).join('\n');
+
     const payload = {
       type: 'daily_digest',
       to_email: recruiter.email,
       subject: `Your Fredheim Talent Digest — ${matches.length} new match${matches.length !== 1 ? 'es' : ''}`,
-      recruiter_name: recruiter.contact_name || recruiter.firm_name,
-      total_new: matches.length,
-      candidates: candidateRows,
-      dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-talent',
-      date: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+      body:
+`${recruiter.contact_name || recruiter.firm_name},
+
+You have ${matches.length} new match${matches.length !== 1 ? 'es' : ''} as of ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}.
+
+${digestLines}
+
+Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
     };
 
     try {
-      const result = await sendViaZapier(process.env.ZAPIER_TALENT_WEBHOOK, payload);
+      const result = await sendNotification(payload);
       await supabase.from('talent_notifications').insert({
         type: 'daily_digest',
         recruiter_id: recruiter.id,
@@ -145,7 +155,7 @@ async function dispatchDailyDigests() {
         body_preview: `${matches.length} new matches`,
         sent_at: new Date().toISOString(),
         delivered: result.ok,
-        error: result.error || (result.ok ? null : `HTTP ${result.status}`),
+        error: result.ok ? null : (result.error || 'send failed'),
       });
       if (result.ok) sent++;
     } catch (e) {
@@ -193,20 +203,26 @@ async function dispatchWeeklySummaries() {
       type: 'weekly_summary',
       to_email: recruiter.email,
       subject: `Fredheim Weekly Talent Report — Week of ${lastWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`,
-      recruiter_name: recruiter.contact_name || recruiter.firm_name,
-      total_this_week: total,
-      tier_90_plus: tier90,
-      tier_75_89: tier75,
-      tier_50_74: tier50,
-      seasoned_exec_count: seasonedCount,
-      pivot_candidate_count: pivotCount,
-      unreviewed_count: unreviewed,
-      active_roles: roles?.map(r => r.title) || [],
-      dashboard_url: 'https://desk.fredheimtech.com?view=recruiter-talent',
+      body:
+`${recruiter.contact_name || recruiter.firm_name},
+
+Your talent activity for the week of ${lastWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}:
+
+New matches: ${total}
+  90%+: ${tier90}
+  75–89%: ${tier75}
+  50–74%: ${tier50}
+Seasoned executives: ${seasonedCount}
+Career pivots: ${pivotCount}
+Awaiting your review: ${unreviewed}
+
+Active searches: ${(roles?.map(r => r.title) || []).join(', ') || 'none'}
+
+Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
     };
 
     try {
-      const result = await sendViaZapier(process.env.ZAPIER_TALENT_WEBHOOK, payload);
+      const result = await sendNotification(payload);
       await supabase.from('talent_notifications').insert({
         type: 'weekly_summary',
         recruiter_id: recruiter.id,
@@ -215,7 +231,7 @@ async function dispatchWeeklySummaries() {
         body_preview: `${total} matches this week, ${unreviewed} unreviewed`,
         sent_at: new Date().toISOString(),
         delivered: result.ok,
-        error: result.error || (result.ok ? null : `HTTP ${result.status}`),
+        error: result.ok ? null : (result.error || 'send failed'),
       });
       if (result.ok) sent++;
     } catch (e) {
@@ -251,14 +267,12 @@ async function dispatchCandidateNotifications() {
       type: n.type,
       to_email: n.recipient_email,
       subject: n.subject,
-      body: n.body_preview,
-      confirm_url: confirmUrl,
-      reactivate_url: `https://desk.fredheimtech.com?view=talent-reactivate&cid=${n.candidate_id}`,
+      body: `${n.body_preview || ''}\n\nConfirm: ${confirmUrl}\nReactivate: https://desk.fredheimtech.com?view=talent-reactivate&cid=${n.candidate_id}`,
     };
 
     try {
-      const result = await sendViaZapier(process.env.ZAPIER_TALENT_CANDIDATE_WEBHOOK, payload);
-      await markSent(n.id, result.ok, result.error || (result.ok ? null : `HTTP ${result.status}`));
+      const result = await sendNotification(payload);
+      await markSent(n.id, result.ok, result.ok ? null : (result.error || 'send failed'));
       if (result.ok) sent++;
     } catch (e) {
       await markSent(n.id, false, e.message);
