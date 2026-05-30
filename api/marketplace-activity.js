@@ -13,7 +13,7 @@ const PUBLIC_LIMIT = 5;
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Secret');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Secret, Authorization');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   // ── PUBLIC GET ─────────────────────────────────────────────────────────────
@@ -41,8 +41,10 @@ module.exports = async function handler(req, res) {
 
   // ── ADMIN POST — all write operations ─────────────────────────────────────
   if (req.method === 'POST') {
-    const adminSecret = req.headers['x-admin-secret'] || '';
-    if (!process.env.ADMIN_PASSWORD || adminSecret !== process.env.ADMIN_PASSWORD) {
+    // Accept either the new signed Bearer token (preferred) OR the legacy
+    // X-Admin-Secret password header during the transition.
+    const { isAuthorizedAdmin } = require('./admin-auth');
+    if (!isAuthorizedAdmin(req)) {
       return res.status(403).json({ error: 'Admin authentication required.' });
     }
 
@@ -257,6 +259,4 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: e.message });
     }
   }
-
-  return res.status(405).json({ error: 'Method not allowed.' });
 };
