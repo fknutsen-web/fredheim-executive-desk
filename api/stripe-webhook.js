@@ -15,6 +15,7 @@ const {
   isIntroductionPrice,
 } = require('./lib/pricing');
 const { createPaymentNotification } = require('./lib/notifications');
+const { EVENTS, logEvent } = require('./lib/audit');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -203,7 +204,7 @@ module.exports = async function handler(req, res) {
         // (legacy talent product) so either match record advances.
         const matchId = meta.match_id;
         if ((meta.type === 'introduction' || meta.type === 'engagement') && matchId && isIntroductionPrice(priceId)) {
-          await handleIntroductionPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
+          await handleIntroductionPaid(matchId, meta.bracket, meta.fee_amount, custId, email, session);
           await handleEngagementPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
           break;
         }
@@ -366,7 +367,7 @@ module.exports = async function handler(req, res) {
 //
 // Safe to call even when the match_id belongs only to the legacy
 // talent_matches table - we silently skip if no fed_matches row is found.
-async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recruiterEmail) {
+async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recruiterEmail, session) {
   const now = new Date().toISOString();
   // Look up the fed_matches row. If none, this match belongs to the legacy
   // talent_matches table and handleEngagementPaid will handle it.
@@ -377,74 +378,79 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     .maybeSingle();
   if (mErr || !match) return; // not a fed_matches record
 
-  // Decide the new status. If candidate already signaled, this becomes mutual.
-  const wasCandidateInterested = match.status === 'candidate_interested';
-  const newStatus = wasCandidateInterested ? 'mutual_interest' : 'recruiter_interested';
-
+  // Payment confirmed -> the match is UNLOCKED. Contact may now be revealed.
+  const wasMutual = match.status === 'candidate_interested' || match.status === 'mutual_interest';
   const update = {
-    status:                  newStatus,
-    recruiter_interested_at: now,
-    payment_completed_at:    now,
-    introduction_fee_paid:   true,
-    introduction_fee_amount: feeAmount || '$249',
-    introduction_fee_bracket:bracket || 'flat',
+    status:                   'paid_unlocked',
+    unlocked_at:              now,
+    payment_completed_at:     now,
+    recruiter_interested_at:  match.recruiter_interested_at || now,
+    introduction_fee_paid:    true,
+    introduction_fee_amount:  feeAmount || '$249',
+    introduction_fee_bracket: bracket || 'flat',
   };
-  if (wasCandidateInterested) update.mutual_interest_at = now;
-
+  if (wasMutual && !match.mutual_interest_at) update.mutual_interest_at = now;
   await supabase.from('fed_matches').update(update).eq('id', matchId);
 
-  // Notify candidate of the curated introduction (and pay-confirmed gate).
+  // Resolve the amount paid (Stripe is the source of truth; fall back to label).
+  let amountNum = null;
+  if (session && typeof session.amount_total === 'number') amountNum = session.amount_total / 100;
+  else { const n = parseFloat(String(feeAmount || '').replace(/[^0-9.]/g, '')); amountNum = isNaN(n) ? null : n; }
+
+  // Record the paid introduction — the durable source of truth for the unlock.
+  await supabase.from('fed_paid_introductions').insert({
+    match_id:              matchId,
+    job_id:                match.job_id,
+    candidate_email:       match.candidate_email,
+    recruiter_email:       recruiterEmail,
+    stripe_session_id:     session?.id || null,
+    stripe_payment_intent: session?.payment_intent || null,
+    amount_paid:           amountNum,
+    currency:              session?.currency || 'usd',
+    paid_at:               now,
+    status:                'paid',
+  });
+
   const jobTitle = match.fed_jobs?.title || 'a senior search';
   const firmName = match.fed_jobs?.firm_name || 'A search firm';
-  await createPaymentNotification(supabase, {
-    recipientEmail: match.candidate_email,
-    role:           'candidate',
-    type:           newStatus,
-    matchId,
-    jobId:          match.job_id,
-    title:          newStatus === 'mutual_interest'
-      ? `Mutual interest confirmed - ${jobTitle}`
-      : `A search firm has confirmed a curated introduction`,
-    body:           newStatus === 'mutual_interest'
-      ? `${firmName} has paid for and confirmed the curated introduction. Fredheim will facilitate next steps.`
-      : `${firmName} has expressed interest in your profile for a ${jobTitle} role. You can accept, decline, or ignore this introduction.`,
-  });
-  await createPaymentNotification(supabase, {
-    recipientEmail: recruiterEmail,
-    role:           'recruiter',
-    type:           'introduction_confirmed',
-    matchId,
-    jobId:          match.job_id,
-    title:          `Curated introduction confirmed (${feeAmount || '$249'})`,
-    body:           newStatus === 'mutual_interest'
-      ? `Mutual interest with the candidate. You can now connect directly via the dashboard.`
-      : `Interest signaled to candidate. They will be notified and can accept, decline, or ignore.`,
-  });
-  // Native emails. Contact details are NOT revealed here — the candidate must
-  // still accept before any unlock. Mutual interest means both have signaled,
-  // but direct contact is exchanged through the dashboard's unlock step.
-  const candidateSubject = newStatus === 'mutual_interest'
-    ? `Mutual interest confirmed — ${jobTitle}`
-    : `A search firm has confirmed a curated introduction`;
-  const candidateBody = newStatus === 'mutual_interest'
-    ? `${firmName} has paid for and confirmed the curated introduction for ${jobTitle}. Fredheim will facilitate next steps. Your identity remains confidential until contact is unlocked.`
-    : `${firmName} has expressed interest in your profile for a ${jobTitle} role. You can accept, decline, or ignore this introduction from your dashboard. Your identity remains confidential.`;
-  await notify({ to_email: match.candidate_email, subject: candidateSubject, body: candidateBody });
 
+  // Audit trail.
+  await logEvent(supabase, { type: EVENTS.PAYMENT_COMPLETED, actorEmail: recruiterEmail, actorRole: 'recruiter', matchId, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail, amount: amountNum, detail: { bracket: bracket || 'flat', stripe_session: session?.id || null } });
+  await logEvent(supabase, { type: EVENTS.PROFILE_UNLOCKED, actorEmail: recruiterEmail, actorRole: 'recruiter', matchId, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail });
+  await logEvent(supabase, { type: EVENTS.INTRODUCTION_SENT, actorRole: 'system', matchId, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail });
+
+  // In-app notifications.
+  await createPaymentNotification(supabase, {
+    recipientEmail: match.candidate_email, role: 'candidate', type: 'paid_unlocked',
+    matchId, jobId: match.job_id,
+    title: `Curated introduction confirmed — ${jobTitle}`,
+    body:  `${firmName} has completed a paid curated introduction for ${jobTitle}. The introduction is now active; Fredheim has shared your contact with the firm and they will reach out directly.`,
+  });
+  await createPaymentNotification(supabase, {
+    recipientEmail: recruiterEmail, role: 'recruiter', type: 'paid_unlocked',
+    matchId, jobId: match.job_id,
+    title: `Contact unlocked — ${jobTitle}`,
+    body:  `Your curated introduction is confirmed (${feeAmount || '$249'}). Approved contact details are now available on your dashboard.`,
+  });
+
+  // Branded emails — contact is now released (the paid introduction unlock).
+  await notify({
+    to_email: match.candidate_email,
+    subject:  `Curated introduction confirmed — ${jobTitle}`,
+    body:     `${firmName} has completed a paid curated introduction for the ${jobTitle} search. The introduction is now active — they have your approved contact details and will be in touch directly.`,
+  });
   await notify({
     to_email: recruiterEmail,
-    subject:  `Curated introduction confirmed (${feeAmount || '$249'})`,
-    body:     newStatus === 'mutual_interest'
-      ? `Mutual interest with the candidate is confirmed. You can complete the contact unlock from your dashboard to connect directly.`
-      : `Your interest has been signaled to the candidate. They will be notified and can accept, decline, or ignore. You will be notified when they respond.`,
+    subject:  `Contact unlocked — ${jobTitle}`,
+    body:     `Your curated introduction is confirmed (${feeAmount || '$249'}). Approved contact details for this candidate are now available on your dashboard. All further communication is directly between you and the candidate.`,
   });
 
   await revenueAlert(
-    `Revenue — introduction fee paid (${feeAmount || '$249'})`,
-    `Introduction fee paid.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nStatus: ${newStatus}\nAmount: ${feeAmount || '$249'}\nCustomer: ${custId}`
+    `Revenue — introduction fee paid / contact unlocked (${feeAmount || '$249'})`,
+    `Introduction fee paid and contact unlocked.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nAmount: ${feeAmount || '$249'}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}`
   );
 
-  console.log(`Fredheim curated introduction paid: match ${matchId} -> ${newStatus} (${feeAmount || '$249'})`);
+  console.log(`Fredheim curated introduction paid: match ${matchId} -> paid_unlocked (${feeAmount || '$249'})`);
 }
 
 // ── ENGAGEMENT UNLOCK PAID HANDLER (legacy talent_matches) ─────

@@ -15,6 +15,7 @@ const {
   FOUNDING,
   REQUIRED_CHECKOUT_ENV,
 } = require('./lib/pricing');
+const { EVENTS, logEvent } = require('./lib/audit');
 
 module.exports = async function handler(req, res) {
   try {
@@ -163,6 +164,12 @@ module.exports = async function handler(req, res) {
           leadership_class: resolved.leadership_class,
           fee_amount:       resolved.amount,
         },
+      });
+
+      await logEvent(supabase, {
+        type: EVENTS.CHECKOUT_CREATED, actorEmail: email || null, actorRole: 'recruiter',
+        matchId: match_id, amount: parseFloat(String(resolved.amount || '').replace(/[^0-9.]/g, '')) || null,
+        detail: { bracket: resolved.bracket, stripe_session: session.id },
       });
 
       return res.status(200).json({

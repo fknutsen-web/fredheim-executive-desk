@@ -13,6 +13,7 @@
 const { createClient } = require('@supabase/supabase-js');
 const { createNotification } = require('./lib/notifications');
 const { canTransition, isValidMatchState } = require('./lib/match-states');
+const { EVENTS, logEvent } = require('./lib/audit');
 
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -91,6 +92,11 @@ module.exports = async function handler(req, res) {
         .eq('id', match_id);
 
       if (upErr) throw upErr;
+
+      await logEvent(db, { type: EVENTS.RECRUITER_INTEREST, actorEmail: callerEmail, actorRole: 'recruiter', matchId: match_id, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail: callerEmail });
+      if (newStatus === 'mutual_interest') {
+        await logEvent(db, { type: EVENTS.MUTUAL_INTEREST, actorEmail: callerEmail, actorRole: 'recruiter', matchId: match_id, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail: callerEmail });
+      }
 
       // Notify candidate
       const jobTitle = match.fed_jobs?.title || 'a search';
@@ -184,6 +190,11 @@ module.exports = async function handler(req, res) {
         return res.status(409).json({ error: `Cannot express interest from status: ${existing.status}` });
       }
 
+      await logEvent(db, { type: EVENTS.CANDIDATE_INTEREST, actorEmail: callerEmail, actorRole: 'candidate', matchId: matchRecord.id, jobId: job_id, candidateEmail: callerEmail, recruiterEmail: matchRecord.recruiter_email });
+      if (newStatus === 'mutual_interest') {
+        await logEvent(db, { type: EVENTS.MUTUAL_INTEREST, actorEmail: callerEmail, actorRole: 'candidate', matchId: matchRecord.id, jobId: job_id, candidateEmail: callerEmail, recruiterEmail: matchRecord.recruiter_email });
+      }
+
       const jobTitle = matchRecord.fed_jobs?.title || 'a search';
       const recruiterEmail = matchRecord.recruiter_email || matchRecord.fed_jobs?.firm_email;
 
@@ -219,6 +230,8 @@ module.exports = async function handler(req, res) {
       }
 
       await db.from('fed_matches').update({ status: 'candidate_declined', declined_at: new Date().toISOString() }).eq('id', match_id);
+
+      await logEvent(db, { type: EVENTS.CANDIDATE_DECLINED, actorEmail: callerEmail, actorRole: 'candidate', matchId: match_id, jobId: match.job_id, candidateEmail: callerEmail, recruiterEmail: match.recruiter_email });
 
       await notify(match.recruiter_email, 'recruiter', 'candidate_declined', match_id, match.job_id,
         `Candidate declined — ${match.fed_jobs?.title || 'role'}`,
