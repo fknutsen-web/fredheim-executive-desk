@@ -11,12 +11,14 @@ const MATCH_STATES = Object.freeze({
   MATCHED:              'matched',               // engine created the match; no signal yet
   RECRUITER_INTERESTED: 'recruiter_interested',  // recruiter signaled interest
   CANDIDATE_INTERESTED: 'candidate_interested',  // candidate signaled interest
-  MUTUAL_INTEREST:      'mutual_interest',        // both signaled — triggers payment requirement
+  MUTUAL_INTEREST:      'mutual_interest',        // both signaled — candidate approval required next
+  AWAITING_PAYMENT:     'awaiting_payment',       // candidate approved the introduction; payment may now be created
   CANDIDATE_DECLINED:   'candidate_declined',     // candidate declined recruiter interest
+  CANDIDATE_WITHDREW:   'candidate_withdrew',     // candidate withdrew before payment — no charge, no reveal
   RECRUITER_WITHDRAWN:  'recruiter_withdrawn',    // recruiter withdrew interest
   CANDIDATE_HIDDEN:     'candidate_hidden',       // candidate hid the match (spec alias: "hidden")
-  PAID_UNLOCKED:        'paid_unlocked',          // introduction fee paid — contact unlock (Phase 3)
-  INTRODUCED:           'introduced',             // formal introduction delivered (Phase 3)
+  PAID_UNLOCKED:        'paid_unlocked',          // introduction fee paid — contact unlock
+  INTRODUCED:           'introduced',             // identities revealed; introduction delivered
   EXPIRED:              'expired',                // job closed/expired — match removed from matching
   CLOSED:               'closed',                 // terminal close (Phase 3 / lifecycle)
 });
@@ -34,10 +36,14 @@ const MATCH_TRANSITIONS = Object.freeze({
   matched:               ['recruiter_interested', 'candidate_interested', 'candidate_hidden', 'expired', 'closed'],
   recruiter_interested:  ['mutual_interest', 'candidate_declined', 'recruiter_withdrawn', 'candidate_hidden', 'expired', 'closed'],
   candidate_interested:  ['mutual_interest', 'recruiter_withdrawn', 'candidate_hidden', 'expired', 'closed'],
-  mutual_interest:       ['paid_unlocked', 'recruiter_withdrawn', 'expired', 'closed'],
+  // Both interested -> candidate must APPROVE the introduction before any payment.
+  mutual_interest:       ['awaiting_payment', 'candidate_withdrew', 'recruiter_withdrawn', 'expired', 'closed'],
+  // Candidate approved; recruiter may now pay. Candidate can still withdraw.
+  awaiting_payment:      ['paid_unlocked', 'candidate_withdrew', 'recruiter_withdrawn', 'expired', 'closed'],
   paid_unlocked:         ['introduced', 'closed'],
   introduced:            ['closed'],
   candidate_declined:    ['closed'],
+  candidate_withdrew:    ['closed'],
   recruiter_withdrawn:   ['closed'],
   candidate_hidden:      ['closed'],
   expired:               [],
