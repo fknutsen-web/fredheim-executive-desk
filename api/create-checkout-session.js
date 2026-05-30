@@ -7,21 +7,22 @@
 //                          Same price for every executive scope. Early Career = free.
 //   Intern featured:   $49/yr - Featured Student Profile (Early Careers)
 
+const {
+  candidatePriceId,
+  recruiterPriceId,
+  internPriceId,
+  introductionPriceId,
+  FOUNDING,
+  REQUIRED_CHECKOUT_ENV,
+} = require('./lib/pricing');
+
 module.exports = async function handler(req, res) {
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const required = [
-      'STRIPE_SECRET_KEY',
-      'PRICE_CANDIDATE_CONFIDENTIAL',
-      'PRICE_RECRUITER_STANDARD',
-      'PRICE_INTRO_FLAT',
-      'PRICE_INTERN_FEATURED',
-    ];
-
-    for (const key of required) {
+    for (const key of REQUIRED_CHECKOUT_ENV) {
       if (!process.env[key]) {
         return res.status(500).json({ error: `Missing env var: ${key}` });
       }
@@ -37,19 +38,16 @@ module.exports = async function handler(req, res) {
     const { type, email, recruiter_id, match_id } = req.body || {};
     const baseUrl = req.headers.origin || 'https://desk.fredheimtech.com';
 
-    function isFoundingWindowActive() {
-      const FOUNDING_DEADLINE = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
-      return new Date() <= FOUNDING_DEADLINE;
-    }
+    const isFoundingWindowActive = () => FOUNDING.isWindowActive();
     async function foundingCohortAvailable() {
-      const FOUNDING_CAP = parseInt(process.env.FOUNDING_CAP || '25', 10);
+      const cap = FOUNDING.cap();
       if (!isFoundingWindowActive()) return { eligible: false, reason: 'deadline' };
       const { count } = await supabase
         .from('talent_recruiters')
         .select('id', { count: 'exact', head: true })
         .eq('tier', 'founding');
-      if ((count || 0) >= FOUNDING_CAP) return { eligible: false, reason: 'cap', count };
-      return { eligible: true, remaining: FOUNDING_CAP - (count || 0) };
+      if ((count || 0) >= cap) return { eligible: false, reason: 'cap', count };
+      return { eligible: true, remaining: cap - (count || 0) };
     }
 
     // -- Flat curated introduction pricing -----------------------------------
@@ -68,7 +66,7 @@ module.exports = async function handler(req, res) {
         return { priceId: null, bracket: 'complimentary', amount: '$0', leadership_class: cls };
       }
       return {
-        priceId: process.env.PRICE_INTRO_FLAT,
+        priceId: introductionPriceId(),
         bracket: 'flat',
         amount: '$249',
         leadership_class: cls || 'executive',
@@ -80,7 +78,7 @@ module.exports = async function handler(req, res) {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email || undefined,
-        line_items: [{ price: process.env.PRICE_CANDIDATE_CONFIDENTIAL, quantity: 1 }],
+        line_items: [{ price: candidatePriceId('confidential'), quantity: 1 }],
         success_url: `${baseUrl}?upgradeSuccess=confidential`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'candidate', tier: 'confidential', email: email || '' },
@@ -112,7 +110,7 @@ module.exports = async function handler(req, res) {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email || undefined,
-        line_items: [{ price: process.env.PRICE_RECRUITER_STANDARD, quantity: 1 }],
+        line_items: [{ price: recruiterPriceId('standard'), quantity: 1 }],
         success_url: `${baseUrl}/recruiter-talent.html?checkout=success&tier=standard`,
         cancel_url:  `${baseUrl}?view=pricing&checkout=cancelled`,
         metadata: { type: 'recruiter', tier: 'standard', email: email || '', recruiter_id: recruiter_id || '' },
@@ -185,7 +183,7 @@ module.exports = async function handler(req, res) {
       const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer_email: email,
-        line_items: [{ price: process.env.PRICE_INTERN_FEATURED, quantity: 1 }],
+        line_items: [{ price: internPriceId('featured'), quantity: 1 }],
         success_url: `${baseUrl}?upgradeSuccess=intern_featured`,
         cancel_url:  `${baseUrl}?view=intern-myprofile&checkout=cancelled`,
         metadata: { type: 'intern_featured', tier: 'featured', email },

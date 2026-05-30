@@ -14,6 +14,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const { sendEmail, brandedHtml } = require('./lib/email');
+const { FOUNDING, placementCreditAmount } = require('./lib/pricing');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -254,8 +255,8 @@ async function runJobListingExpiration() {
 // Alerts admin when available Founding Partner spots fall below thresholds.
 // Cap and deadline are configurable via env vars.
 async function runFoundingCapCheck() {
-  const FOUNDING_CAP      = parseInt(process.env.FOUNDING_CAP || '25', 10);
-  const FOUNDING_DEADLINE = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
+  const FOUNDING_CAP      = FOUNDING.cap();
+  const FOUNDING_DEADLINE = FOUNDING.deadline();
   const now               = new Date();
 
   const { count } = await supabase
@@ -294,7 +295,7 @@ async function handlePlacementReport(matchId, recruiterId) {
 
   if (!match) return { error: 'Match not found.' };
 
-  const creditAmount = parseInt(process.env.PLACEMENT_CREDIT_AMOUNT || '250', 10);
+  const creditAmount = placementCreditAmount();
 
   // Record the placement and issue credit
   await supabase.from('talent_matches').update({

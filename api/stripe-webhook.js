@@ -8,6 +8,13 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { createClient } = require('@supabase/supabase-js');
 const { sendEmail, sendAdminAlert, brandedHtml } = require('./lib/email');
+const {
+  candidateTierFromPrice,
+  recruiterTierFromPrice,
+  internTierFromPrice,
+  isIntroductionPrice,
+} = require('./lib/pricing');
+const { createPaymentNotification } = require('./lib/notifications');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -39,45 +46,10 @@ function expiryOneMonth() {
   return d.toISOString();
 }
 
-// ── CANDIDATE TIER FROM PRICE ID ──────────────────────────────
-// Only one paid tier: confidential
-function candidateTierFromPrice(priceId) {
-  if (priceId === process.env.PRICE_CANDIDATE_CONFIDENTIAL) return 'confidential';
-  return null;
-}
-
-// ── RECRUITER TIER FROM PRICE ID ──────────────────────────────
-function recruiterTierFromPrice(priceId) {
-  if (priceId === process.env.PRICE_RECRUITER_FOUNDING) return 'founding';
-  if (priceId === process.env.PRICE_RECRUITER_PRO)      return 'pro';
-  return null;
-}
-
-// -- CURATED INTRODUCTION PRICE CHECK -----------------------------
-// Phase 1: a single flat $249 introduction fee (PRICE_INTRO_FLAT).
-// Legacy: the deprecated age-based engagement-unlock prices remain in the
-// allowed set so existing in-flight checkouts complete cleanly.
-function isIntroductionPrice(priceId) {
-  return [
-    process.env.PRICE_INTRO_FLAT,     // Phase 1: $249 flat
-    process.env.PRICE_ENGAGE_FRESH,   // legacy: 0-30 day match: $500
-    process.env.PRICE_ENGAGE_WARM,    // legacy: 31-60 day match: $350
-    process.env.PRICE_ENGAGE_AGING,   // legacy: 61-90 day match: $200
-    process.env.PRICE_INTRO_CSUITE,   // legacy tiered C-suite
-    process.env.PRICE_INTRO_VP,       // legacy tiered VP
-    process.env.PRICE_INTRO_DIRECTOR, // legacy tiered Director
-    process.env.PRICE_INTRO_MANAGER,  // legacy tiered Manager
-  ].filter(Boolean).includes(priceId);
-}
+// Price-ID tier resolution (candidateTierFromPrice, recruiterTierFromPrice,
+// internTierFromPrice, isIntroductionPrice) is centralized in ./lib/pricing.
 // Back-compat alias - some callers below still reference the old name.
 const isEngagementPrice = isIntroductionPrice;
-
-// ── INTERN TIER FROM PRICE ID ─────────────────────────────────
-// Only one paid student tier: featured ($49/yr)
-function internTierFromPrice(priceId) {
-  if (priceId === process.env.PRICE_INTERN_FEATURED) return 'featured';
-  return null;
-}
 
 // ── SEND CUSTOMER EMAIL (native, via Resend) ──────────────────
 // Replaces the former Zapier webhook. Failures are logged and non-fatal:
@@ -424,27 +396,27 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
   // Notify candidate of the curated introduction (and pay-confirmed gate).
   const jobTitle = match.fed_jobs?.title || 'a senior search';
   const firmName = match.fed_jobs?.firm_name || 'A search firm';
-  await supabase.from('fed_notifications').insert({
-    recipient_email: match.candidate_email.toLowerCase(),
-    recipient_role:  'candidate',
-    type:            newStatus,
-    match_id:        matchId,
-    job_id:          match.job_id,
-    title:           newStatus === 'mutual_interest'
+  await createPaymentNotification(supabase, {
+    recipientEmail: match.candidate_email,
+    role:           'candidate',
+    type:           newStatus,
+    matchId,
+    jobId:          match.job_id,
+    title:          newStatus === 'mutual_interest'
       ? `Mutual interest confirmed - ${jobTitle}`
       : `A search firm has confirmed a curated introduction`,
-    body:            newStatus === 'mutual_interest'
+    body:           newStatus === 'mutual_interest'
       ? `${firmName} has paid for and confirmed the curated introduction. Fredheim will facilitate next steps.`
       : `${firmName} has expressed interest in your profile for a ${jobTitle} role. You can accept, decline, or ignore this introduction.`,
   });
-  await supabase.from('fed_notifications').insert({
-    recipient_email: recruiterEmail.toLowerCase(),
-    recipient_role:  'recruiter',
-    type:            'introduction_confirmed',
-    match_id:        matchId,
-    job_id:          match.job_id,
-    title:           `Curated introduction confirmed (${feeAmount || '$249'})`,
-    body:            newStatus === 'mutual_interest'
+  await createPaymentNotification(supabase, {
+    recipientEmail: recruiterEmail,
+    role:           'recruiter',
+    type:           'introduction_confirmed',
+    matchId,
+    jobId:          match.job_id,
+    title:          `Curated introduction confirmed (${feeAmount || '$249'})`,
+    body:           newStatus === 'mutual_interest'
       ? `Mutual interest with the candidate. You can now connect directly via the dashboard.`
       : `Interest signaled to candidate. They will be notified and can accept, decline, or ignore.`,
   });

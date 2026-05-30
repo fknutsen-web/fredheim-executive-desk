@@ -11,11 +11,12 @@
 
 const { createClient } = require('@supabase/supabase-js');
 const { sendAdminAlert } = require('./lib/email');
+const { FOUNDING } = require('./lib/pricing');
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-const FOUNDING_DEADLINE  = new Date(process.env.FOUNDING_DEADLINE || '2026-12-31T23:59:59Z');
-const IS_FOUNDING_PERIOD = new Date() <= FOUNDING_DEADLINE;
+const FOUNDING_DEADLINE  = FOUNDING.deadline();
+const IS_FOUNDING_PERIOD = FOUNDING.isWindowActive();
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

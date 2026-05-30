@@ -8,11 +8,22 @@
 // touching application code.
 
 const { createClient } = require('@supabase/supabase-js');
+const { PUBLIC_FEES } = require('./lib/pricing');
 
 const SUPABASE_URL      = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Canonical fallback amounts (from ./lib/pricing) used whenever the DB-driven
+// config is unavailable or missing a key, so the front end always receives
+// sane numbers without hardcoding them here.
+const FALLBACK_CONFIG = {
+  intro_fee_flat:         { value: PUBLIC_FEES.intro_flat,             unit: 'USD', label: 'Curated Introduction', category: 'introduction' },
+  candidate_confidential: { value: PUBLIC_FEES.candidate_confidential, unit: 'USD/yr', label: 'Confidential Profile', category: 'candidate' },
+  recruiter_standard:     { value: PUBLIC_FEES.recruiter_standard,     unit: 'USD/mo', label: 'Recruiter Standard', category: 'recruiter' },
+  intern_featured:        { value: PUBLIC_FEES.intern_featured,        unit: 'USD/yr', label: 'Featured Student Profile', category: 'intern' },
+};
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -30,12 +41,13 @@ module.exports = async function handler(req, res) {
       .order('display_order', { ascending: true });
 
     if (error) {
-      // Don't break the front end - return an empty config; main.jsx defaults take over.
+      // Don't break the front end - serve centralized fallback amounts so the
+      // UI still shows correct pricing even when the DB is unreachable.
       console.error('pricing-config load error:', error);
-      return res.status(200).json({ ok: false, config: {}, fee_by_class: {} });
+      return res.status(200).json({ ok: false, config: FALLBACK_CONFIG, fee_by_class: {} });
     }
 
-    const config = {};
+    const config = { ...FALLBACK_CONFIG };
     for (const r of rows || []) {
       // Prefer the populated typed field
       const value = r.value_int !== null && r.value_int !== undefined ? r.value_int
@@ -63,6 +75,6 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ ok: true, config, fee_by_class });
   } catch (e) {
     console.error('pricing-config exception:', e);
-    return res.status(200).json({ ok: false, config: {}, fee_by_class: {} });
+    return res.status(200).json({ ok: false, config: FALLBACK_CONFIG, fee_by_class: {} });
   }
 };

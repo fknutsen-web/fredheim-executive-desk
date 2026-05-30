@@ -33,6 +33,7 @@
 //     null  = data unavailable (treated as unknown — neither pass nor fail)
 
 const { createClient } = require('@supabase/supabase-js');
+const { createNotifications } = require('./lib/notifications');
 
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const MIN_SCORE = 40; // minimum score to create a match record
@@ -140,15 +141,15 @@ module.exports = async function handler(req, res) {
       const summaryNotifs = Object.entries(byJob).map(([jobId, count]) => {
         const job = jobs.find(j => j.id === jobId);
         return {
-          recipient_email: recruiterEmail,
-          recipient_role:  'recruiter',
-          type:            'new_candidate_match',
-          job_id:          jobId,
-          title:           `${count} new candidate match${count > 1 ? 'es' : ''} — ${job?.title || 'role'}`,
-          body:            `${count} candidate profile${count > 1 ? 's' : ''} now match your ${job?.title || 'role'} search.`,
+          recipientEmail: recruiterEmail,
+          role:           'recruiter',
+          type:           'new_candidate_match',
+          jobId:          jobId,
+          title:          `${count} new candidate match${count > 1 ? 'es' : ''} — ${job?.title || 'role'}`,
+          body:           `${count} candidate profile${count > 1 ? 's' : ''} now match your ${job?.title || 'role'} search.`,
         };
       });
-      await db.from('fed_notifications').insert(summaryNotifs);
+      await createNotifications(db, summaryNotifs);
     }
 
     return res.status(200).json({
@@ -611,3 +612,4 @@ function computeMatchScore(candidate, job) {
 
   return { score: Math.min(100, Math.max(0, Math.round(score))), reasons };
 }
+// (scoring helpers above; notifications centralized via ./lib/notifications)
