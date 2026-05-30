@@ -6,6 +6,7 @@
 //   2. Confirmation email to the submitting firm/employer
 
 const { sendEmail, brandedHtml } = require('./lib/email');
+const { guardFields } = require('./lib/content-guard');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -32,6 +33,17 @@ module.exports = async function handler(req, res) {
   const location     = body.location     || null;
   const salary_range = body.salary_range || body.compensation_display || null;
   const notes        = body.notes        || body.role_summary         || null;
+
+  // Anti-circumvention: block contact info / company identifiers in free text.
+  const guard = guardFields({
+    notes,
+    responsibilities: body.responsibilities,
+    qualifications:   body.qualifications,
+    role_summary:     body.role_summary,
+  });
+  if (!guard.ok) {
+    return res.status(422).json({ error: guard.message, field_violations: guard.fieldViolations });
+  }
 
   const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimtech.com';
 

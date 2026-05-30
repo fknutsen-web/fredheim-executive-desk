@@ -16,6 +16,7 @@ const {
   REQUIRED_CHECKOUT_ENV,
 } = require('./lib/pricing');
 const { EVENTS, logEvent } = require('./lib/audit');
+const { introductionFee } = require('./lib/introduction-fees');
 
 module.exports = async function handler(req, res) {
   try {
@@ -55,23 +56,47 @@ module.exports = async function handler(req, res) {
     // Every executive scope (Manager through C-Suite) pays the same flat fee.
     // Early-career and individual-contributor candidates are complimentary.
     async function resolveIntroductionPrice(matchId) {
+      // PRIMARY: the confidential-introduction marketplace flow (fed_matches).
+      // Payment is gated on candidate approval (status = awaiting_payment) and
+      // priced by compensation tier — never a flat fee, never hardcoded here.
+      const { data: fed } = await supabase
+        .from('fed_matches')
+        .select('id, status, candidate_email, job_id, fed_jobs(salary_max, salary_min, salary_display)')
+        .eq('id', matchId)
+        .maybeSingle();
+
+      if (fed) {
+        if (fed.status !== 'awaiting_payment') {
+          return { error: 'Introduction is not approved for payment. The candidate must approve the introduction first.' };
+        }
+        // Compensation basis: prefer the role ceiling, then the candidate's target.
+        const comp = fed.fed_jobs?.salary_max
+          || fed.fed_jobs?.salary_min
+          || fed.fed_jobs?.salary_display
+          || null;
+        const fee = introductionFee(comp);
+        return {
+          amountCents:      fee.amount_cents,
+          currency:         fee.currency,
+          label:            fee.label,
+          bracket:          fee.tier,
+          amount:           fee.display,
+          leadership_class: 'executive',
+        };
+      }
+
+      // LEGACY fallback: talent_matches one-off (kept for in-flight checkouts).
       const { data: match, error } = await supabase
         .from('talent_matches')
         .select('candidate_leadership_class')
         .eq('id', matchId)
         .single();
       if (error || !match) return { error: 'Match not found.' };
-
       const cls = match.candidate_leadership_class;
       if (cls === 'early_career' || cls === 'individual_contributor') {
         return { priceId: null, bracket: 'complimentary', amount: '$0', leadership_class: cls };
       }
-      return {
-        priceId: introductionPriceId(),
-        bracket: 'flat',
-        amount: '$249',
-        leadership_class: cls || 'executive',
-      };
+      return { priceId: introductionPriceId(), bracket: 'flat', amount: '$249', leadership_class: cls || 'executive' };
     }
 
     // -- CANDIDATE CONFIDENTIAL SUBSCRIPTION ------------------------------
@@ -151,10 +176,19 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      // Compensation-tiered fee uses dynamic price_data; legacy uses a price ID.
+      const lineItem = resolved.amountCents
+        ? { price_data: {
+              currency:     resolved.currency || 'usd',
+              unit_amount:  resolved.amountCents,
+              product_data: { name: `${resolved.label} (${resolved.amount})` },
+            }, quantity: 1 }
+        : { price: resolved.priceId, quantity: 1 };
+
       const session = await stripe.checkout.sessions.create({
         mode: 'payment',
         customer_email: email || undefined,
-        line_items: [{ price: resolved.priceId, quantity: 1 }],
+        line_items: [lineItem],
         success_url: `${baseUrl}/recruiter-talent.html?checkout=engaged&match=${match_id}`,
         cancel_url:  `${baseUrl}/recruiter-talent.html?checkout=cancelled`,
         metadata: {

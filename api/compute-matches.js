@@ -35,6 +35,21 @@
 const { createClient } = require('@supabase/supabase-js');
 const { createNotifications } = require('./lib/notifications');
 
+// A candidate is hidden from their current employer and any blocked company.
+// Case-insensitive, bidirectional substring match so "ABS" matches "ABS Group"
+// and "Cobelfret NV" matches "cobelfret".
+function isEmployerBlocked(candidate, firmName) {
+  if (!firmName) return false;
+  const firm = String(firmName).toLowerCase().trim();
+  if (!firm) return false;
+  const blockList = [];
+  if (candidate.current_company) blockList.push(String(candidate.current_company).toLowerCase().trim());
+  if (Array.isArray(candidate.blocked_companies)) {
+    for (const c of candidate.blocked_companies) if (c) blockList.push(String(c).toLowerCase().trim());
+  }
+  return blockList.some(b => b && (firm.includes(b) || b.includes(firm)));
+}
+
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const MIN_SCORE = 40; // minimum score to create a match record
 
@@ -61,7 +76,7 @@ module.exports = async function handler(req, res) {
     // Load this recruiter's active jobs, including scope requirements
     const { data: jobs, error: jErr } = await db
       .from('fed_jobs')
-      .select('id, title, industry, function, location, salary_min, salary_max, firm_email, role_scope_requirements, required_leadership_class, required_complexity_class')
+      .select('id, title, industry, function, location, salary_min, salary_max, firm_email, firm_name, role_scope_requirements, required_leadership_class, required_complexity_class')
       .ilike('firm_email', recruiterEmail)
       .eq('status', 'active')
       .eq('demo_post', false);
@@ -74,7 +89,7 @@ module.exports = async function handler(req, res) {
     // Load all candidate profiles, including derived scope classification
     const { data: candidates, error: cErr } = await db
       .from('fed_profiles')
-      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private, candidate_scope, scope_score, complexity_score, strategic_score, commercial_score, leadership_class, complexity_class, equivalent_label, industrial_translator')
+      .select('email, industry, function, location, salary_min, visibility, privacy_fully_private, current_company, blocked_companies, candidate_scope, scope_score, complexity_score, strategic_score, commercial_score, leadership_class, complexity_class, equivalent_label, industrial_translator')
       .not('email', 'is', null);
 
     if (cErr) throw cErr;
@@ -98,6 +113,11 @@ module.exports = async function handler(req, res) {
     for (const job of jobs) {
       for (const candidate of candidates) {
         if (candidate.email.toLowerCase() === recruiterEmail) continue;
+
+        // CONFIDENTIALITY: a candidate is invisible to their own current
+        // employer and to any company on their blocked list. The match is
+        // never created, so the candidate simply does not exist to that firm.
+        if (isEmployerBlocked(candidate, job.firm_name)) continue;
 
         const key = `${job.id}::${candidate.email.toLowerCase()}`;
         if (existingSet.has(key)) continue;

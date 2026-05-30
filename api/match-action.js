@@ -240,6 +240,49 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true, status: 'candidate_declined' });
     }
 
+    // ── CANDIDATE: Approve the introduction (gate before payment) ──
+    // Only after mutual interest. Moves to awaiting_payment, which is the ONLY
+    // status from which a Stripe checkout may be created. No identities revealed.
+    if (action === 'candidate_approve_introduction') {
+      if (!match_id) return res.status(400).json({ error: 'match_id required.' });
+
+      const { data: match } = await db.from('fed_matches').select('*, fed_jobs(title)').eq('id', match_id).single();
+      if (!match) return res.status(404).json({ error: 'Match not found.' });
+      if (match.candidate_email.toLowerCase() !== callerEmail) return res.status(403).json({ error: 'Not authorized.' });
+      if (!canTransition(match.status, 'awaiting_payment')) {
+        return res.status(409).json({ error: `Cannot approve introduction from status: ${match.status}` });
+      }
+
+      await db.from('fed_matches').update({ status: 'awaiting_payment', candidate_approved_at: new Date().toISOString() }).eq('id', match_id);
+
+      // Recruiter may now pay — and only now.
+      await notify(match.recruiter_email, 'recruiter', 'awaiting_payment', match_id, match.job_id,
+        `Mutual interest confirmed — unlock introduction`,
+        `The candidate has approved a confidential introduction for the ${match.fed_jobs?.title || 'role'} search. You can now unlock the introduction. Identities are revealed only after payment.`);
+
+      return res.status(200).json({ ok: true, status: 'awaiting_payment' });
+    }
+
+    // ── CANDIDATE: Withdraw before payment (no charge, no reveal) ──
+    if (action === 'candidate_withdraw') {
+      if (!match_id) return res.status(400).json({ error: 'match_id required.' });
+
+      const { data: match } = await db.from('fed_matches').select('*, fed_jobs(title)').eq('id', match_id).single();
+      if (!match) return res.status(404).json({ error: 'Match not found.' });
+      if (match.candidate_email.toLowerCase() !== callerEmail) return res.status(403).json({ error: 'Not authorized.' });
+      if (!['mutual_interest', 'awaiting_payment'].includes(match.status)) {
+        return res.status(409).json({ error: `Cannot withdraw from status: ${match.status}` });
+      }
+
+      await db.from('fed_matches').update({ status: 'candidate_withdrew', withdrew_at: new Date().toISOString() }).eq('id', match_id);
+
+      await notify(match.recruiter_email, 'recruiter', 'candidate_withdrew', match_id, match.job_id,
+        `Introduction withdrawn — ${match.fed_jobs?.title || 'role'}`,
+        `The candidate has withdrawn before introduction. No charge was made and no contact details were released.`);
+
+      return res.status(200).json({ ok: true, status: 'candidate_withdrew' });
+    }
+
     // ── CANDIDATE: Hide a match ───────────────────────────────
     if (action === 'candidate_hide') {
       if (!match_id) return res.status(400).json({ error: 'match_id required.' });
