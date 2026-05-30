@@ -16,9 +16,14 @@
 
 const { Resend } = require('resend');
 
-const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <desk@fredheimtech.com>';
+// All platform email originates from the Fredheim Desk domain. Default sender
+// is notifications@fredheimtech.com (override via FROM_EMAIL). Brand is always
+// "Fredheim Desk — Executive Recruiting Marketplace".
+const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimtech.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimtech.com';
 const APP_URL     = process.env.APP_URL     || 'https://desk.fredheimtech.com';
+const BRAND_NAME    = 'Fredheim Desk';
+const BRAND_TAGLINE = 'Executive Recruiting Marketplace';
 
 // Lazy singleton so a missing key never crashes module load.
 let _resend = null;
@@ -61,14 +66,15 @@ function brandedHtml(bodyText, opts = {}) {
       <tr><td align="center">
         <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border:1px solid #e2e2dd;">
           <tr><td style="background:#1a2b4a;padding:20px 32px;">
-            <span style="color:#ffffff;font-size:15px;letter-spacing:3px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Fredheim&nbsp;Desk</span>
+            <span style="color:#ffffff;font-size:15px;letter-spacing:3px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">${BRAND_NAME}</span><br>
+            <span style="color:#c9b27a;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">${BRAND_TAGLINE}</span>
           </td></tr>
           ${heading ? `<tr><td style="padding:28px 32px 0 32px;"><h1 style="margin:0;font-size:19px;font-weight:normal;color:#1a2b4a;line-height:1.35;">${escapeHtml(heading)}</h1></td></tr>` : ''}
           <tr><td style="padding:20px 32px 28px 32px;font-size:15px;line-height:1.65;color:#2a2a2a;">
             ${inner}
           </td></tr>
           <tr><td style="padding:18px 32px;border-top:1px solid #ececE7;font-size:12px;line-height:1.5;color:#8a8a82;font-family:Arial,Helvetica,sans-serif;">
-            Fredheim Executive Desk &middot; Confidential<br>
+            ${BRAND_NAME} &middot; ${BRAND_TAGLINE} &middot; Confidential<br>
             <a href="${APP_URL}" style="color:#8a8a82;text-decoration:underline;">${APP_URL.replace(/^https?:\/\//, '')}</a>
             &middot; <a href="mailto:${ADMIN_EMAIL}" style="color:#8a8a82;text-decoration:underline;">${ADMIN_EMAIL}</a>
           </td></tr>
