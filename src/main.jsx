@@ -3871,12 +3871,13 @@ function TosModal({ onAgree, onCancel }) {
           </div>
 
           <div className="tos-clause">
-            <strong>Curated Introduction Fee.</strong> A flat one-time introduction fee of
-            {' '}<strong>$249</strong> is charged <em>at the moment you confirm a curated
-            introduction</em> with a candidate. The fee is the same for every leadership
-            scope — no classification disputes. Early-career candidates are complimentary.
-            There is <strong>no placement fee, no success fee, and no fee on hire</strong> —
-            the curated-introduction fee is the only transactional charge. Founding cohort
+            <strong>Curated Introduction Fee.</strong> A one-time introduction fee, priced by
+            role compensation (<strong>$99</strong> under $100K, <strong>$495</strong> for
+            $100K–$250K, <strong>$995</strong> for $250K–$500K, <strong>$2,500</strong> above
+            $500K), is charged <em>at the moment the introduction is unlocked</em> after the
+            candidate approves it. Early-career candidates are complimentary. There is
+            <strong> no placement fee, no success fee, and no fee on hire</strong> — the
+            curated-introduction fee is the only transactional charge. Founding cohort
             recruiters pay no introduction fees during the founding window.
           </div>
 
@@ -3901,9 +3902,10 @@ function TosModal({ onAgree, onCancel }) {
         <div className="tos-check-row" onClick={() => setChecked1(!checked1)}>
           <div className={`tos-checkbox ${checked1?'checked':''}`} />
           <div className="tos-check-label">
-            I agree to the <strong>$199/month subscription</strong> and the flat
-            {' '}<strong>$249 curated introduction fee</strong>, charged at the moment of
-            confirmed introduction. I understand there is no placement fee on hire.
+            I agree to the <strong>$199/month subscription</strong> and the
+            {' '}<strong>compensation-tiered curated introduction fee</strong> ($99–$2,500),
+            charged when the introduction is unlocked after candidate approval. I understand
+            there is no placement fee on hire.
           </div>
         </div>
 
@@ -7804,24 +7806,32 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       <div className="intro-fee-box">
         <div>
           <div className="intro-fee-eyebrow">Curated Introduction Fee</div>
-          <div className="intro-fee-title">One flat fee. Every leadership scope.</div>
+          <div className="intro-fee-title">Priced by compensation. One confirmed introduction.</div>
           <p className="intro-fee-desc">
             The fee is triggered when a recruiter confirms a curated introduction to a
-            qualified, mutually interested candidate. No placement fees. No commission.
-            No tail-period monitoring. No classification disputes. Candidates are never
-            charged any fee, ever. Founding Partners are exempt from introduction fees
-            through {cfg.founding_partner_window_end || '2026-12-31'}.
+            qualified, mutually interested candidate who has approved the introduction.
+            No placement fees. No commission. No tail-period monitoring. Candidates are
+            never charged any fee, ever. Founding Partners are exempt from introduction
+            fees through {cfg.founding_partner_window_end || '2026-12-31'}.
           </p>
         </div>
-        <div className="intro-fee-amount" style={{textAlign:'center'}}>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'3rem',color:'var(--ink)',fontWeight:500,lineHeight:1}}>
-            {fmtPrice(cfg.introduction_flat || 249)}
-          </div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.7rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase',marginTop:'0.4rem'}}>
+        <div className="intro-fee-amount" style={{textAlign:'left',minWidth:'16rem'}}>
+          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.7rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'0.6rem'}}>
             Per confirmed introduction
           </div>
+          {[
+            ['Comp. under $100K', '$99'],
+            ['$100K – $250K', '$495'],
+            ['$250K – $500K', '$995'],
+            ['Above $500K', '$2,500'],
+          ].map(([band, fee]) => (
+            <div key={band} style={{display:'flex',justifyContent:'space-between',gap:'1.5rem',padding:'0.4rem 0',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
+              <span style={{fontSize:'0.85rem',color:'var(--ink-3)'}}>{band}</span>
+              <span style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',fontWeight:500,lineHeight:1}}>{fee}</span>
+            </div>
+          ))}
           <div style={{fontSize:'0.78rem',color:'var(--ink-3)',marginTop:'0.875rem',lineHeight:1.55}}>
-            Same fee for every executive scope - C-Suite through Manager.
+            Tier set by role compensation.
             Early Career: <strong style={{color:'var(--ink-1)'}}>complimentary</strong>.
           </div>
         </div>
@@ -8005,10 +8015,13 @@ function TermsPage() {
         </div>
         <table className="legal-table">
           <thead>
-            <tr><th>Candidate Leadership Scope</th><th>Curated Introduction Fee</th></tr>
+            <tr><th>Role Compensation</th><th>Curated Introduction Fee</th></tr>
           </thead>
           <tbody>
-            <tr><td>All executive scopes (C-Suite through Manager)</td><td><strong>$249 (one-time, flat)</strong></td></tr>
+            <tr><td>Under $100,000</td><td><strong>$99 (one-time)</strong></td></tr>
+            <tr><td>$100,000 – $250,000</td><td><strong>$495 (one-time)</strong></td></tr>
+            <tr><td>$250,000 – $500,000</td><td><strong>$995 (one-time)</strong></td></tr>
+            <tr><td>Above $500,000</td><td><strong>$2,500 (one-time)</strong></td></tr>
             <tr><td>Early Career, Individual Contributor</td><td>Complimentary</td></tr>
           </tbody>
         </table>
