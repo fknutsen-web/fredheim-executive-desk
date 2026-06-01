@@ -208,11 +208,12 @@ const BACKGROUND_QUESTIONS = [
     id: 'B1', section: 'background',
     text: 'Which industry best describes your primary career experience?',
     options: [
-      { key: 'A', text: 'Maritime / Ports / Terminals' },
-      { key: 'B', text: 'Logistics / Supply Chain / Transportation' },
-      { key: 'C', text: 'Energy / Oil & Gas / Petrochemicals' },
-      { key: 'D', text: 'Manufacturing / Industrial' },
-      { key: 'E', text: 'Finance / Professional Services / Technology' },
+      { key: 'A', text: 'Maritime & Shipping' },
+      { key: 'B', text: 'Commodity Trading' },
+      { key: 'C', text: 'Energy' },
+      { key: 'D', text: 'Logistics & Supply Chain' },
+      { key: 'E', text: 'Ports & Terminals' },
+      { key: 'F', text: 'Offshore' },
     ]
   },
   {

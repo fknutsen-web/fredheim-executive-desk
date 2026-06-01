@@ -176,24 +176,96 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
 // growing class of SaaS/IoT/AI companies serving maritime, logistics, and
 // industrial operations — a hiring market that generic SaaS recruiters can't
 // serve well because they don't understand the operational domain.
-const INDUSTRIES  = [
-  'All Industries',
-  // Operational verticals
-  'Maritime & Shipping',
-  'Ports & Terminals',
-  'Energy & Offshore',
-  'Industrial Commodities & Logistics',
-  // Industrial-technology verticals
-  'Maritime Technology',
-  'Port Technology',
-  'Logistics Technology',
-  'Industrial SaaS',
-  'Fleet Intelligence',
-  'Operational AI',
-  'Industrial Automation',
-  'Supply Chain Technology',
-  'Compliance & Safety Tech',
+// ── INDUSTRY VERTICALS (canonical source of truth) ───────────────────────────
+// Six commercial verticals, each with role/segment subcategories. Every
+// downstream consumer (filters, dropdowns, profile + job + onboarding forms,
+// the multi-select, marketing copy) derives from this structure, so a new
+// subcategory can be added under any vertical without a redesign.
+const VERTICALS = [
+  {
+    name: 'Maritime & Shipping',
+    blurb: 'Shipowners, operators, chartering, vessel operations, brokerage, marine services, ship management, and maritime technology.',
+    subcategories: ['Chartering', 'Vessel Operations', 'Commercial', 'Technical & Ship Management', 'Brokerage', 'Marine Services', 'Maritime Technology'],
+  },
+  {
+    name: 'Commodity Trading',
+    blurb: 'Metals, steel, cement, aggregates, fertilizers, agricultural and energy commodities, dry bulk, trading houses, commodity risk, and commercial trading.',
+    subcategories: ['Metals & Steel', 'Cement & Aggregates', 'Fertilizers', 'Agricultural', 'Energy Commodities', 'Dry Bulk', 'Trading & Risk'],
+  },
+  {
+    name: 'Energy',
+    blurb: 'Traditional energy, LNG, LPG, renewables, power generation, utilities, energy infrastructure, and energy services.',
+    subcategories: ['Oil & Gas', 'LNG & LPG', 'Renewables', 'Power & Utilities', 'Energy Infrastructure', 'Energy Services'],
+  },
+  {
+    name: 'Logistics & Supply Chain',
+    blurb: 'Transportation, freight forwarding, warehousing, trucking, rail, distribution, inventory management, supply chain leadership, and logistics technology.',
+    subcategories: ['Freight Forwarding', 'Warehousing', 'Trucking', 'Rail', 'Distribution', 'Supply Chain Leadership', 'Logistics Technology'],
+  },
+  {
+    name: 'Ports & Terminals',
+    blurb: 'Port authorities, terminal operators, stevedoring, terminal development, cargo handling, port infrastructure, and port technology.',
+    subcategories: ['Port Authorities', 'Terminal Operations', 'Stevedoring', 'Terminal Development', 'Cargo Handling', 'Port Technology'],
+  },
+  {
+    name: 'Offshore',
+    blurb: 'Offshore oil & gas, offshore wind, marine construction, subsea, offshore support vessels, and offshore services.',
+    subcategories: ['Offshore Oil & Gas', 'Offshore Wind', 'Marine Construction', 'Subsea', 'Offshore Support Vessels', 'Offshore Services'],
+  },
 ];
+
+const VERTICAL_NAMES = VERTICALS.map(v => v.name);
+
+// Backward-compatibility: every legacy industry label maps to a current
+// vertical so existing profiles, jobs, and matches keep working. Folded
+// technology verticals resolve to their parent vertical.
+const LEGACY_VERTICAL_MAP = {
+  // commodities (cargo-named legacy labels → talent-market vertical)
+  'Industrial Commodities': 'Commodity Trading',
+  'Industrial Commodities & Logistics': 'Commodity Trading',
+  'Bulk Commodities': 'Commodity Trading',
+  'Trading & Freight': 'Commodity Trading',
+  // logistics
+  'Supply Chain & Logistics': 'Logistics & Supply Chain',
+  // energy / offshore (now two distinct verticals; default the combined label to Energy)
+  'Energy & Offshore': 'Energy',
+  // folded technology verticals → parent vertical
+  'Maritime Technology': 'Maritime & Shipping',
+  'Port Technology': 'Ports & Terminals',
+  'Logistics Technology': 'Logistics & Supply Chain',
+  'Supply Chain Technology': 'Logistics & Supply Chain',
+  'Industrial SaaS': 'Maritime & Shipping',
+  'Fleet Intelligence': 'Maritime & Shipping',
+  'Operational AI': 'Maritime & Shipping',
+  'Industrial Automation': 'Maritime & Shipping',
+  'Compliance & Safety Tech': 'Maritime & Shipping',
+  'Safety & Compliance Technology': 'Maritime & Shipping',
+  // misc legacy intake labels
+  'Commercial Operations': 'Maritime & Shipping',
+};
+
+// Resolve any stored/legacy industry value to a current vertical name.
+function normalizeVertical(value) {
+  if (!value) return value;
+  if (VERTICAL_NAMES.includes(value)) return value;
+  return LEGACY_VERTICAL_MAP[value] || value;
+}
+
+// Union of subcategories available for the given vertical(s). Accepts a single
+// vertical name or an array; legacy values are normalised first. Preserves
+// canonical ordering and de-duplicates across verticals.
+function subcategoriesForVerticals(verticals) {
+  const list = (Array.isArray(verticals) ? verticals : [verticals]).filter(Boolean).map(normalizeVertical);
+  const set = new Set(list);
+  const out = [];
+  for (const v of VERTICALS) {
+    if (set.has(v.name)) out.push(...v.subcategories);
+  }
+  return out;
+}
+
+// Filter dropdown list (includes the "All" sentinel).
+const INDUSTRIES = ['All Industries', ...VERTICAL_NAMES];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
 const SALARY_BANDS = [
   { label: 'Any Range', min: 0 },
@@ -646,7 +718,7 @@ function computeInternMatchScore(candidate, job) {
 
 // ── INTERN PROFILE FORM ───────────────────────────────────────────────────────
 // 5 steps. No file upload. No resume. Ever.
-const INDUSTRY_OPTIONS = ['Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics','Supply Chain & Logistics','Commercial Operations','Finance','Other'];
+const INDUSTRY_OPTIONS = [...VERTICAL_NAMES, 'Other'];
 const FUNCTION_OPTIONS = ['Commercial','Operations','Finance','Engineering','Technology','Strategy','Legal','Other'];
 const AUTH_OPTIONS     = Object.entries(INTERN_AUTH);
 
@@ -2863,7 +2935,8 @@ function computeMatchScore(candidate, job) {
 
   // ── INDUSTRY (20 pts) ────────────────────────────────────────────────────
   if (candidate?.industry && job?.industry) {
-    const cI = candidate.industry.toLowerCase(), jI = job.industry.toLowerCase();
+    // Resolve legacy/folded labels to current verticals before comparing.
+    const cI = normalizeVertical(candidate.industry).toLowerCase(), jI = normalizeVertical(job.industry).toLowerCase();
     const cW = cI.split(/[\s&,]+/), jW = jI.split(/[\s&,]+/);
     const overlap = cW.some(w => w.length > 3 && jW.some(jw => jw.length > 3 && (jw.includes(w) || w.includes(jw))));
     if (overlap || cI === jI) {
@@ -3656,8 +3729,8 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             opportunity.
           </h1>
           <p className="hero-desc">
-            The curated marketplace built exclusively for senior leaders in maritime,
-            energy, and industrial logistics. Salary ranges always published.
+            The curated marketplace for senior leaders across maritime, commodity trading,
+            energy, logistics, ports, and offshore. Salary ranges always published.
             Your identity protected until you choose to engage.
           </p>
           <div className="hero-positioning">
@@ -3982,7 +4055,7 @@ function anonymizeCompanyDescriptor(profile) {
   const opMode = (industries.find(i => /terminal|port/i.test(i))    ? 'industrial terminal operator'
                 : industries.find(i => /maritime|shipping/i.test(i)) ? 'maritime operator'
                 : industries.find(i => /energy|offshore/i.test(i))   ? 'energy operator'
-                : industries.find(i => /logistics|freight/i.test(i)) ? 'industrial logistics operator'
+                : industries.find(i => /logistics|freight/i.test(i)) ? 'logistics operator'
                 : industries.find(i => /cement|aggregates|steel/i.test(i)) ? 'bulk materials operator'
                 : 'industrial operator');
   // Inherit ownership signal from the recruiter intake if this is a job side,
@@ -4009,7 +4082,7 @@ function anonymizeJobDescriptor(job) {
   const operator = industry.includes('terminal') ? 'industrial terminal operator'
                  : industry.includes('maritime') ? 'maritime operator'
                  : industry.includes('energy')   ? 'energy operator'
-                 : industry.includes('logistic') ? 'industrial logistics operator'
+                 : industry.includes('logistic') ? 'logistics operator'
                  : 'industrial operator';
   return `${ownership} ${operator}`;
 }
@@ -4331,7 +4404,7 @@ const COMMERCIAL_ENVIRONMENT_TAGS = [
   'Industrial Manufacturing','Logistics','Freight & Chartering','Supply Chain',
   'Industrial SaaS','Maritime Technology','Operational AI',
   'Safety & Compliance Technology','Fleet Intelligence',
-  'Infrastructure Development','Energy','Bulk Commodities',
+  'Infrastructure Development','Energy',
 ];
 
 const BONUS_STRUCTURE_OPTS = [
@@ -4387,7 +4460,8 @@ const INTAKE_SCHEMA = {
             { key:'company_website',     label:'Website',               type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'company_linkedin',    label:'LinkedIn',              type:'text',   tier:'optional',            weight:'context' },
             { key:'primary_contact',     label:'Primary recruiter / contact', type:'text', tier:'required',         weight:'context' },
-            { key:'industry',            label:'Industry',              type:'text',   tier:'required',            weight:'industry' },
+            { key:'industry',            label:'Industry',              type:'select', tier:'required',            weight:'industry', options: VERTICAL_NAMES },
+            { key:'subcategory',         label:'Specialization (optional)', type:'subcategory', tier:'optional', weight:'industry', dependsOn:'industry' },
             { key:'business_model',      label:'Business model',        type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'company_size',        label:'Company size (FTE)',    type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'geographic_footprint',label:'Geographic footprint',  type:'text',   tier:'strongly_encouraged', weight:'context' },
@@ -4863,7 +4937,7 @@ function describeMatchConfidence(score) {
 function emptyIntakeValues() {
   const v = {};
   Object.values(INTAKE_FIELD_INDEX).forEach(f => {
-    if (f.type === 'multi_chip') v[f.key] = [];
+    if (f.type === 'multi_chip' || f.type === 'subcategory') v[f.key] = [];
     else if (f.type === 'priority_matrix') v[f.key] = {};
     else v[f.key] = '';
   });
@@ -5337,6 +5411,7 @@ function IntakeGroup({ group, values, set, toggleChip, setPriority }) {
               key={f.key}
               field={f}
               value={values[f.key]}
+              values={values}
               set={set}
               toggleChip={toggleChip}
               setPriority={setPriority}
@@ -5354,7 +5429,7 @@ function IntakeTierBadge({ tier }) {
   return <span className="intake-tier-badge optional">Optional</span>;
 }
 
-function IntakeField({ field, value, set, toggleChip, setPriority }) {
+function IntakeField({ field, value, values, set, toggleChip, setPriority }) {
   const v = value;
   return (
     <div className="intake-field">
@@ -5365,6 +5440,34 @@ function IntakeField({ field, value, set, toggleChip, setPriority }) {
       {field.type === 'text' && (
         <input className="intake-input" value={v || ''} onChange={e => set(field.key, e.target.value)} />
       )}
+      {field.type === 'select' && (
+        <select className="intake-input" value={v || ''} onChange={e => set(field.key, e.target.value)}>
+          <option value="">Select…</option>
+          {(field.options || []).map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      )}
+      {field.type === 'subcategory' && (() => {
+        // Dependent multi-select: options derive from the sibling industry value.
+        const opts = subcategoriesForVerticals((values || {})[field.dependsOn || 'industry']);
+        if (opts.length === 0) {
+          return <div className="intake-field-hint" style={{fontSize:'0.78rem',color:'var(--ink-4)'}}>Select an industry above to choose a specialization.</div>;
+        }
+        return (
+          <div className="intake-chip-row">
+            {opts.map(opt => {
+              const selected = (v || []).includes(opt);
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  className={`intake-chip ${selected ? 'selected' : ''}`}
+                  onClick={() => toggleChip(field.key, opt)}
+                >{opt}</button>
+              );
+            })}
+          </div>
+        );
+      })()}
       {field.type === 'textarea' && (
         <textarea className="intake-textarea" rows={3} value={v || ''} onChange={e => set(field.key, e.target.value)} />
       )}
@@ -5648,8 +5751,8 @@ function RecruiterModal({ onClose, showToast }) {
             <div className="modal-eyebrow">For Search Firms</div>
             <h2 className="modal-title">Post a Search</h2>
             <p className="intake-modal-blurb">
-              Reach qualified senior leaders in maritime, ports and terminals, energy,
-              offshore, industrial logistics, and industrial technology. Salary
+              Reach qualified senior leaders across maritime, commodity trading, energy,
+              logistics, ports and terminals, and offshore. Salary
               transparency is a platform standard.
             </p>
             <div className="intake-founding-banner">
@@ -5744,7 +5847,7 @@ const ROLE_AVOIDANCE_OPTIONS = [
 
 const CANDIDATE_INDUSTRY_TAGS = [
   'Maritime','Ports & Terminals','Industrial Logistics','Shipping',
-  'Freight & Chartering','Energy','Offshore','Bulk Commodities','Trading',
+  'Freight & Chartering','Energy','Offshore','Trading',
   'Cement','Aggregates','Steel','Dry Bulk','Breakbulk','Containers','Rail',
   'Barge','Warehousing','Infrastructure',
 ];
@@ -5843,6 +5946,7 @@ function emptyCandidateOperatingProfile() {
     adjacent_industries:     [],
     willing_industries:      [],
     excluded_industries:     [],
+    subcategories:           [],   // specializations within the chosen vertical(s)
     tech_experience:         [],
     achievements:            [],
   };
@@ -6708,7 +6812,13 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             <div className="form-group"><label className="form-label">Industry</label>
               <IndustryMultiSelect
                 value={Array.isArray(form.industry) ? form.industry : (form.industry ? [form.industry] : [])}
-                onChange={v => set('industry', v)}
+                onChange={v => {
+                  set('industry', v);
+                  // Drop any selected specializations that no longer belong to
+                  // the chosen vertical(s) so stored data stays consistent.
+                  const valid = new Set(subcategoriesForVerticals(v));
+                  setOpProfile(p => ({ ...p, subcategories: (p.subcategories || []).filter(s => valid.has(s)) }));
+                }}
                 placeholder="Select industries…"
               />
             </div>
@@ -6718,6 +6828,22 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
               </select>
             </div>
           </div>
+          {(() => {
+            const selectedVerticals = Array.isArray(form.industry) ? form.industry : (form.industry ? [form.industry] : []);
+            const subOptions = subcategoriesForVerticals(selectedVerticals);
+            return (
+              <div className="form-group">
+                <label className="form-label">Specialization <span style={{color:'var(--ink-4)',fontWeight:400}}>(optional — refine within your industry)</span></label>
+                <IndustryMultiSelect
+                  options={subOptions}
+                  value={opProfile.subcategories || []}
+                  onChange={v => setOpProfile(p => ({ ...p, subcategories: v }))}
+                  placeholder={selectedVerticals.length ? 'Select specializations…' : 'Select an industry first'}
+                  disabled={selectedVerticals.length === 0}
+                />
+              </div>
+            );
+          })()}
           <div className="form-row">
             <div className="form-group"><label className="form-label">Location</label><input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Compensation Floor</label>
@@ -7919,7 +8045,7 @@ function TermsPage() {
         <h2>1. The Platform</h2>
         <p>
           Fredheim Executive Desk is an executive opportunity marketplace connecting senior
-          professionals in maritime, ports and terminals, energy, offshore, and industrial logistics with retained executive
+          professionals in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained executive
           search firms. Fredheim Technologies LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
@@ -8801,22 +8927,31 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
 
   async function publishJob(submission) {
     try {
-      // Normalise industry value to current 4-vertical model
+      // Normalise free-text industry input to the current six-vertical model.
       const industryMap = {
         'maritime':                        'Maritime & Shipping',
         'maritime & shipping':             'Maritime & Shipping',
+        'maritime technology':             'Maritime & Shipping',
         'ports & terminals':               'Ports & Terminals',
         'port & terminal':                 'Ports & Terminals',
-        'energy & offshore':               'Energy & Offshore',
-        'energy':                          'Energy & Offshore',
-        'offshore':                        'Energy & Offshore',
-        'industrial commodities & logistics': 'Industrial Commodities & Logistics',
-        'industrial logistics':            'Industrial Commodities & Logistics',
-        'bulk commodities':                'Industrial Commodities & Logistics',
-        'trading & freight':               'Industrial Commodities & Logistics',
+        'port technology':                 'Ports & Terminals',
+        'energy':                          'Energy',
+        'energy & offshore':               'Energy',
+        'offshore':                        'Offshore',
+        'commodity trading':               'Commodity Trading',
+        'industrial commodities & logistics': 'Commodity Trading',
+        'industrial commodities':          'Commodity Trading',
+        'industrial logistics':            'Logistics & Supply Chain',
+        'bulk commodities':                'Commodity Trading',
+        'trading & freight':               'Commodity Trading',
+        'logistics & supply chain':        'Logistics & Supply Chain',
+        'supply chain & logistics':        'Logistics & Supply Chain',
       };
       const rawIndustry = (submission.industry || 'Maritime & Shipping').trim();
-      const industry = industryMap[rawIndustry.toLowerCase()] || rawIndustry;
+      // Run the canonical legacy map first, then the lower-case free-text map.
+      const industry = normalizeVertical(rawIndustry) !== rawIndustry
+        ? normalizeVertical(rawIndustry)
+        : (industryMap[rawIndustry.toLowerCase()] || rawIndustry);
 
       // Parse salary values from the salary_range string for filter compatibility
       // e.g. "$300K – $400K total compensation" → min=300000, max=400000
@@ -10244,16 +10379,9 @@ function AdminLogin({ onLogin }) {
 
 
 // ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
-const ALL_INDUSTRY_OPTIONS = [
-  // Operational verticals
-  'Maritime & Shipping', 'Ports & Terminals', 'Energy & Offshore', 'Industrial Commodities & Logistics',
-  // Industrial-technology verticals
-  'Maritime Technology', 'Port Technology', 'Logistics Technology', 'Industrial SaaS',
-  'Fleet Intelligence', 'Operational AI', 'Industrial Automation', 'Supply Chain Technology',
-  'Compliance & Safety Tech',
-];
+const ALL_INDUSTRY_OPTIONS = [...VERTICAL_NAMES];
 
-function IndustryMultiSelect({ value, onChange, placeholder }) {
+function IndustryMultiSelect({ value, onChange, placeholder, options = ALL_INDUSTRY_OPTIONS, disabled = false }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
 
@@ -10276,8 +10404,8 @@ function IndustryMultiSelect({ value, onChange, placeholder }) {
   }, []);
 
   return (
-    <div className="industry-select-wrap" ref={ref}>
-      <div className="industry-chips" onClick={() => setOpen(o => !o)}>
+    <div className="industry-select-wrap" ref={ref} style={disabled ? {opacity:0.55,pointerEvents:'none'} : undefined}>
+      <div className="industry-chips" onClick={() => !disabled && setOpen(o => !o)}>
         {selected.length === 0 ? (
           <span className="industry-chip placeholder">{placeholder || 'Select industries…'}</span>
         ) : (
@@ -10291,7 +10419,7 @@ function IndustryMultiSelect({ value, onChange, placeholder }) {
       </div>
       {open && (
         <div className="industry-dropdown">
-          {ALL_INDUSTRY_OPTIONS.map(ind => (
+          {options.map(ind => (
             <div
               key={ind}
               className={`industry-option ${selected.includes(ind) ? 'selected' : ''}`}
@@ -13134,7 +13262,7 @@ function QuestionnairePage({ token }) {
           <div className="questionnaire-title">Professional Reference</div>
           <p className="questionnaire-desc">
             You have been listed as a professional reference on Fredheim Executive Desk —
-            a curated executive search platform for maritime, ports and terminals, energy, offshore, and industrial logistics.
+            a curated executive search platform for maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
             This takes approximately 5 minutes. Your responses are confidential and shared
             only with verified search firms, with the candidate's consent.
           </p>
@@ -13269,7 +13397,7 @@ function QuestionnairePage({ token }) {
 const EXPERTISE_AREAS = [
   'Chartering & Freight','Terminal Operations','Port Development','Vessel Management',
   'Commercial Strategy','M&A / Acquisitions','Regulatory & Compliance','Supply Chain',
-  'LNG / Gas','Bulk Commodities','Project Cargo','Offshore Operations',
+  'LNG / Gas','Dry Bulk','Project Cargo','Offshore Operations',
   'Digital Transformation','Finance & Restructuring','HSE & Risk','Expert Witness',
 ];
 
@@ -13363,7 +13491,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
       title:'Expert Witness — Charter Party Dispute',
       company_display:'International Law Firm',
       description:'Major law firm requires an expert witness with deep knowledge of voyage charter practices for an arbitration proceeding. Matter involves a demurrage dispute on a dry bulk vessel. Expected 20–30 hours total.',
-      expertise_tags:['Chartering & Freight','Expert Witness','Bulk Commodities'],
+      expertise_tags:['Chartering & Freight','Expert Witness','Dry Bulk'],
       duration:'short', urgency:'within_30',
       rate_min:500, rate_max:800, rate_currency:'USD',
       location:'London / Remote', remote_ok:true,
@@ -13388,7 +13516,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
           </div>
           <p className="consulting-hero-desc">
             The curated marketplace for interim, advisory, and project-based engagements
-            in maritime, ports and terminals, energy, offshore, and industrial logistics. Day rates published.
+            in maritime, commodity trading, energy, logistics, ports and terminals, and offshore. Day rates published.
             Identity protected until you choose to engage.
           </p>
           <div style={{display:'flex',gap:'0.75rem',flexWrap:'wrap'}}>
@@ -13699,7 +13827,7 @@ function BriefModal({ onClose, showToast }) {
             <h2 className="modal-title">Post a Consulting Brief</h2>
             <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem',fontWeight:300}}>
               Reach senior executives available for interim, advisory, and project-based
-              engagements in maritime, ports and terminals, energy, offshore, and industrial logistics.
+              engagements in maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
               Day rate required. Introductions facilitated by Fredheim.
             </p>
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.875rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
@@ -13854,10 +13982,11 @@ function BriefModal({ onClose, showToast }) {
 // and Consulting. Surfaces the matching engine's industrial-translator
 // pattern detection. Filters jobs to industrial-tech industries when shown.
 function IndustrialTechLanding({ goToView, jobs }) {
+  // Technology now sits inside each vertical rather than as standalone verticals;
+  // these are the technology focus areas embedded across the six verticals.
   const TECH_VERTICALS = [
-    'Maritime Technology','Industrial SaaS','Port Technology','Logistics Technology',
-    'Operational AI','Fleet Intelligence','Industrial Automation',
-    'Safety & Compliance Technology','Supply Chain Technology',
+    'Maritime Technology', 'Port Technology', 'Logistics Technology',
+    'Fleet & Vessel Intelligence', 'Operational AI & Automation', 'Compliance & Safety Tech',
   ];
   const techJobs = (jobs || []).filter(j => {
     const ind = (j.industry || '').toLowerCase();
@@ -13928,7 +14057,9 @@ function AboutPage({ setActiveView }) {
         <h2>What We Built</h2>
         <p>
           Fredheim Executive Desk is a curated executive search and consulting marketplace
-          built exclusively for maritime, energy, industrial logistics, and commodities.
+          for commercial, operational, and technical professionals across global trade,
+          maritime & shipping, commodity trading, energy, logistics & supply chain, ports
+          & terminals, and offshore.
           We exist because executive search in this industry has always been opaque by design —
           salary ranges hidden, firms unnamed, candidates kept in the dark until the last moment.
         </p>
@@ -13942,8 +14073,9 @@ function AboutPage({ setActiveView }) {
 
         <h3>Senior Executives</h3>
         <p>
-          C-suite, VP, and Director-level professionals in maritime, ports and terminals, energy,
-          offshore, and industrial logistics who want access to the best opportunities without sacrificing
+          C-suite, VP, and Director-level professionals across maritime & shipping, commodity trading,
+          energy, logistics & supply chain, ports & terminals, and offshore who want access to the
+          best opportunities without sacrificing
           confidentiality or wasting time on roles that don't fit. Free to join.
           Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
@@ -13951,8 +14083,8 @@ function AboutPage({ setActiveView }) {
         <h3>Executive Search Firms</h3>
         <p>
           Retained search firms running mandates in our verticals who want access to
-          a curated, qualified pool of senior professionals across maritime, ports and terminals,
-          energy, offshore, and industrial logistics. Salary transparency is
+          a curated, qualified pool of senior professionals across maritime & shipping, commodity
+          trading, energy, logistics & supply chain, ports & terminals, and offshore. Salary transparency is
           non-negotiable — every posting must include a published compensation range.
           Founding Partner Program 2026 — one search per month, complimentary through
           December 31. Subscriptions open January 2027.
@@ -13982,28 +14114,20 @@ function AboutPage({ setActiveView }) {
 
         <h2>Our Verticals</h2>
         <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:'1.7',marginBottom:'0.875rem'}}>
-          Operational industries and the industrial-technology companies serving them. We do not
-          recruit for generic SaaS or horizontal tech — only for technology built around
-          maritime, logistics, terminals, and industrial operations, where domain fluency matters
-          as much as commercial chops.
+          Six commercial verticals spanning global trade, maritime, energy, logistics, commodity
+          trading, and port infrastructure — covering commercial, operational, and technical
+          leadership. Technology built around each sector (maritime, port, and logistics platforms,
+          operational AI, industrial automation) sits inside its vertical rather than as a separate
+          category.
         </p>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'0.5rem',marginBottom:'1rem'}}>
-          {[
-            {name:'Maritime & Shipping', desc:'Vessel operators, shipowners, chartering, freight, agency, marine services'},
-            {name:'Ports & Terminals', desc:'Terminal operators, stevedoring, storage, infrastructure, intermodal interfaces'},
-            {name:'Energy & Offshore', desc:'Offshore services, energy logistics, renewables, marine energy, oil and gas adjacencies'},
-            {name:'Industrial Commodities & Logistics', desc:'Bulk commodities, industrial supply chains, trading, project cargo, heavy logistics'},
-            {name:'Maritime & Port Technology', desc:'Vessel intelligence, port operating systems, maritime SaaS, fleet optimization, OT for marine and terminal environments'},
-            {name:'Logistics & Supply Chain Technology', desc:'TMS, WMS, freight visibility, supply-chain analytics, industrial logistics platforms'},
-            {name:'Industrial SaaS & Operational AI', desc:'Operational technology platforms, industrial AI, IoT, automation, and analytics for industrial workflows'},
-            {name:'Compliance & Safety Tech', desc:'Regulated-environment compliance software, marine and industrial safety platforms, audit and incident systems'},
-          ].map(v => (
+          {VERTICALS.map(v => (
             <div key={v.name} style={{
               background:'var(--paper-2)',border:'1px solid var(--rule)',
               padding:'0.875rem 1rem',
             }}>
               <div style={{fontSize:'0.875rem',color:'var(--ink)',fontWeight:600,marginBottom:'0.25rem'}}>{v.name}</div>
-              <div style={{fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.5'}}>{v.desc}</div>
+              <div style={{fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.5'}}>{v.blurb}</div>
             </div>
           ))}
         </div>
@@ -14475,7 +14599,7 @@ function App() {
                 fontWeight:300,
                 margin:0,
               }}>
-                Interim, advisory, and project-based engagements in maritime, ports and terminals, energy, offshore, and industrial logistics.
+                Interim, advisory, and project-based engagements in maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
                 Day rates published. Identity protected until you choose to engage.
                 Founding Partner Program 2026 — post one brief free through December 31.
               </p>
@@ -14751,7 +14875,7 @@ function App() {
             <div className="footer-brand-name">Fredheim Executive Desk</div>
             <div className="footer-brand-sub">A Fredheim Technologies Product</div>
             <p className="footer-desc">
-              The curated executive opportunity platform for maritime, ports and terminals, energy, offshore, bulk commodities, freight, and industrial logistics. Built with and for the professionals who move global trade.
+              Connecting commercial, operational, and technical professionals across global trade, maritime, energy, logistics, commodity trading, and port infrastructure. Built with and for the professionals who move global trade.
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
               <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
@@ -14771,7 +14895,7 @@ function App() {
           <div>
             <div className="footer-col-title">Verticals</div>
             <ul className="footer-links">
-              {['Maritime & Shipping','Ports & Terminals','Energy & Offshore','Industrial Commodities & Logistics'].map(v => (
+              {VERTICAL_NAMES.map(v => (
               <li key={v} style={{cursor:'pointer'}} onClick={()=>{
                 goToView('jobs');
                 setTimeout(()=>window.dispatchEvent(new CustomEvent('filterIndustry',{detail:v})),100);
