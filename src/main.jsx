@@ -251,6 +251,19 @@ function normalizeVertical(value) {
   return LEGACY_VERTICAL_MAP[value] || value;
 }
 
+// Union of subcategories available for the given vertical(s). Accepts a single
+// vertical name or an array; legacy values are normalised first. Preserves
+// canonical ordering and de-duplicates across verticals.
+function subcategoriesForVerticals(verticals) {
+  const list = (Array.isArray(verticals) ? verticals : [verticals]).filter(Boolean).map(normalizeVertical);
+  const set = new Set(list);
+  const out = [];
+  for (const v of VERTICALS) {
+    if (set.has(v.name)) out.push(...v.subcategories);
+  }
+  return out;
+}
+
 // Filter dropdown list (includes the "All" sentinel).
 const INDUSTRIES = ['All Industries', ...VERTICAL_NAMES];
 const FUNCTIONS   = ['All Functions','Commercial','Operations','Chartering','Business Development','Finance','General Management'];
@@ -4447,7 +4460,8 @@ const INTAKE_SCHEMA = {
             { key:'company_website',     label:'Website',               type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'company_linkedin',    label:'LinkedIn',              type:'text',   tier:'optional',            weight:'context' },
             { key:'primary_contact',     label:'Primary recruiter / contact', type:'text', tier:'required',         weight:'context' },
-            { key:'industry',            label:'Industry',              type:'text',   tier:'required',            weight:'industry' },
+            { key:'industry',            label:'Industry',              type:'select', tier:'required',            weight:'industry', options: VERTICAL_NAMES },
+            { key:'subcategory',         label:'Specialization (optional)', type:'subcategory', tier:'optional', weight:'industry', dependsOn:'industry' },
             { key:'business_model',      label:'Business model',        type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'company_size',        label:'Company size (FTE)',    type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'geographic_footprint',label:'Geographic footprint',  type:'text',   tier:'strongly_encouraged', weight:'context' },
@@ -4923,7 +4937,7 @@ function describeMatchConfidence(score) {
 function emptyIntakeValues() {
   const v = {};
   Object.values(INTAKE_FIELD_INDEX).forEach(f => {
-    if (f.type === 'multi_chip') v[f.key] = [];
+    if (f.type === 'multi_chip' || f.type === 'subcategory') v[f.key] = [];
     else if (f.type === 'priority_matrix') v[f.key] = {};
     else v[f.key] = '';
   });
@@ -5397,6 +5411,7 @@ function IntakeGroup({ group, values, set, toggleChip, setPriority }) {
               key={f.key}
               field={f}
               value={values[f.key]}
+              values={values}
               set={set}
               toggleChip={toggleChip}
               setPriority={setPriority}
@@ -5414,7 +5429,7 @@ function IntakeTierBadge({ tier }) {
   return <span className="intake-tier-badge optional">Optional</span>;
 }
 
-function IntakeField({ field, value, set, toggleChip, setPriority }) {
+function IntakeField({ field, value, values, set, toggleChip, setPriority }) {
   const v = value;
   return (
     <div className="intake-field">
@@ -5425,6 +5440,34 @@ function IntakeField({ field, value, set, toggleChip, setPriority }) {
       {field.type === 'text' && (
         <input className="intake-input" value={v || ''} onChange={e => set(field.key, e.target.value)} />
       )}
+      {field.type === 'select' && (
+        <select className="intake-input" value={v || ''} onChange={e => set(field.key, e.target.value)}>
+          <option value="">Select…</option>
+          {(field.options || []).map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      )}
+      {field.type === 'subcategory' && (() => {
+        // Dependent multi-select: options derive from the sibling industry value.
+        const opts = subcategoriesForVerticals((values || {})[field.dependsOn || 'industry']);
+        if (opts.length === 0) {
+          return <div className="intake-field-hint" style={{fontSize:'0.78rem',color:'var(--ink-4)'}}>Select an industry above to choose a specialization.</div>;
+        }
+        return (
+          <div className="intake-chip-row">
+            {opts.map(opt => {
+              const selected = (v || []).includes(opt);
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  className={`intake-chip ${selected ? 'selected' : ''}`}
+                  onClick={() => toggleChip(field.key, opt)}
+                >{opt}</button>
+              );
+            })}
+          </div>
+        );
+      })()}
       {field.type === 'textarea' && (
         <textarea className="intake-textarea" rows={3} value={v || ''} onChange={e => set(field.key, e.target.value)} />
       )}
@@ -5903,6 +5946,7 @@ function emptyCandidateOperatingProfile() {
     adjacent_industries:     [],
     willing_industries:      [],
     excluded_industries:     [],
+    subcategories:           [],   // specializations within the chosen vertical(s)
     tech_experience:         [],
     achievements:            [],
   };
@@ -6768,7 +6812,13 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             <div className="form-group"><label className="form-label">Industry</label>
               <IndustryMultiSelect
                 value={Array.isArray(form.industry) ? form.industry : (form.industry ? [form.industry] : [])}
-                onChange={v => set('industry', v)}
+                onChange={v => {
+                  set('industry', v);
+                  // Drop any selected specializations that no longer belong to
+                  // the chosen vertical(s) so stored data stays consistent.
+                  const valid = new Set(subcategoriesForVerticals(v));
+                  setOpProfile(p => ({ ...p, subcategories: (p.subcategories || []).filter(s => valid.has(s)) }));
+                }}
                 placeholder="Select industries…"
               />
             </div>
@@ -6778,6 +6828,22 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
               </select>
             </div>
           </div>
+          {(() => {
+            const selectedVerticals = Array.isArray(form.industry) ? form.industry : (form.industry ? [form.industry] : []);
+            const subOptions = subcategoriesForVerticals(selectedVerticals);
+            return (
+              <div className="form-group">
+                <label className="form-label">Specialization <span style={{color:'var(--ink-4)',fontWeight:400}}>(optional — refine within your industry)</span></label>
+                <IndustryMultiSelect
+                  options={subOptions}
+                  value={opProfile.subcategories || []}
+                  onChange={v => setOpProfile(p => ({ ...p, subcategories: v }))}
+                  placeholder={selectedVerticals.length ? 'Select specializations…' : 'Select an industry first'}
+                  disabled={selectedVerticals.length === 0}
+                />
+              </div>
+            );
+          })()}
           <div className="form-row">
             <div className="form-group"><label className="form-label">Location</label><input className="form-input" placeholder="City, Country" value={form.location} onChange={e=>set('location',e.target.value)} /></div>
             <div className="form-group"><label className="form-label">Compensation Floor</label>
@@ -10315,7 +10381,7 @@ function AdminLogin({ onLogin }) {
 // ── INDUSTRY MULTI-SELECT COMPONENT ──────────────────────────────────────────
 const ALL_INDUSTRY_OPTIONS = [...VERTICAL_NAMES];
 
-function IndustryMultiSelect({ value, onChange, placeholder }) {
+function IndustryMultiSelect({ value, onChange, placeholder, options = ALL_INDUSTRY_OPTIONS, disabled = false }) {
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef(null);
 
@@ -10338,8 +10404,8 @@ function IndustryMultiSelect({ value, onChange, placeholder }) {
   }, []);
 
   return (
-    <div className="industry-select-wrap" ref={ref}>
-      <div className="industry-chips" onClick={() => setOpen(o => !o)}>
+    <div className="industry-select-wrap" ref={ref} style={disabled ? {opacity:0.55,pointerEvents:'none'} : undefined}>
+      <div className="industry-chips" onClick={() => !disabled && setOpen(o => !o)}>
         {selected.length === 0 ? (
           <span className="industry-chip placeholder">{placeholder || 'Select industries…'}</span>
         ) : (
@@ -10353,7 +10419,7 @@ function IndustryMultiSelect({ value, onChange, placeholder }) {
       </div>
       {open && (
         <div className="industry-dropdown">
-          {ALL_INDUSTRY_OPTIONS.map(ind => (
+          {options.map(ind => (
             <div
               key={ind}
               className={`industry-option ${selected.includes(ind) ? 'selected' : ''}`}
