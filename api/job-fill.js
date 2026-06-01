@@ -73,8 +73,8 @@ module.exports = async function handler(req, res) {
       ? Math.round(compensation_amount * PLACEMENT_FEE_RATE)
       : null;
 
-    // Create placement record
-    await db.from('fed_placements').upsert({
+    // Create placement record (fee-bearing — must not fail silently)
+    const { error: placeErr } = await db.from('fed_placements').upsert({
       job_id, recruiter_email: recruiterEmail, candidate_email,
       placement_type:    'platform_candidate',
       offer_date:        offer_date || null,
@@ -91,25 +91,35 @@ module.exports = async function handler(req, res) {
       invoice_status:    'not_sent',
       admin_review_status: 'pending',
     }, { onConflict: 'job_id' });
+    if (placeErr) {
+      console.error('job-fill placement upsert error:', placeErr);
+      return res.status(500).json({ error: `Failed to record placement: ${placeErr.message}` });
+    }
 
     // Update job status
-    await db.from('fed_jobs').update({
+    const { error: jobErr } = await db.from('fed_jobs').update({
       status:   'filled_platform',
       filled_at: now,
       status_reason: 'Filled via platform candidate',
     }).eq('id', job_id);
+    if (jobErr) {
+      console.error('job-fill job status error:', jobErr);
+      return res.status(500).json({ error: `Placement recorded but job status update failed: ${jobErr.message}` });
+    }
 
-    // Audit log
-    await db.from('fed_job_status_history').insert({
+    // Audit log (best-effort)
+    const { error: histErr } = await db.from('fed_job_status_history').insert({
       job_id, previous_status: job.status, new_status: 'filled_platform',
       changed_by_email: recruiterEmail, changed_by_role: 'recruiter',
       reason: 'platform_candidate', candidate_email,
       notes: `Offer: ${offer_date}, Start: ${start_date}, Compensation: ${compensation_amount}`,
     });
+    if (histErr) console.error('job-fill status-history insert error:', histErr);
 
-    // Expire open matches
-    await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
+    // Expire open matches (best-effort)
+    const { error: expErr } = await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
       .in('status', ['matched','recruiter_interested','candidate_interested']);
+    if (expErr) console.error('job-fill match-expiry error:', expErr);
 
     // Notify admin
     await notifyAdmin({
@@ -135,7 +145,7 @@ module.exports = async function handler(req, res) {
 
     const shouldFlag = hadIntroductions; // flag if there were any platform introductions
 
-    await db.from('fed_placements').upsert({
+    const { error: placeErr } = await db.from('fed_placements').upsert({
       job_id, recruiter_email: recruiterEmail,
       placement_type:              'external_candidate',
       external_certification_text: EXTERNAL_CERT_TEXT,
@@ -145,8 +155,12 @@ module.exports = async function handler(req, res) {
       invoice_status:    'not_sent',
       admin_review_status: 'pending',
     }, { onConflict: 'job_id' });
+    if (placeErr) {
+      console.error('job-fill external placement upsert error:', placeErr);
+      return res.status(500).json({ error: `Failed to record placement: ${placeErr.message}` });
+    }
 
-    await db.from('fed_jobs').update({
+    const { error: jobErr } = await db.from('fed_jobs').update({
       status:       'filled_external',
       filled_at:    now,
       status_reason: 'Filled externally (recruiter certified)',
@@ -155,16 +169,22 @@ module.exports = async function handler(req, res) {
         ? `External fill — ${introCount} candidate introductions recorded within tail period.`
         : null,
     }).eq('id', job_id);
+    if (jobErr) {
+      console.error('job-fill external job status error:', jobErr);
+      return res.status(500).json({ error: `Placement recorded but job status update failed: ${jobErr.message}` });
+    }
 
-    await db.from('fed_job_status_history').insert({
+    const { error: histErr } = await db.from('fed_job_status_history').insert({
       job_id, previous_status: job.status, new_status: 'filled_external',
       changed_by_email: recruiterEmail, changed_by_role: 'recruiter',
       reason: 'external_candidate',
       certification_text: EXTERNAL_CERT_TEXT,
     });
+    if (histErr) console.error('job-fill external status-history insert error:', histErr);
 
-    await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
+    const { error: expErr } = await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
       .in('status', ['matched','recruiter_interested','candidate_interested']);
+    if (expErr) console.error('job-fill external match-expiry error:', expErr);
 
     await notifyAdmin({
       type:    'job_filled_external',
@@ -184,20 +204,26 @@ module.exports = async function handler(req, res) {
 
   // ── PENDING REVIEW (not sure) ──────────────────────────────────────────────
   if (fill_type === 'pending_review') {
-    await db.from('fed_jobs').update({
+    const { error: jobErr } = await db.from('fed_jobs').update({
       status:       'pending_fill_review',
       filled_at:    now,
       status_reason: 'Pending fill review — sourcing unclear',
     }).eq('id', job_id);
+    if (jobErr) {
+      console.error('job-fill pending-review job status error:', jobErr);
+      return res.status(500).json({ error: `Failed to update job status: ${jobErr.message}` });
+    }
 
-    await db.from('fed_job_status_history').insert({
+    const { error: histErr } = await db.from('fed_job_status_history').insert({
       job_id, previous_status: job.status, new_status: 'pending_fill_review',
       changed_by_email: recruiterEmail, changed_by_role: 'recruiter',
       reason: 'pending_review', notes,
     });
+    if (histErr) console.error('job-fill pending-review status-history insert error:', histErr);
 
-    await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
+    const { error: expErr } = await db.from('fed_matches').update({ status: 'expired' }).eq('job_id', job_id)
       .in('status', ['matched','recruiter_interested','candidate_interested']);
+    if (expErr) console.error('job-fill pending-review match-expiry error:', expErr);
 
     await notifyAdmin({
       type:    'job_pending_fill_review',

@@ -129,7 +129,8 @@ module.exports = async function handler(req, res) {
         return res.status(409).json({ error: `Cannot withdraw from status: ${match.status}` });
       }
 
-      await db.from('fed_matches').update({ status: 'recruiter_withdrawn' }).eq('id', match_id);
+      const { error: rwErr } = await db.from('fed_matches').update({ status: 'recruiter_withdrawn' }).eq('id', match_id);
+      if (rwErr) throw rwErr;
 
       await notify(match.candidate_email, 'candidate', 'recruiter_withdrawn', match_id, match.job_id,
         'A firm withdrew their interest',
@@ -179,11 +180,13 @@ module.exports = async function handler(req, res) {
         newStatus = 'candidate_interested';
 
       } else if (existing.status === 'matched') {
-        await db.from('fed_matches').update({ status: 'candidate_interested', candidate_interested_at: now }).eq('id', existing.id);
+        const { error: ciErr } = await db.from('fed_matches').update({ status: 'candidate_interested', candidate_interested_at: now }).eq('id', existing.id);
+        if (ciErr) throw ciErr;
         newStatus = 'candidate_interested';
 
       } else if (existing.status === 'recruiter_interested') {
-        await db.from('fed_matches').update({ status: 'mutual_interest', candidate_interested_at: now, mutual_interest_at: now }).eq('id', existing.id);
+        const { error: miErr } = await db.from('fed_matches').update({ status: 'mutual_interest', candidate_interested_at: now, mutual_interest_at: now }).eq('id', existing.id);
+        if (miErr) throw miErr;
         newStatus = 'mutual_interest';
 
       } else {
@@ -229,7 +232,8 @@ module.exports = async function handler(req, res) {
         return res.status(409).json({ error: `Cannot decline from status: ${match.status}` });
       }
 
-      await db.from('fed_matches').update({ status: 'candidate_declined', declined_at: new Date().toISOString() }).eq('id', match_id);
+      const { error: cdErr } = await db.from('fed_matches').update({ status: 'candidate_declined', declined_at: new Date().toISOString() }).eq('id', match_id);
+      if (cdErr) throw cdErr;
 
       await logEvent(db, { type: EVENTS.CANDIDATE_DECLINED, actorEmail: callerEmail, actorRole: 'candidate', matchId: match_id, jobId: match.job_id, candidateEmail: callerEmail, recruiterEmail: match.recruiter_email });
 
@@ -253,7 +257,8 @@ module.exports = async function handler(req, res) {
         return res.status(409).json({ error: `Cannot approve introduction from status: ${match.status}` });
       }
 
-      await db.from('fed_matches').update({ status: 'awaiting_payment', candidate_approved_at: new Date().toISOString() }).eq('id', match_id);
+      const { error: apErr } = await db.from('fed_matches').update({ status: 'awaiting_payment', candidate_approved_at: new Date().toISOString() }).eq('id', match_id);
+      if (apErr) throw apErr;
 
       // Recruiter may now pay — and only now.
       await notify(match.recruiter_email, 'recruiter', 'awaiting_payment', match_id, match.job_id,
@@ -274,7 +279,8 @@ module.exports = async function handler(req, res) {
         return res.status(409).json({ error: `Cannot withdraw from status: ${match.status}` });
       }
 
-      await db.from('fed_matches').update({ status: 'candidate_withdrew', withdrew_at: new Date().toISOString() }).eq('id', match_id);
+      const { error: cwErr } = await db.from('fed_matches').update({ status: 'candidate_withdrew', withdrew_at: new Date().toISOString() }).eq('id', match_id);
+      if (cwErr) throw cwErr;
 
       await notify(match.recruiter_email, 'recruiter', 'candidate_withdrew', match_id, match.job_id,
         `Introduction withdrawn — ${match.fed_jobs?.title || 'role'}`,
@@ -291,7 +297,8 @@ module.exports = async function handler(req, res) {
       if (!match) return res.status(404).json({ error: 'Match not found.' });
       if (match.candidate_email.toLowerCase() !== callerEmail) return res.status(403).json({ error: 'Not authorized.' });
 
-      await db.from('fed_matches').update({ status: 'candidate_hidden' }).eq('id', match_id);
+      const { error: chErr } = await db.from('fed_matches').update({ status: 'candidate_hidden' }).eq('id', match_id);
+      if (chErr) throw chErr;
       return res.status(200).json({ ok: true, status: 'candidate_hidden' });
     }
 
@@ -311,10 +318,11 @@ module.exports = async function handler(req, res) {
 
     // ── NOTIFICATIONS: Mark read ──────────────────────────────
     if (action === 'mark_notifications_read') {
-      await db.from('fed_notifications')
+      const { error: nrErr } = await db.from('fed_notifications')
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('recipient_email', callerEmail)
         .eq('is_read', false);
+      if (nrErr) console.error('mark_notifications_read error:', nrErr);
       return res.status(200).json({ ok: true });
     }
 

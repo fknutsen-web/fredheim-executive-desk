@@ -161,8 +161,9 @@ module.exports = async function handler(req, res) {
             founding_locked_at:      recruiterTier === 'founding' ? new Date().toISOString() : null,
           };
 
+          let grantErr = null;
           if (recruiterId) {
-            await supabase.from('talent_recruiters').update(upsertData).eq('id', recruiterId);
+            ({ error: grantErr } = await supabase.from('talent_recruiters').update(upsertData).eq('id', recruiterId));
           } else {
             const { data: existing } = await supabase
               .from('talent_recruiters')
@@ -171,13 +172,22 @@ module.exports = async function handler(req, res) {
               .single();
 
             if (existing) {
-              await supabase.from('talent_recruiters').update(upsertData).eq('email', email);
+              ({ error: grantErr } = await supabase.from('talent_recruiters').update(upsertData).eq('email', email));
             } else {
-              await supabase.from('talent_recruiters').insert({ ...upsertData, email });
+              ({ error: grantErr } = await supabase.from('talent_recruiters').insert({ ...upsertData, email }));
             }
           }
 
-          console.log(`✓ Recruiter subscribed as ${recruiterTier}: ${email}`);
+          if (grantErr) {
+            // Stripe won't retry (we always 200), so alert the desk to reconcile.
+            console.error('talent_recruiters tier grant failed:', grantErr);
+            await revenueAlert(
+              `⚠ ENTITLEMENT WRITE FAILED — recruiter ${recruiterTier} (${email})`,
+              `A recruiter completed payment but the tier grant did not persist. Manual reconciliation required.\n\nEmail: ${email}\nCustomer: ${custId}\nSubscription: ${subId}\nTier: ${recruiterTier}\nError: ${grantErr.message}`
+            );
+          } else {
+            console.log(`✓ Recruiter subscribed as ${recruiterTier}: ${email}`);
+          }
 
           const feeLabel = recruiterTier === 'founding' ? '$7,500/yr' : '$499/mo';
 
@@ -258,10 +268,11 @@ module.exports = async function handler(req, res) {
 
         // Candidate confidential renewal — extend one year in fed_profiles
         if (candidateTierFromPrice(priceId)) {
-          await supabase.from('fed_profiles')
+          const { error: renErr } = await supabase.from('fed_profiles')
             .update({ tier_expires: expiryOneYear() })
             .eq('stripe_customer_id', custId);
-          console.log(`✓ Candidate confidential subscription renewed: ${custId}`);
+          if (renErr) console.error('candidate renewal update failed:', custId, renErr);
+          else console.log(`✓ Candidate confidential subscription renewed: ${custId}`);
           break;
         }
 
@@ -269,19 +280,21 @@ module.exports = async function handler(req, res) {
         const recruiterTier = recruiterTierFromPrice(priceId);
         if (recruiterTier) {
           const tierExpiry = recruiterTier === 'founding' ? expiryOneYear() : expiryOneMonth();
-          await supabase.from('talent_recruiters')
+          const { error: renErr } = await supabase.from('talent_recruiters')
             .update({ tier_expires: tierExpiry })
             .eq('stripe_customer_id', custId);
-          console.log(`✓ Recruiter subscription renewed (${recruiterTier}): ${custId}`);
+          if (renErr) console.error('recruiter renewal update failed:', custId, renErr);
+          else console.log(`✓ Recruiter subscription renewed (${recruiterTier}): ${custId}`);
           break;
         }
 
         // Student featured renewal — extend one year in fed_intern_profiles
         if (internTierFromPrice(priceId)) {
-          await supabase.from('fed_intern_profiles')
+          const { error: renErr } = await supabase.from('fed_intern_profiles')
             .update({ tier_expires_at: expiryOneYear() })
             .eq('stripe_customer_id', custId);
-          console.log(`✓ Student featured subscription renewed: ${custId}`);
+          if (renErr) console.error('student renewal update failed:', custId, renErr);
+          else console.log(`✓ Student featured subscription renewed: ${custId}`);
           break;
         }
 
@@ -307,23 +320,25 @@ module.exports = async function handler(req, res) {
 
         // Downgrade candidate to free in fed_profiles
         if (candidateTierFromPrice(priceId)) {
-          await supabase.from('fed_profiles').update({
+          const { error: dErr } = await supabase.from('fed_profiles').update({
             tier:                   'free',
             tier_expires:           null,
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
-          console.log(`✓ Candidate downgraded to free: ${custId}`);
+          if (dErr) console.error('candidate downgrade failed:', custId, dErr);
+          else console.log(`✓ Candidate downgraded to free: ${custId}`);
           break;
         }
 
         // Downgrade student featured to free in fed_intern_profiles
         if (internTierFromPrice(priceId)) {
-          await supabase.from('fed_intern_profiles').update({
+          const { error: dErr } = await supabase.from('fed_intern_profiles').update({
             tier:                   'free',
             tier_expires_at:        null,
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
-          console.log(`✓ Student featured downgraded to free: ${custId}`);
+          if (dErr) console.error('student downgrade failed:', custId, dErr);
+          else console.log(`✓ Student featured downgraded to free: ${custId}`);
           break;
         }
 
@@ -335,12 +350,13 @@ module.exports = async function handler(req, res) {
           .single();
 
         if (recruiter && !recruiter.is_founding) {
-          await supabase.from('talent_recruiters').update({
+          const { error: dErr } = await supabase.from('talent_recruiters').update({
             tier:                   'inactive',
             tier_expires:           null,
             stripe_subscription_id: null,
           }).eq('stripe_customer_id', custId);
-          console.log(`✓ Recruiter downgraded to inactive: ${custId}`);
+          if (dErr) console.error('recruiter downgrade failed:', custId, dErr);
+          else console.log(`✓ Recruiter downgraded to inactive: ${custId}`);
         } else if (recruiter?.is_founding) {
           console.log(`Founding partner — tier preserved on cancellation: ${custId}`);
         }
@@ -390,7 +406,14 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     introduction_fee_bracket: bracket || 'flat',
   };
   if (wasMutual && !match.mutual_interest_at) update.mutual_interest_at = now;
-  await supabase.from('fed_matches').update(update).eq('id', matchId);
+  const { error: unlockErr } = await supabase.from('fed_matches').update(update).eq('id', matchId);
+  if (unlockErr) {
+    console.error('paid introduction unlock update failed:', matchId, unlockErr);
+    await revenueAlert(
+      `⚠ PAID INTRODUCTION UNLOCK FAILED — match ${matchId}`,
+      `A recruiter paid but the match unlock did not persist. Manual reconciliation required.\n\nRecruiter: ${recruiterEmail}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}\nError: ${unlockErr.message}`
+    );
+  }
 
   // Resolve the amount paid (Stripe is the source of truth; fall back to label).
   let amountNum = null;
@@ -398,7 +421,7 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
   else { const n = parseFloat(String(feeAmount || '').replace(/[^0-9.]/g, '')); amountNum = isNaN(n) ? null : n; }
 
   // Record the paid introduction — the durable source of truth for the unlock.
-  await supabase.from('fed_paid_introductions').insert({
+  const { error: introErr } = await supabase.from('fed_paid_introductions').insert({
     match_id:              matchId,
     job_id:                match.job_id,
     candidate_email:       match.candidate_email,
@@ -410,6 +433,13 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     paid_at:               now,
     status:                'paid',
   });
+  if (introErr) {
+    console.error('fed_paid_introductions insert failed:', matchId, introErr);
+    await revenueAlert(
+      `⚠ PAID INTRODUCTION RECORD FAILED — match ${matchId}`,
+      `Payment succeeded but the durable paid-introduction record did not persist. Manual reconciliation required.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}\nError: ${introErr.message}`
+    );
+  }
 
   const jobTitle = match.fed_jobs?.title || 'a senior search';
   const firmName = match.fed_jobs?.firm_name || 'A search firm';
@@ -511,13 +541,14 @@ async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruit
   );
 
   // Log the introduction in the notification table
-  await supabase.from('talent_notifications').insert({
+  const { error: notifErr } = await supabase.from('talent_notifications').insert({
     type:      'engagement_introduction',
     match_id:  matchId,
     subject:   `Introduction sent — ${cName} ↔ ${rName}`,
     sent_at:   now,
     delivered: true,
   });
+  if (notifErr) console.error('engagement notification insert failed:', matchId, notifErr);
 
   console.log(`✓ Engagement unlock paid (${bracket}, ${feeAmount}) — introduction sent: match ${matchId}`);
 }

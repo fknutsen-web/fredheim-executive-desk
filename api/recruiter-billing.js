@@ -60,12 +60,16 @@ module.exports = async function handler(req, res) {
         .from('fed_recruiter_billing').select('billing_status').eq('recruiter_email', email).maybeSingle();
 
       if (!existing) {
-        await db.from('fed_recruiter_billing').insert({
+        const { error: grantErr } = await db.from('fed_recruiter_billing').insert({
           recruiter_email:     email,
           billing_status:      'founding_partner',
           founding_granted_at: new Date().toISOString(),
           founding_expires_at: FOUNDING_DEADLINE.toISOString(),
         });
+        if (grantErr) {
+          console.error('grant_founding insert error:', grantErr);
+          return res.status(500).json({ error: `Failed to grant founding partner status: ${grantErr.message}` });
+        }
       }
 
       return res.status(200).json({ ok: true, billing_status: 'founding_partner', founding_period_active: true });
@@ -96,7 +100,7 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: 'Company name and billing contact email required.' });
       }
 
-      await db.from('fed_recruiter_billing').upsert({
+      const { error: invoiceErr } = await db.from('fed_recruiter_billing').upsert({
         recruiter_email:        email,
         billing_status:         'invoice_billing_pending',
         invoice_company_name,
@@ -107,6 +111,10 @@ module.exports = async function handler(req, res) {
         invoice_billing_notes,
         admin_review_status:    'pending',
       }, { onConflict: 'recruiter_email' });
+      if (invoiceErr) {
+        console.error('request_invoice upsert error:', invoiceErr);
+        return res.status(500).json({ error: `Failed to record invoice billing request: ${invoiceErr.message}` });
+      }
 
       // Notify admin
       await sendAdminAlert({

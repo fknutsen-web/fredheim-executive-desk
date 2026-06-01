@@ -75,7 +75,7 @@ module.exports = async function handler(req, res) {
   const shouldFlag = hadIntroductions && close_reason === 'filled_outside_platform';
 
   // 1. Update job status
-  await db.from('fed_jobs').update({
+  const { error: statusErr } = await db.from('fed_jobs').update({
     status:       'closed_unfilled',
     status_reason: close_reason,
     closed_at:    now,
@@ -84,9 +84,13 @@ module.exports = async function handler(req, res) {
       ? `Closure reason: filled_outside_platform — but ${introCount} candidate introductions recorded.`
       : null,
   }).eq('id', job_id);
+  if (statusErr) {
+    console.error('job-close status update error:', statusErr);
+    return res.status(500).json({ error: `Failed to close job: ${statusErr.message}` });
+  }
 
   // 2. Write closure certification record
-  await db.from('fed_job_closures').upsert({
+  const { error: closureErr } = await db.from('fed_job_closures').upsert({
     job_id,
     recruiter_email:             recruiterEmail,
     close_reason,
@@ -97,9 +101,13 @@ module.exports = async function handler(req, res) {
     introduced_candidate_count:  introCount || 0,
     admin_review_status:         shouldFlag ? 'pending' : 'pending',
   }, { onConflict: 'job_id' });
+  if (closureErr) {
+    console.error('job-close closure record error:', closureErr);
+    return res.status(500).json({ error: `Job status updated but closure record failed: ${closureErr.message}` });
+  }
 
-  // 3. Audit log
-  await db.from('fed_job_status_history').insert({
+  // 3. Audit log (best-effort — do not fail the closure on a logging miss)
+  const { error: histErr } = await db.from('fed_job_status_history').insert({
     job_id,
     previous_status:    job.status,
     new_status:         'closed_unfilled',
@@ -112,12 +120,14 @@ module.exports = async function handler(req, res) {
     ip_address:         ip_address || req.headers['x-forwarded-for'] || null,
     user_agent:         req.headers['user-agent'] || null,
   });
+  if (histErr) console.error('job-close status-history insert error:', histErr);
 
   // 4. Remove from active matching — expire all open match records
-  await db.from('fed_matches')
+  const { error: expireErr } = await db.from('fed_matches')
     .update({ status: 'expired' })
     .eq('job_id', job_id)
     .in('status', ['matched', 'recruiter_interested', 'candidate_interested']);
+  if (expireErr) console.error('job-close match-expiry error:', expireErr);
 
   // 5. Notify admin via native email
   await sendAdminAlert({
