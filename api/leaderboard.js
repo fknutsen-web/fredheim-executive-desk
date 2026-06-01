@@ -41,19 +41,12 @@ module.exports = async function handler(req, res) {
       const overrideMap = {};
       (overrides || []).forEach(o => { overrideMap[o.recruiter_email.toLowerCase()] = o; });
 
-      // Fetch billing — used both to exclude blocked recruiters and to treat an
-      // active billing relationship as a verification signal.
+      // Fetch billing statuses — exclude suspended/payment_failed recruiters.
       const { data: billings } = await db
         .from('fed_recruiter_billing')
-        .select('recruiter_email, billing_status');
-      const blockedEmails = new Set();
-      const billedEmails  = new Set();
-      (billings || []).forEach(b => {
-        const email = b.recruiter_email?.toLowerCase();
-        if (!email) return;
-        billedEmails.add(email);
-        if (['payment_failed','suspended'].includes(b.billing_status)) blockedEmails.add(email);
-      });
+        .select('recruiter_email, billing_status')
+        .in('billing_status', ['payment_failed','suspended']);
+      const blockedEmails = new Set((billings || []).map(b => b.recruiter_email?.toLowerCase()).filter(Boolean));
 
       // Fetch quality flags — exclude recruiters with serious unresolved complaints
       const { data: flags } = await db
@@ -98,9 +91,9 @@ module.exports = async function handler(req, res) {
         .map(([email, count]) => {
           const override = overrideMap[email];
           const firm     = firmMap[email] || null;
-          // "Verified" for public display = admin-approved override OR an active
-          // billing relationship (the available trust signals in this schema).
-          const verified = !!override?.approved || billedEmails.has(email);
+          // "Verified" for public display requires an explicit admin-approved
+          // override. An active billing relationship alone is not sufficient.
+          const verified = !!override?.approved;
 
           // Eligibility
           let eligible = true;
@@ -111,7 +104,7 @@ module.exports = async function handler(req, res) {
           if (blockedEmails.has(email)) { eligible = false; reason = 'payment_issue'; }
           if (flaggedEmails.has(email)) { eligible = false; reason = 'unresolved_complaints'; }
           if (!verified) {
-            // Must have admin approval or an active billing relationship to appear publicly
+            // Must have an admin-approved override to appear publicly
             eligible = false; reason = 'not_verified';
           }
 
