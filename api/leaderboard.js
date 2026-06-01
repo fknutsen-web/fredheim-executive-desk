@@ -152,7 +152,7 @@ module.exports = async function handler(req, res) {
     if (action === 'override') {
       if (!recruiter_email) return res.status(400).json({ error: 'recruiter_email required.' });
 
-      await db.from('fed_leaderboard_overrides').upsert({
+      const { error: upsertErr } = await db.from('fed_leaderboard_overrides').upsert({
         recruiter_email:      recruiter_email.toLowerCase(),
         approved:             !!approved,
         suppressed:           !!suppressed,
@@ -163,6 +163,13 @@ module.exports = async function handler(req, res) {
         updated_by:           'admin',
         updated_at:           new Date().toISOString(),
       }, { onConflict: 'recruiter_email' });
+
+      // Surface write failures (e.g. missing table) instead of reporting a
+      // false success — run fed-setup.sql if this table does not exist.
+      if (upsertErr) {
+        console.error('override upsert error:', upsertErr);
+        return res.status(500).json({ error: `Failed to save override: ${upsertErr.message}` });
+      }
 
       return res.status(200).json({ ok: true });
     }
