@@ -162,7 +162,8 @@ module.exports = async function handler(req, res) {
       if (action === 'unsuppress') {
         const { id } = payload;
         if (!id) return res.status(400).json({ error: 'id required.' });
-        await db.from('fed_marketplace_activity').update({ suppressed: false, suppression_reason: null }).eq('id', id);
+        { const { error: e } = await db.from('fed_marketplace_activity').update({ suppressed: false, suppression_reason: null }).eq('id', id);
+          if (e) { console.error('marketplace unsuppress failed:', id, e); return res.status(500).json({ error: e.message }); } }
         return res.status(200).json({ ok: true, suppressed: false });
       }
 
@@ -170,7 +171,8 @@ module.exports = async function handler(req, res) {
       if (action === 'archive') {
         const { id } = payload;
         if (!id) return res.status(400).json({ error: 'id required.' });
-        await db.from('fed_marketplace_activity').update({ status: 'archived' }).eq('id', id);
+        { const { error: e } = await db.from('fed_marketplace_activity').update({ status: 'archived' }).eq('id', id);
+          if (e) { console.error('marketplace archive failed:', id, e); return res.status(500).json({ error: e.message }); } }
         return res.status(200).json({ ok: true, status: 'archived' });
       }
 
@@ -242,10 +244,11 @@ module.exports = async function handler(req, res) {
 
         for (const item of (items || [])) {
           if (item.status === 'published') {
-            await db.from('fed_marketplace_activity').update({
+            const { error: e } = await db.from('fed_marketplace_activity').update({
               suppressed:         true,
               suppression_reason: 'Related placement disputed — pending admin review',
             }).eq('id', item.id);
+            if (e) console.error('marketplace dispute-suppress failed:', item.id, e);
           }
         }
 

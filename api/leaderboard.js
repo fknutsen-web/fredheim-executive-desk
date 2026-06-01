@@ -218,7 +218,8 @@ module.exports = async function handler(req, res) {
           });
 
         for (const row of ranked) {
-          await db.from('fed_leaderboard_snapshots').insert(row);
+          const { error: snapErr } = await db.from('fed_leaderboard_snapshots').insert(row);
+          if (snapErr) console.error('leaderboard snapshot insert failed:', snapErr);
           results.push(row);
         }
       }

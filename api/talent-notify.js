@@ -30,11 +30,12 @@ async function sendNotification(payload) {
 
 // Mark notification as sent in log
 async function markSent(notificationId, delivered, error = null) {
-  await supabase.from('talent_notifications').update({
+  const { error: e } = await supabase.from('talent_notifications').update({
     sent_at: new Date().toISOString(),
     delivered,
     error,
   }).eq('id', notificationId);
+  if (e) console.error('markSent update failed:', notificationId, e);
 }
 
 // ── REAL-TIME ALERT ────────────────────────────────────────────
@@ -147,7 +148,7 @@ Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
 
     try {
       const result = await sendNotification(payload);
-      await supabase.from('talent_notifications').insert({
+      const { error: insErr } = await supabase.from('talent_notifications').insert({
         type: 'daily_digest',
         recruiter_id: recruiter.id,
         recipient_email: recruiter.email,
@@ -157,6 +158,7 @@ Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
         delivered: result.ok,
         error: result.ok ? null : (result.error || 'send failed'),
       });
+      if (insErr) console.error('daily_digest notification insert failed:', recruiter.email, insErr);
       if (result.ok) sent++;
     } catch (e) {
       console.error('Daily digest error for', recruiter.email, e.message);
@@ -223,7 +225,7 @@ Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
 
     try {
       const result = await sendNotification(payload);
-      await supabase.from('talent_notifications').insert({
+      const { error: insErr } = await supabase.from('talent_notifications').insert({
         type: 'weekly_summary',
         recruiter_id: recruiter.id,
         recipient_email: recruiter.email,
@@ -233,6 +235,7 @@ Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
         delivered: result.ok,
         error: result.ok ? null : (result.error || 'send failed'),
       });
+      if (insErr) console.error('weekly_summary notification insert failed:', recruiter.email, insErr);
       if (result.ok) sent++;
     } catch (e) {
       console.error('Weekly summary error for', recruiter.email, e.message);

@@ -75,9 +75,10 @@ async function runColdEngagementCheckins() {
       keep_url:       `https://desk.fredheimtech.com?view=recruiter-talent&keep=${eng.id}`,
     });
 
-    await supabase.from('talent_matches')
+    { const { error: e } = await supabase.from('talent_matches')
       .update({ cold_checkin_sent_at: new Date().toISOString() })
       .eq('id', eng.id);
+      if (e) console.error('cold_checkin update failed:', eng.id, e); }
 
     sent++;
   }
@@ -99,9 +100,10 @@ async function runAutoArchive() {
     .eq('recruiter_status', 'engaged');
 
   for (const eng of toArchive || []) {
-    await supabase.from('talent_matches')
+    { const { error: e } = await supabase.from('talent_matches')
       .update({ recruiter_status: 'archived', archived_at: now })
       .eq('id', eng.id);
+      if (e) console.error('engagement archive update failed:', eng.id, e); }
 
     await notify({
       type:           'engagement_archived',
@@ -153,9 +155,10 @@ async function runCandidateInterestNotifications() {
       decline_url:    declineUrl,
     });
 
-    await supabase.from('talent_matches')
+    { const { error: e } = await supabase.from('talent_matches')
       .update({ candidate_notified_at: new Date().toISOString() })
       .eq('id', m.id);
+      if (e) console.error('candidate_notified update failed:', m.id, e); }
 
     sent++;
   }
@@ -181,9 +184,10 @@ async function runIntroductionReminders() {
     .is('archived_at', null);
 
   for (const m of stale || []) {
-    await supabase.from('talent_matches')
+    { const { error: e } = await supabase.from('talent_matches')
       .update({ recruiter_status: 'archived', archived_at: new Date().toISOString() })
       .eq('id', m.id);
+      if (e) console.error('stale match archive update failed:', m.id, e); }
     if (m.talent_recruiters?.email) {
       await supabase.rpc('fed_increment_recruiter_ghost', { p_email: m.talent_recruiters.email }).catch(()=>{});
     }
@@ -214,7 +218,8 @@ async function runIntroductionReminders() {
         body:           `Light reminder: a one-tap status update on this introduction helps our matching intelligence and keeps the relationship from ghosting.`,
         update_url:     `https://desk.fredheimtech.com?view=recruiter-talent&match=${m.id}`,
       });
-      await supabase.from('talent_matches').update({ [bucket.key]: new Date().toISOString() }).eq('id', m.id);
+      { const { error: e } = await supabase.from('talent_matches').update({ [bucket.key]: new Date().toISOString() }).eq('id', m.id);
+        if (e) console.error('reminder timestamp update failed:', m.id, e); }
       reminders++;
     }
   }
@@ -237,7 +242,8 @@ async function runJobListingExpiration() {
     .is('last_expiration_prompt_at', null);
 
   for (const j of due || []) {
-    await supabase.from('fed_jobs').update({ status: 'expired', last_expiration_prompt_at: nowIso }).eq('id', j.id);
+    { const { error: e } = await supabase.from('fed_jobs').update({ status: 'expired', last_expiration_prompt_at: nowIso }).eq('id', j.id);
+      if (e) console.error('job expiry update failed:', j.id, e); }
     await notify({
       type:           'job_expired',
       to_email:       j.firm_email,
@@ -298,12 +304,16 @@ async function handlePlacementReport(matchId, recruiterId) {
   const creditAmount = placementCreditAmount();
 
   // Record the placement and issue credit
-  await supabase.from('talent_matches').update({
+  const { error: placeErr } = await supabase.from('talent_matches').update({
     recruiter_status:        'placed',
     placed_at:               new Date().toISOString(),
     placement_credit_issued: true,
     placement_credit_amount: creditAmount,
   }).eq('id', matchId);
+  if (placeErr) {
+    console.error('placement credit update failed:', matchId, placeErr);
+    return { error: `Failed to record placement: ${placeErr.message}` };
+  }
 
   // Accumulate credit on recruiter record
   const { data: recruiter } = await supabase
@@ -312,10 +322,11 @@ async function handlePlacementReport(matchId, recruiterId) {
     .eq('id', recruiterId)
     .single();
 
-  await supabase.from('talent_recruiters').update({
+  const { error: credErr } = await supabase.from('talent_recruiters').update({
     placement_credits: (recruiter?.placement_credits || 0) + creditAmount,
     total_placements:  (recruiter?.total_placements  || 0) + 1,
   }).eq('id', recruiterId);
+  if (credErr) console.error('recruiter credit accumulation failed:', recruiterId, credErr);
 
   await notify({
     type:           'placement_reported',

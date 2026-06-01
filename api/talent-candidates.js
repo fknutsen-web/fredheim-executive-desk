@@ -85,7 +85,7 @@ async function computeMatches(candidateId, scores) {
     const seniorYears = { A: 0, B: 2, C: 6, D: 12, E: 15 }[seniorAns] || 0;
     if (seniorYears < (role.min_years_senior || 0)) continue;
 
-    await supabase.from('talent_matches').upsert({
+    { const { error: e } = await supabase.from('talent_matches').upsert({
       candidate_id: candidateId,
       role_id: role.id,
       recruiter_id: role.recruiter_id,
@@ -97,6 +97,7 @@ async function computeMatches(candidateId, scores) {
         background:    scores.score_background,
       }
     }, { onConflict: 'candidate_id,role_id' });
+      if (e) console.error('talent_matches upsert failed:', candidateId, role.id, e); }
 
     // Trigger notification if above realtime threshold
     if (matchPct >= (role.notify_realtime_threshold || 85) && role.notify_realtime) {
@@ -107,7 +108,7 @@ async function computeMatches(candidateId, scores) {
 
 // Queue a realtime alert notification
 async function triggerRealtimeAlert(candidateId, roleId, recruiterId, matchPct) {
-  await supabase.from('talent_notifications').insert({
+  const { error: e } = await supabase.from('talent_notifications').insert({
     type: 'realtime_alert',
     recruiter_id: recruiterId,
     candidate_id: candidateId,
@@ -115,6 +116,7 @@ async function triggerRealtimeAlert(candidateId, roleId, recruiterId, matchPct) 
     subject: `New ${matchPct}% match found`,
     body_preview: `A new candidate matched at ${matchPct}%. Review now.`,
   });
+  if (e) console.error('realtime_alert insert failed:', candidateId, roleId, e);
 }
 
 // ── RE-ENGAGEMENT JOB ──────────────────────────────────────────
@@ -133,16 +135,18 @@ async function runReengagementJob() {
     .lt('last_active_at', day45.toISOString());
 
   for (const c of touch1Candidates || []) {
-    await supabase.from('talent_notifications').insert({
+    { const { error: ne } = await supabase.from('talent_notifications').insert({
       type: 'candidate_reengagement_1',
       candidate_id: c.id,
       recipient_email: c.email,
       subject: 'Still exploring opportunities?',
       body_preview: `Hi ${c.first_name} — just checking in. One click to confirm you're still active.`,
     });
-    await supabase.from('talent_candidates')
+      if (ne) console.error('reengagement_1 notification insert failed:', c.id, ne); }
+    { const { error: ue } = await supabase.from('talent_candidates')
       .update({ reengagement_touch_1: now.toISOString() })
       .eq('id', c.id);
+      if (ue) console.error('reengagement_touch_1 update failed:', c.id, ue); }
     results.touch1++;
   }
 
@@ -157,16 +161,18 @@ async function runReengagementJob() {
     .lt('last_active_at', day60.toISOString());
 
   for (const c of touch2Candidates || []) {
-    await supabase.from('talent_notifications').insert({
+    { const { error: ne } = await supabase.from('talent_notifications').insert({
       type: 'candidate_reengagement_2',
       candidate_id: c.id,
       recipient_email: c.email,
       subject: 'Your profile will be paused in 30 days',
       body_preview: `Hi ${c.first_name} — your profile will be paused unless you confirm you're still active.`,
     });
-    await supabase.from('talent_candidates')
+      if (ne) console.error('reengagement_2 notification insert failed:', c.id, ne); }
+    { const { error: ue } = await supabase.from('talent_candidates')
       .update({ reengagement_touch_2: now.toISOString() })
       .eq('id', c.id);
+      if (ue) console.error('reengagement_touch_2 update failed:', c.id, ue); }
     results.touch2++;
   }
 
@@ -181,16 +187,18 @@ async function runReengagementJob() {
     .lt('last_active_at', day85.toISOString());
 
   for (const c of touch3Candidates || []) {
-    await supabase.from('talent_notifications').insert({
+    { const { error: ne } = await supabase.from('talent_notifications').insert({
       type: 'candidate_reengagement_3',
       candidate_id: c.id,
       recipient_email: c.email,
       subject: 'Final notice — profile archiving in 5 days',
       body_preview: `Hi ${c.first_name} — your profile will be archived in 5 days. You can reactivate any time.`,
     });
-    await supabase.from('talent_candidates')
+      if (ne) console.error('reengagement_3 notification insert failed:', c.id, ne); }
+    { const { error: ue } = await supabase.from('talent_candidates')
       .update({ reengagement_touch_3: now.toISOString() })
       .eq('id', c.id);
+      if (ue) console.error('reengagement_touch_3 update failed:', c.id, ue); }
     results.touch3++;
   }
 
@@ -204,16 +212,18 @@ async function runReengagementJob() {
     .lt('last_active_at', day90.toISOString());
 
   for (const c of archiveCandidates || []) {
-    await supabase.from('talent_candidates')
+    { const { error: ue } = await supabase.from('talent_candidates')
       .update({ status: 'archived', status_updated_at: now.toISOString() })
       .eq('id', c.id);
-    await supabase.from('talent_notifications').insert({
+      if (ue) console.error('candidate archive update failed:', c.id, ue); }
+    { const { error: ne } = await supabase.from('talent_notifications').insert({
       type: 'candidate_archived',
       candidate_id: c.id,
       recipient_email: c.email,
       subject: 'Your profile has been archived',
       body_preview: `Hi ${c.first_name} — your profile has been archived. You can reactivate any time with your answers saved.`,
     });
+      if (ne) console.error('candidate_archived notification insert failed:', c.id, ne); }
     results.archived++;
   }
 
@@ -227,16 +237,18 @@ async function runReengagementJob() {
     .is('last_refresh_prompt', null);
 
   for (const c of refreshCandidates || []) {
-    await supabase.from('talent_notifications').insert({
+    { const { error: ne } = await supabase.from('talent_notifications').insert({
       type: 'candidate_refresh_prompt',
       candidate_id: c.id,
       recipient_email: c.email,
       subject: 'A lot can change in a year — update your profile',
       body_preview: `Hi ${c.first_name} — take 3 minutes to review your profile and make sure recruiters are seeing the best version of you.`,
     });
-    await supabase.from('talent_candidates')
+      if (ne) console.error('refresh_prompt notification insert failed:', c.id, ne); }
+    { const { error: ue } = await supabase.from('talent_candidates')
       .update({ last_refresh_prompt: now.toISOString() })
       .eq('id', c.id);
+      if (ue) console.error('last_refresh_prompt update failed:', c.id, ue); }
   }
 
   // Auto-relax role thresholds after 30 days unfilled
@@ -250,11 +262,12 @@ async function runReengagementJob() {
 
   for (const role of staleRoles || []) {
     const newMin = Math.max(50, (role.min_match_pct || 70) - 5);
-    await supabase.from('talent_roles').update({
+    { const { error: e } = await supabase.from('talent_roles').update({
       original_min_match_pct: role.min_match_pct,
       min_match_pct: newMin,
       threshold_relaxed_at: now.toISOString(),
     }).eq('id', role.id);
+      if (e) console.error('role threshold relax update failed:', role.id, e); }
   }
 
   return results;
@@ -340,13 +353,14 @@ module.exports = async function handler(req, res) {
         candidateId = data.id;
 
         // Send confirmation notification
-        await supabase.from('talent_notifications').insert({
+        { const { error: ne } = await supabase.from('talent_notifications').insert({
           type: 'candidate_confirmation',
           candidate_id: candidateId,
           recipient_email: email.toLowerCase(),
           subject: 'Your Fredheim Executive Desk profile is active',
           body_preview: `Hi ${first_name} — your profile is now active and being matched against open searches.`,
         });
+          if (ne) console.error('candidate_confirmation notification insert failed:', candidateId, ne); }
       }
 
       // Run match computation
