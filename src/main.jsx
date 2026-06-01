@@ -6673,6 +6673,13 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
     } catch(e) { console.log('Profile save:', e); }
 
+    // Best-effort: mirror specializations to the first-class column if the
+    // migration has been applied. The authoritative copy lives in
+    // candidate_operating_profile.subcategories, so a missing column is a no-op.
+    if (Array.isArray(opProfile.subcategories) && opProfile.subcategories.length) {
+      await sb.from('fed_profiles').update({ subcategories: opProfile.subcategories }).eq('email', form.email);
+    }
+
     // Save references and send questionnaire emails
     const validRefs = refs.filter(r => r.name && r.email);
     if (validRefs.length > 0) {
@@ -8953,6 +8960,11 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         ? normalizeVertical(rawIndustry)
         : (industryMap[rawIndustry.toLowerCase()] || rawIndustry);
 
+      // Carry the recruiter's chosen specializations through from the intake.
+      let jobReq = submission.job_requirements;
+      if (typeof jobReq === 'string') { try { jobReq = JSON.parse(jobReq); } catch { jobReq = null; } }
+      const subcategories = Array.isArray(jobReq?.intake?.subcategory) ? jobReq.intake.subcategory : [];
+
       // Parse salary values from the salary_range string for filter compatibility
       // e.g. "$300K – $400K total compensation" → min=300000, max=400000
       function parseSalary(str) {
@@ -8979,7 +8991,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         firm_code:        (submission.firm_name || 'XX').slice(0,2).toUpperCase(),
         industry,
         function:         submission.role_level === 'senior' ? 'Operations' : 'Commercial',
-        tags:             JSON.stringify([]),
+        tags:             JSON.stringify(subcategories),
         location:         submission.location || 'To Be Confirmed',
         type:             'Full-Time',
         salary_min:       salaryMin,
@@ -8999,6 +9011,12 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         console.error('Publish error:', error);
         showToast(`Publish failed: ${error.message}`);
         return;
+      }
+      // Best-effort: also populate the first-class subcategories column if the
+      // migration that adds it has been applied. Harmless no-op otherwise — the
+      // values are already mirrored in tags.
+      if (subcategories.length && data && data[0]?.id) {
+        await sb.from('fed_jobs').update({ subcategories }).eq('id', data[0].id);
       }
       await updateSubmissionStatus(submission.id, 'posted');
       showToast('✓ Job published to the board.');
@@ -10584,9 +10602,18 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
 
   async function saveField(fields) {
     try {
-      const { error } = await sb.from('fed_profiles').update(fields).eq('email', user.email);
+      // _subcategories is a pseudo-field: it lives inside the JSON operating
+      // profile, not a top-level column. Fold it into candidate_operating_profile
+      // before writing so we never send an unknown column to the DB.
+      const { _subcategories, ...cols } = fields;
+      if (_subcategories !== undefined) {
+        const baseOp = (profile && profile.candidate_operating_profile) || {};
+        const op = typeof baseOp === 'string' ? JSON.parse(baseOp) : baseOp;
+        cols.candidate_operating_profile = { ...op, subcategories: _subcategories };
+      }
+      const { error } = await sb.from('fed_profiles').update(cols).eq('email', user.email);
       if (error) throw error;
-      setProfile(p => ({...p, ...fields}));
+      setProfile(p => ({...p, ...cols}));
       setEditing(null);
       showToast('✓ Profile updated.');
     } catch(e) {
@@ -10806,12 +10833,17 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
             {editing === 'professional' ? (
               <button className="profile-edit-btn save" onClick={() => saveField(editData)}>Save</button>
             ) : (
-              <button className="profile-edit-btn" onClick={() => { setEditing('professional'); setEditData({
-                industry: profile.industry,
-                function: profile.function,
-                salary_min: profile.salary_min,
-                board_experience: profile.board_experience,
-              }); }}>Edit</button>
+              <button className="profile-edit-btn" onClick={() => {
+                const baseOp = (profile && profile.candidate_operating_profile) || {};
+                const op = typeof baseOp === 'string' ? (() => { try { return JSON.parse(baseOp); } catch { return {}; } })() : baseOp;
+                setEditing('professional'); setEditData({
+                  industry: profile.industry,
+                  function: profile.function,
+                  salary_min: profile.salary_min,
+                  board_experience: profile.board_experience,
+                  _subcategories: Array.isArray(op.subcategories) ? op.subcategories : [],
+                });
+              }}>Edit</button>
             )}
           </div>
           {editing === 'professional' ? (
@@ -10820,9 +10852,28 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
                 <label className="form-label">Industry Focus (select all that apply)</label>
                 <IndustryMultiSelect
                   value={Array.isArray(editData.industry) ? editData.industry : (editData.industry ? [editData.industry] : [])}
-                  onChange={v => setEditData(p=>({...p, industry: v}))}
+                  onChange={v => {
+                    const valid = new Set(subcategoriesForVerticals(v));
+                    setEditData(p => ({ ...p, industry: v, _subcategories: (p._subcategories || []).filter(s => valid.has(s)) }));
+                  }}
                 />
               </div>
+              {(() => {
+                const selVerts = Array.isArray(editData.industry) ? editData.industry : (editData.industry ? [editData.industry] : []);
+                const subOpts = subcategoriesForVerticals(selVerts);
+                return (
+                  <div className="form-group">
+                    <label className="form-label">Specialization <span style={{color:'var(--ink-4)',fontWeight:400}}>(optional)</span></label>
+                    <IndustryMultiSelect
+                      options={subOpts}
+                      value={editData._subcategories || []}
+                      onChange={v => setEditData(p=>({...p, _subcategories: v}))}
+                      placeholder={selVerts.length ? 'Select specializations…' : 'Select an industry first'}
+                      disabled={selVerts.length === 0}
+                    />
+                  </div>
+                );
+              })()}
               <div className="form-group"><label className="form-label">Function</label>
                 <select className="form-select" value={editData.function||''} onChange={e=>setEditData(p=>({...p,function:e.target.value}))}>
                   <option value="">Select</option><option>Commercial</option><option>Operations</option><option>Chartering</option><option>Business Development</option><option>Finance</option><option>General Management</option>
@@ -14203,6 +14254,7 @@ function App() {
 
   const [search, setSearch]     = useState('');
   const [industry, setIndustry] = useState('All Industries');
+  const [subcategory, setSubcategory] = useState('All Specializations');
   const [func, setFunc]         = useState('All Functions');
   const [salaryBand, setSalaryBand] = useState(0);
 
@@ -14446,7 +14498,16 @@ function App() {
     }
   }
 
-  function clearFilters() { setSearch(''); setIndustry('All Industries'); setFunc('All Functions'); setSalaryBand(0); }
+  function clearFilters() { setSearch(''); setIndustry('All Industries'); setSubcategory('All Specializations'); setFunc('All Functions'); setSalaryBand(0); }
+
+  // Specialization options depend on the selected vertical. Across "All
+  // Industries" we offer every subcategory; otherwise just the vertical's own.
+  const subcategoryOptions = useMemo(() => {
+    const subs = industry === 'All Industries'
+      ? VERTICALS.flatMap(v => v.subcategories)
+      : subcategoriesForVerticals(industry);
+    return ['All Specializations', ...subs];
+  }, [industry]);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -14454,11 +14515,17 @@ function App() {
       const tags = parseJson(j.tags).join(' ').toLowerCase();
       if (q && ![j.title,j.firm_name,j.company_display,tags].some(f=>f?.toLowerCase().includes(q))) return false;
       if (industry !== 'All Industries' && j.industry !== industry) return false;
+      if (subcategory !== 'All Specializations') {
+        // Job specializations live in the first-class column when present, else
+        // in the tags JSON where publishJob mirrors them.
+        const jobSubs = Array.isArray(j.subcategories) ? j.subcategories : parseJson(j.tags);
+        if (!jobSubs.includes(subcategory)) return false;
+      }
       if (func !== 'All Functions' && j.function !== func) return false;
       if (salaryBand > 0 && j.salary_max < salaryBand) return false;
       return true;
     });
-  }, [jobs, search, industry, func, salaryBand]);
+  }, [jobs, search, industry, subcategory, func, salaryBand]);
 
   // Reference questionnaire — standalone page, no nav needed
   if (questionnaireToken) {
@@ -14667,8 +14734,11 @@ function App() {
                 <span className="search-icon">⌕</span>
                 <input className="search-input" placeholder="Search by title, firm, or keyword…" value={search} onChange={e=>setSearch(e.target.value)} />
               </div>
-              <select className="filter-select" value={industry} onChange={e=>setIndustry(e.target.value)}>
+              <select className="filter-select" value={industry} onChange={e=>{ setIndustry(e.target.value); setSubcategory('All Specializations'); }}>
                 {INDUSTRIES.map(i=><option key={i}>{i}</option>)}
+              </select>
+              <select className="filter-select" value={subcategory} onChange={e=>setSubcategory(e.target.value)}>
+                {subcategoryOptions.map(s=><option key={s}>{s}</option>)}
               </select>
               <select className="filter-select" value={func} onChange={e=>setFunc(e.target.value)}>
                 {FUNCTIONS.map(f=><option key={f}>{f}</option>)}

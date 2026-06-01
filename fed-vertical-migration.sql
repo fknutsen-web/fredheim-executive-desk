@@ -135,4 +135,39 @@ WHERE industry_focus IN (
   'Compliance & Safety Tech','Safety & Compliance Technology','Commercial Operations'
 );
 
+-- ============================================================================
+-- First-class subcategory (specialization) columns
+-- ----------------------------------------------------------------------------
+-- The application already stores specializations inside JSON
+-- (candidate_operating_profile.subcategories for profiles, job_requirements
+-- .intake.subcategory for recruiter submissions, and the tags array for
+-- published jobs). These columns promote them to a queryable top-level array
+-- so they can be filtered/reported on in SQL. Additive and nullable, so the
+-- app works with or without this migration; the app writes them best-effort.
+-- ============================================================================
+
+ALTER TABLE fed_profiles             ADD COLUMN IF NOT EXISTS subcategories text[] DEFAULT '{}';
+ALTER TABLE fed_jobs                 ADD COLUMN IF NOT EXISTS subcategories text[] DEFAULT '{}';
+ALTER TABLE fed_recruiter_submissions ADD COLUMN IF NOT EXISTS subcategories text[] DEFAULT '{}';
+
+-- Backfill candidate profiles from the dedicated JSON key.
+UPDATE fed_profiles
+   SET subcategories = ARRAY(SELECT jsonb_array_elements_text(candidate_operating_profile->'subcategories'))
+ WHERE jsonb_typeof(candidate_operating_profile) = 'object'
+   AND jsonb_typeof(candidate_operating_profile->'subcategories') = 'array'
+   AND (subcategories IS NULL OR subcategories = '{}');
+
+-- Backfill recruiter submissions from the intake JSON.
+UPDATE fed_recruiter_submissions
+   SET subcategories = ARRAY(SELECT jsonb_array_elements_text(job_requirements->'intake'->'subcategory'))
+ WHERE jsonb_typeof(job_requirements) = 'object'
+   AND jsonb_typeof(job_requirements->'intake'->'subcategory') = 'array'
+   AND (subcategories IS NULL OR subcategories = '{}');
+
+-- Note: published jobs (fed_jobs) are not backfilled here. Pre-existing rows
+-- carried no specialization data (tags was empty), and newly published jobs
+-- populate fed_jobs.subcategories via the application's best-effort write.
+-- Casting the free-form tags text to jsonb in bulk could abort the migration
+-- on any malformed legacy row, so it is intentionally avoided.
+
 COMMIT;
