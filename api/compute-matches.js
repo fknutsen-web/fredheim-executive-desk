@@ -267,7 +267,7 @@ function computeMatchScore(candidate, job) {
     } else {
       // Industrial cross-sector adjacency: maritime ↔ logistics ↔ industrial
       // are adjacent. Award partial credit.
-      const industrialKeywords = ['maritime','shipping','port','terminal','logistics','industrial','energy','offshore'];
+      const industrialKeywords = ['maritime','shipping','port','terminal','logistics','industrial','energy','offshore','commodity','trading','supply','chain'];
       const cInd = industrialKeywords.some(k => cI.includes(k));
       const jInd = industrialKeywords.some(k => jI.includes(k));
       if (cInd && jInd) { score += 8; reasons.industry = 'adjacent'; }

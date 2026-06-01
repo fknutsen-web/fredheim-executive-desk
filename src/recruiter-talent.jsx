@@ -21,7 +21,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
 
 // ── HELPERS ──────────────────────────────────────────────────────
 
-const INDUSTRY_MAP = { A:'Maritime / Ports', B:'Logistics / Supply Chain', C:'Energy / Oil & Gas', D:'Manufacturing', E:'Finance / Tech' };
+const INDUSTRY_MAP = { A:'Maritime & Shipping', B:'Commodity Trading', C:'Energy', D:'Logistics & Supply Chain', E:'Ports & Terminals', F:'Offshore' };
 const GEO_MAP = { A:'Regional', B:'National', C:'International', D:'Global' };
 const SIZE_MAP = { A:'Startup', B:'SMB', C:'Mid-market', D:'Enterprise', E:'Mixed' };
 const YEARS_MAP = { A:'<5 yrs', B:'5–10 yrs', C:'11–20 yrs', D:'21–30 yrs', E:'30+ yrs' };
