@@ -41,12 +41,19 @@ module.exports = async function handler(req, res) {
       const overrideMap = {};
       (overrides || []).forEach(o => { overrideMap[o.recruiter_email.toLowerCase()] = o; });
 
-      // Fetch billing statuses — exclude suspended/payment_failed
+      // Fetch billing — used both to exclude blocked recruiters and to treat an
+      // active billing relationship as a verification signal.
       const { data: billings } = await db
         .from('fed_recruiter_billing')
-        .select('recruiter_email, billing_status')
-        .in('billing_status', ['payment_failed','suspended']);
-      const blockedEmails = new Set((billings || []).map(b => b.recruiter_email.toLowerCase()));
+        .select('recruiter_email, billing_status');
+      const blockedEmails = new Set();
+      const billedEmails  = new Set();
+      (billings || []).forEach(b => {
+        const email = b.recruiter_email?.toLowerCase();
+        if (!email) return;
+        billedEmails.add(email);
+        if (['payment_failed','suspended'].includes(b.billing_status)) blockedEmails.add(email);
+      });
 
       // Fetch quality flags — exclude recruiters with serious unresolved complaints
       const { data: flags } = await db
@@ -56,12 +63,24 @@ module.exports = async function handler(req, res) {
         .eq('admin_review_status', 'pending'); // unresolved flags only
       const flaggedEmails = new Set((flags || []).map(f => f.recruiter_email.toLowerCase()));
 
-      // Fetch recruiter profiles for display data
-      const { data: profiles } = await db
-        .from('fed_recruiter_profiles')
-        .select('recruiter_email, firm_name, industry_focus, company_verified');
-      const profileMap = {};
-      (profiles || []).forEach(p => { profileMap[p.recruiter_email.toLowerCase()] = p; });
+      // Derive firm identity from recruiter submissions — the table that
+      // actually stores firm_name + industry. (fed_recruiter_profiles is not
+      // provisioned in this database.) We keep each recruiter's most recent
+      // firm name and the set of verticals they have posted searches in.
+      const { data: submissions } = await db
+        .from('fed_recruiter_submissions')
+        .select('email, firm_name, industry, created_at');
+      const firmMap = {};
+      (submissions || []).forEach(s => {
+        const email = s.email?.toLowerCase();
+        if (!email) return;
+        if (!firmMap[email]) firmMap[email] = { firm_name: null, firm_name_at: null, industries: new Set() };
+        const f = firmMap[email];
+        if (s.firm_name && (!f.firm_name_at || (s.created_at && s.created_at > f.firm_name_at))) {
+          f.firm_name = s.firm_name; f.firm_name_at = s.created_at || f.firm_name_at;
+        }
+        if (s.industry) f.industries.add(s.industry);
+      });
 
       // Aggregate counts by recruiter
       const counts = {};
@@ -78,7 +97,10 @@ module.exports = async function handler(req, res) {
       const ranked = Object.entries(counts)
         .map(([email, count]) => {
           const override = overrideMap[email];
-          const profile  = profileMap[email];
+          const firm     = firmMap[email] || null;
+          // "Verified" for public display = admin-approved override OR an active
+          // billing relationship (the available trust signals in this schema).
+          const verified = !!override?.approved || billedEmails.has(email);
 
           // Eligibility
           let eligible = true;
@@ -88,21 +110,21 @@ module.exports = async function handler(req, res) {
           if (override?.ineligible)  { eligible = false; reason = 'ineligible'; }
           if (blockedEmails.has(email)) { eligible = false; reason = 'payment_issue'; }
           if (flaggedEmails.has(email)) { eligible = false; reason = 'unresolved_complaints'; }
-          if (!override?.approved && !profile?.company_verified) {
-            // Must have admin approval or company verification to appear publicly
+          if (!verified) {
+            // Must have admin approval or an active billing relationship to appear publicly
             eligible = false; reason = 'not_verified';
           }
 
-          return { email, count, eligible, reason, override: override || null, profile: profile || null, record_ids: recordIds[email] };
+          return { email, count, eligible, reason, override: override || null, firm, verified, record_ids: recordIds[email] };
         })
         .filter(r => r.eligible)
         .sort((a, b) => b.count - a.count)
         .slice(0, TOP_N)
         .map((r, idx) => ({
           rank:               idx + 1,
-          firm_name:          r.profile?.firm_name || 'Verified Search Firm',
-          industry_focus:     r.profile?.industry_focus || [],
-          verified:           r.profile?.company_verified || false,
+          firm_name:          r.firm?.firm_name || r.override?.firm_name || 'Verified Search Firm',
+          industry_focus:     r.firm ? Array.from(r.firm.industries) : [],
+          verified:           r.verified,
           placement_count:    r.count,
           period,
           // Never expose email in public response
