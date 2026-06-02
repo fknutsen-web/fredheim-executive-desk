@@ -154,13 +154,30 @@ module.exports = async function handler(req, res) {
       let matchRecord = existing;
       let newStatus;
 
+      // Load the candidate's confidentiality profile once so we can honor their
+      // block list on every interest path below. The matching engine already
+      // filters blocked employers when it creates matches, but a candidate
+      // expressing interest in a CONFIDENTIAL job (employer name is masked in the
+      // listing) could otherwise unknowingly create a match that reveals them to
+      // their own employer or a blocked firm. Fail closed on a confirmed block.
+      const candidateProfile = await loadCandidateProfile(db, callerEmail);
+      const blockedMessage = 'This opportunity is with an employer on your block list, so you can’t be connected to it.';
+
+      if (existing && isEmployerBlocked(candidateProfile, existing.fed_jobs?.firm_name)) {
+        return res.status(409).json({ error: blockedMessage });
+      }
+
       if (!existing) {
         // No match record yet — create one and set status
         const { data: job } = await db.from('fed_jobs').select('*').eq('id', job_id).single();
         if (!job) return res.status(404).json({ error: 'Job not found.' });
 
+        if (isEmployerBlocked(candidateProfile, job.firm_name)) {
+          return res.status(409).json({ error: blockedMessage });
+        }
+
         const { score, reasons } = computeMatchScore(
-          await loadCandidateProfile(db, callerEmail),
+          candidateProfile,
           job
         );
 
@@ -369,6 +386,23 @@ function computeMatchScore(candidate, job) {
 }
 
 async function loadCandidateProfile(db, email) {
-  const { data } = await db.from('fed_profiles').select('industry,function,location,salary_min').eq('email', email).maybeSingle();
+  const { data } = await db.from('fed_profiles')
+    .select('industry,function,location,salary_min,current_company,blocked_companies')
+    .eq('email', email).maybeSingle();
   return data || {};
+}
+
+// Mirror of the matching engine's block check (see api/compute-matches.js).
+// A candidate is shielded from any firm matching their current employer or an
+// explicitly blocked company (case-insensitive, bidirectional substring).
+function isEmployerBlocked(candidate, firmName) {
+  if (!firmName || !candidate) return false;
+  const firm = String(firmName).toLowerCase().trim();
+  if (!firm) return false;
+  const blockList = [];
+  if (candidate.current_company) blockList.push(String(candidate.current_company).toLowerCase().trim());
+  if (Array.isArray(candidate.blocked_companies)) {
+    for (const c of candidate.blocked_companies) if (c) blockList.push(String(c).toLowerCase().trim());
+  }
+  return blockList.some(b => b && (firm.includes(b) || b.includes(firm)));
 }

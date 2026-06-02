@@ -1557,8 +1557,9 @@ function InternEmployerModal({ onClose, showToast }) {
 
   async function submit() {
     if (!form.employer_email || !form.title) { showToast('Company email and role title required.'); return; }
+    if (!form.employer_email.includes('@')) { showToast('Please enter a valid company email address.'); return; }
     setLoading(true);
-    await sb.from('fed_intern_submissions').insert({
+    const { error: saveErr } = await sb.from('fed_intern_submissions').insert({
       employer_name:    form.employer_name,
       employer_email:   form.employer_email,
       title:            form.title,
@@ -1573,6 +1574,12 @@ function InternEmployerModal({ onClose, showToast }) {
       work_arrangement: form.work_arrangement,
       sponsorship_available: form.sponsorship_available,
     });
+    if (saveErr) {
+      console.error('Intern posting save failed:', saveErr);
+      showToast('We couldn’t submit your posting just now. Please try again in a moment.');
+      setLoading(false);
+      return;
+    }
     // Notify admin
     fetch('/api/notify-posting', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -2407,7 +2414,7 @@ function AdminInternTab({ showToast }) {
       sponsorship_available: sub.sponsorship_available,
       status:                'active',
     }).select('id').single();
-    if (error) { showToast('Publish failed: '+error.message); return; }
+    if (error) { console.error('Intern publish failed:', error); showToast('Could not publish this internship. Please try again.'); return; }
     await sb.from('fed_intern_submissions').update({status:'posted'}).eq('id',sub.id);
     setSubmissions(p=>p.map(s=>s.id===sub.id?{...s,status:'posted'}:s));
     showToast('✓ Internship posted.');
@@ -5687,22 +5694,32 @@ function RecruiterModal({ onClose, showToast }) {
       role_level:      'executive',
       notes:           values.success_outcomes || '',
     };
+    // The DB insert is the actual deliverable here — it must NOT be swallowed.
+    // (Supabase resolves with { error } instead of throwing, so the previous
+    // try/catch reported success even when the brief was never saved.)
+    const { error: saveErr } = await sb.from('fed_recruiter_submissions').insert({
+      ...legacyForm,
+      // Persist the full schema-aligned intake under job_requirements.intake.
+      // The admin schema view, recruiter quality dashboard, and matching
+      // engine all read from this path.
+      job_requirements: {
+        intake:              values,
+        completeness,
+        transparency,
+        match_weighting:     MATCH_WEIGHTING,
+        submitted_at:        new Date().toISOString(),
+      },
+      tos_agreed: true,
+      tos_agreed_at: new Date().toISOString(),
+    });
+    if (saveErr) {
+      console.error('Search brief save failed:', saveErr);
+      showToast('We couldn’t submit your search brief just now. Please try again in a moment.');
+      setLoading(false);
+      return;
+    }
+    // Notification is best-effort and must not block a successful save.
     try {
-      await sb.from('fed_recruiter_submissions').insert({
-        ...legacyForm,
-        // Persist the full schema-aligned intake under job_requirements.intake.
-        // The admin schema view, recruiter quality dashboard, and matching
-        // engine all read from this path.
-        job_requirements: {
-          intake:              values,
-          completeness,
-          transparency,
-          match_weighting:     MATCH_WEIGHTING,
-          submitted_at:        new Date().toISOString(),
-        },
-        tos_agreed: true,
-        tos_agreed_at: new Date().toISOString(),
-      });
       const resp = await fetch('/api/notify-posting', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -6669,9 +6686,16 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
       } catch(e) { /* non-critical — proceed with form tier */ }
     }
 
-    try {
-      await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
-    } catch(e) { console.log('Profile save:', e); }
+    // NOTE: the Supabase client resolves with { error } on a failed write rather
+    // than throwing, so a try/catch alone silently swallows DB failures and the
+    // user is told "saved" when nothing was persisted. Check the returned error.
+    const { error: saveErr } = await sb.from('fed_profiles').upsert(profileData, { onConflict: 'email' });
+    if (saveErr) {
+      console.error('Profile save failed:', saveErr);
+      showToast('We couldn’t save your profile just now. Please check your connection and try again.');
+      setLoading(false);
+      return;
+    }
 
     // Save references and send questionnaire emails
     const validRefs = refs.filter(r => r.name && r.email);
@@ -14313,32 +14337,50 @@ function App() {
       const tier = params.get('upgradeSuccess');
       if (!tier) return;
 
-      try {
-        if (tier === 'intern_featured') {
-          const expiry = new Date();
-          expiry.setFullYear(expiry.getFullYear() + 1);
-          await sb.from('fed_intern_profiles').update({
-            tier: 'featured',
-            tier_expires_at: expiry.toISOString(),
-          }).eq('email', authUser.email.toLowerCase());
-          showToast('✓ Featured Student Profile activated!');
-          setActiveView('intern-myprofile');
-          window.history.replaceState({}, '', window.location.pathname);
-          return;
+      // IMPORTANT: a paid tier is NEVER granted from the client. The Stripe
+      // webhook (stripe-webhook.js) is the single source of truth and writes the
+      // tier server-side only after Stripe confirms the payment. This handler
+      // merely routes the returning customer and reflects what the webhook has
+      // already recorded — it does not write the tier itself. (Previously this
+      // wrote tier directly from the browser keyed only off the URL param, which
+      // let anyone self-grant a paid tier by visiting ?upgradeSuccess=...)
+      const emailLc = authUser.email.toLowerCase();
+      const knownTiers = ['intern_featured', 'confidential', 'active', 'active_senior'];
+      if (!knownTiers.includes(tier)) {
+        window.history.replaceState({}, '', window.location.pathname);
+        return;
+      }
+
+      // Confirm the webhook has applied the upgrade. It usually completes within
+      // a second or two of the redirect; poll briefly before falling back to a
+      // reassuring "being activated" message.
+      async function confirmUpgrade() {
+        for (let attempt = 0; attempt < 4; attempt++) {
+          try {
+            if (tier === 'intern_featured') {
+              const { data } = await sb.from('fed_intern_profiles').select('tier').eq('email', emailLc).maybeSingle();
+              if (data && data.tier === 'featured') return true;
+            } else {
+              const { data } = await sb.from('fed_profiles').select('tier').eq('email', emailLc).maybeSingle();
+              if (data && ['confidential', 'active', 'active_senior'].includes(data.tier)) return true;
+            }
+          } catch (e) { /* transient read error — retry */ }
+          await new Promise(r => setTimeout(r, 1500));
         }
+        return false;
+      }
 
-        if (tier !== 'confidential' && tier !== 'active' && tier !== 'active_senior') return;
-
-        const expiry = new Date();
-        expiry.setFullYear(expiry.getFullYear() + 1);
-        await sb.from('fed_profiles').update({
-          tier: tier === 'active_senior' ? 'confidential' : tier,
-          tier_expires: expiry.toISOString(),
-        }).eq('email', authUser.email.toLowerCase());
-        showToast('✓ Confidential profile activated.');
+      const confirmed = await confirmUpgrade();
+      if (tier === 'intern_featured') {
+        showToast(confirmed
+          ? '✓ Featured Student Profile activated!'
+          : 'Payment received — your Featured Student Profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimtech.com.');
+        setActiveView('intern-myprofile');
+      } else {
+        showToast(confirmed
+          ? '✓ Confidential profile activated.'
+          : 'Payment received — your confidential profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimtech.com.');
         setActiveView('myprofile');
-      } catch(e) {
-        showToast('Payment succeeded. If your tier does not update, email desk@fredheimtech.com.');
       }
 
       window.history.replaceState({}, '', window.location.pathname);
