@@ -11289,7 +11289,11 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
 
         const msgs = {
           candidate_interested: '✓ Interest sent. The search firm will be notified.',
-          mutual_interest: '✓ Mutual interest! Fredheim will facilitate an introduction.',
+          mutual_interest: '✓ Mutual interest! You can now approve a confidential introduction.',
+          awaiting_payment: '✓ Introduction approved. The firm can now unlock it — your identity is revealed only then.',
+          candidate_withdrew: 'Introduction withdrawn. No contact details were shared.',
+          paid_unlocked: '✓ Introduction confirmed. The firm now has your approved contact details.',
+          introduced: '✓ Introduction confirmed. The firm now has your approved contact details.',
           candidate_declined: 'Interest declined.',
           candidate_hidden: 'Match hidden from your view.',
         };
@@ -11318,7 +11322,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
 
   // Filter by tab
   const tabMatches = tab === 'interested'
-    ? matches.filter(m => ['candidate_interested', 'mutual_interest'].includes(m.status))
+    ? matches.filter(m => ['candidate_interested', 'mutual_interest', 'awaiting_payment', 'paid_unlocked', 'introduced'].includes(m.status))
     : tab === 'mutual'
     ? matches.filter(m => m.status === 'mutual_interest')
     : tab === 'received'
@@ -11387,6 +11391,10 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
 
             const isMutual   = match.status === 'mutual_interest';
             const isReceived = match.status === 'recruiter_interested';
+            // The firm's identity is revealed to the candidate only once the
+            // introduction is unlocked (paid or complimentary-confirmed).
+            const isUnlocked = match.status === 'paid_unlocked' || match.status === 'introduced';
+            const awaitingPay = match.status === 'awaiting_payment';
 
             return (
               <div key={match.id} className={`job-match-card ${isMutual ? 'mutual' : ''} ${isReceived ? 'recruiter-interested' : ''}`}>
@@ -11398,7 +11406,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                     <div>
                       <div className="job-match-title">{job.title}</div>
                       <div className="job-match-firm">
-                        {isMutual ? job.firm_name : 'Confidential Search Firm'} · {job.industry}
+                        {isUnlocked ? job.firm_name : 'Confidential Search Firm'} · {job.industry}
                       </div>
                     </div>
                   </div>
@@ -11447,7 +11455,10 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                   {isMutual && <span className="match-status-badge mutual">⬤ Mutual Interest</span>}
                   {isReceived && <span className="match-status-badge recruiter-interested">Firm Interested in You</span>}
                   {match.status === 'candidate_interested' && <span className="match-status-badge candidate-interested">Interest Sent</span>}
+                  {awaitingPay && <span className="match-status-badge mutual">Introduction approved — awaiting firm</span>}
+                  {isUnlocked && <span className="match-status-badge mutual">✓ Introduction confirmed — the firm has your contact details</span>}
                   {match.status === 'candidate_declined' && <span className="match-status-badge declined">Declined</span>}
+                  {match.status === 'candidate_withdrew' && <span className="match-status-badge declined">Withdrawn</span>}
                   {match.status === 'recruiter_withdrawn' && <span className="match-status-badge declined">Firm Withdrew</span>}
 
                   {/* Action buttons — gated by match confidence */}
@@ -11481,12 +11492,31 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                     </div>
                   )}
                   {isMutual && (
-                    <div style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'right',maxWidth:140}}>
-                      Fredheim will facilitate your introduction.
+                    <div style={{display:'flex',flexDirection:'column',gap:'0.375rem',alignItems:'flex-end'}}>
+                      <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem',whiteSpace:'nowrap'}}
+                        onClick={() => doAction('candidate_approve_introduction', match.id)} disabled={isBusy}>
+                        {isBusy ? '…' : 'Approve Introduction'}
+                      </button>
+                      <button className="admin-action-btn" style={{fontSize:'0.65rem'}}
+                        onClick={() => doAction('candidate_withdraw', match.id)} disabled={isBusy}>
+                        {isBusy ? '…' : 'Withdraw'}
+                      </button>
+                      <div style={{fontSize:'0.68rem',color:'var(--ink-4)',textAlign:'right',maxWidth:160,lineHeight:1.4}}>
+                        Your identity stays hidden until the firm completes the introduction.
+                      </div>
+                    </div>
+                  )}
+                  {awaitingPay && (
+                    <div style={{fontSize:'0.7rem',color:'var(--ink-4)',textAlign:'right',maxWidth:160,lineHeight:1.4}}>
+                      Approved — waiting for the firm to complete the introduction. You can still withdraw.
+                      <button className="admin-action-btn" style={{fontSize:'0.65rem',marginTop:'0.35rem'}}
+                        onClick={() => doAction('candidate_withdraw', match.id)} disabled={isBusy}>
+                        {isBusy ? '…' : 'Withdraw'}
+                      </button>
                     </div>
                   )}
                   {/* Hide option */}
-                  {!['candidate_hidden','mutual_interest'].includes(match.status) && (
+                  {!['candidate_hidden','mutual_interest','awaiting_payment','paid_unlocked','introduced','candidate_withdrew'].includes(match.status) && (
                     <button onClick={() => doAction('candidate_hide', match.id)} disabled={isBusy}
                       style={{background:'none',border:'none',fontSize:'0.65rem',color:'var(--ink-4)',cursor:'pointer',padding:'0',textDecoration:'underline'}}>
                       Hide
@@ -12264,53 +12294,32 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
   }, []);
 
   async function indicateInterest(matchId) {
+    // Expressing (or accepting) interest is FREE and never charges. It moves the
+    // match to recruiter_interested (from `matched`) or mutual_interest (from
+    // `candidate_interested`). Payment happens later — only after the candidate
+    // approves the introduction (status `awaiting_payment`) — via the dedicated
+    // unlock flow, NOT here. Previously this routed through the introduction
+    // checkout, which the server rejects for any status other than
+    // awaiting_payment, deadlocking every non-founding recruiter at this step.
     setActionLoading(p => ({...p, [matchId]: true}));
     try {
-      // Step 1: Trigger the $249 curated introduction checkout. Skipped
-      // automatically by the server when the recruiter is a founding cohort
-      // member (returns {complimentary: true}) or when the candidate is
-      // early-career (also complimentary). For all other introductions,
-      // Stripe Checkout opens in the same tab and the success_url returns
-      // the recruiter to the dashboard with ?checkout=engaged&match=<id>.
-      // The match status flips to recruiter_interested via the stripe-webhook
-      // handler when Stripe confirms payment.
-      const checkout = await fetch('/api/create-checkout-session', {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { showToast('Please sign in.'); setActionLoading(p => ({...p, [matchId]: false})); return; }
+      const resp = await fetch('/api/match-action', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'introduction', match_id: matchId, email: userEmail }),
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'recruiter_interest', match_id: matchId }),
       });
-      const cdata = await checkout.json();
-      if (!checkout.ok) {
-        showToast(cdata.error || 'Could not start curated introduction.');
-        setActionLoading(p => ({...p, [matchId]: false}));
-        return;
-      }
-      if (cdata.complimentary) {
-        // No payment required - proceed straight to the state transition.
-        const { data: { session } } = await sb.auth.getSession();
-        const resp = await fetch('/api/match-action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
-          body: JSON.stringify({ action: 'recruiter_interest', match_id: matchId }),
-        });
-        const data = await resp.json();
-        if (resp.ok) {
-          onMatchUpdate(matchId, data.status);
-          showToast(data.status === 'mutual_interest'
-            ? '✓ Mutual interest. Complimentary introduction confirmed.'
-            : '✓ Complimentary curated introduction sent.');
-        } else {
-          showToast(data.error || 'Could not send interest.');
-        }
-      } else if (cdata.url) {
-        // Hand off to Stripe Checkout. On payment success, Stripe webhook
-        // updates the match record server-side.
-        window.location.href = cdata.url;
-        return;
+      const data = await resp.json();
+      if (resp.ok) {
+        onMatchUpdate(matchId, data.status);
+        showToast(data.status === 'mutual_interest'
+          ? '✓ Mutual interest confirmed. The candidate can now approve a confidential introduction.'
+          : '✓ Interest sent. The candidate will be notified.');
       } else {
-        showToast('Unexpected checkout response. Please try again.');
+        showToast(data.error || 'Could not send interest.');
       }
-    } catch(e) { showToast('Error starting curated introduction.'); }
+    } catch(e) { showToast('Could not send interest. Please try again.'); }
     setActionLoading(p => ({...p, [matchId]: false}));
   }
 
@@ -12327,6 +12336,52 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
       if (resp.ok) { onMatchUpdate(matchId, 'recruiter_withdrawn'); showToast('Interest withdrawn.'); }
       else showToast(data.error || 'Could not withdraw.');
     } catch(e) { showToast('Error.'); }
+    setActionLoading(p => ({...p, [matchId]: false}));
+  }
+
+  // Unlock the introduction — only available once the candidate has approved
+  // (match status `awaiting_payment`). The server prices the introduction by
+  // compensation tier and enforces the approval gate; payment happens on Stripe
+  // Checkout. Founding recruiters / complimentary classes unlock for $0 via the
+  // server-confirmed complimentary path (no charge, same side effects).
+  async function unlockIntroduction(matchId) {
+    setActionLoading(p => ({...p, [matchId]: true}));
+    try {
+      const checkout = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'introduction', match_id: matchId, email: userEmail }),
+      });
+      const cdata = await checkout.json();
+      if (!checkout.ok) {
+        showToast(cdata.error || 'Could not start the introduction unlock.');
+        setActionLoading(p => ({...p, [matchId]: false}));
+        return;
+      }
+      if (cdata.complimentary) {
+        // No charge — confirm the unlock server-side (reveals contact).
+        const { data: { session } } = await sb.auth.getSession();
+        const resp = await fetch('/api/match-action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token || ''}` },
+          body: JSON.stringify({ action: 'complimentary_unlock', match_id: matchId }),
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+          onMatchUpdate(matchId, data.status || 'paid_unlocked');
+          showToast('✓ Introduction unlocked. Contact details are now available.');
+        } else {
+          showToast(data.error || 'Could not unlock the introduction.');
+        }
+      } else if (cdata.url) {
+        // Hand off to Stripe Checkout. The webhook flips the match to
+        // paid_unlocked and reveals contact on confirmed payment.
+        window.location.href = cdata.url;
+        return;
+      } else {
+        showToast('Unexpected response. Please try again.');
+      }
+    } catch(e) { showToast('Could not unlock the introduction. Please try again.'); }
     setActionLoading(p => ({...p, [matchId]: false}));
   }
 
@@ -12415,6 +12470,9 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                   const canInterest = match.status === 'matched' || match.status === 'candidate_interested';
                   const canWithdraw = match.status === 'recruiter_interested' || match.status === 'mutual_interest';
                   const isMutual    = match.status === 'mutual_interest';
+                  // Contact/identity is revealed ONLY after the introduction is
+                  // unlocked (paid or complimentary-confirmed) — never at mutual.
+                  const isUnlocked  = match.status === 'paid_unlocked' || match.status === 'introduced';
 
                   const reasons = typeof match.match_reasons === 'string'
                     ? JSON.parse(match.match_reasons) : (match.match_reasons || {});
@@ -12438,7 +12496,7 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                           to recruiters: scope and complexity classification, not title. */}
                       <div>
                         <div className="match-candidate-title">
-                          {isMutual ? match.candidate_email : privacyLabel(match)}
+                          {isUnlocked ? match.candidate_email : privacyLabel(match)}
                         </div>
                         {match.candidate_equivalent_label && (
                           <div className="match-candidate-equivalent">
@@ -12446,9 +12504,9 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                           </div>
                         )}
                         <div className="match-candidate-meta">
-                          {isMutual
-                            ? 'Identity revealed — Fredheim will facilitate introduction.'
-                            : 'Identity protected until mutual interest is confirmed.'}
+                          {isUnlocked
+                            ? 'Contact unlocked — reach out directly.'
+                            : 'Identity protected until the introduction is unlocked.'}
                         </div>
                       </div>
 
@@ -12513,13 +12571,30 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                           </>
                         )}
                         {match.status === 'mutual_interest' && (
-                          <span className="match-status-badge mutual">⬤ Mutual Interest — Introduction Pending</span>
+                          <span className="match-status-badge mutual">⬤ Mutual Interest — awaiting candidate approval</span>
+                        )}
+                        {match.status === 'awaiting_payment' && (
+                          <>
+                            <span className="match-status-badge candidate-interested">Candidate approved →</span>
+                            <button className="btn-primary" style={{fontSize:'0.72rem',padding:'0.4rem 1rem'}}
+                              onClick={() => unlockIntroduction(match.id)} disabled={isBusy}>
+                              {isBusy ? '…' : 'Unlock Introduction'}
+                            </button>
+                          </>
+                        )}
+                        {(match.status === 'paid_unlocked' || match.status === 'introduced') && (
+                          <div style={{display:'flex',flexDirection:'column',gap:'0.25rem'}}>
+                            <span className="match-status-badge mutual">✓ Introduction unlocked</span>
+                            <span style={{fontSize:'0.72rem'}}>
+                              Contact: <a href={`mailto:${match.candidate_email}`}>{match.candidate_email}</a>
+                            </span>
+                          </div>
                         )}
                         {match.status === 'candidate_declined' && (
                           <span className="match-status-badge declined">Candidate Declined</span>
                         )}
-                        {match.status === 'recruiter_withdrawn' && (
-                          <span className="match-status-badge declined">Withdrawn</span>
+                        {(match.status === 'recruiter_withdrawn' || match.status === 'candidate_withdrew') && (
+                          <span className="match-status-badge declined">{match.status === 'candidate_withdrew' ? 'Candidate Withdrew' : 'Withdrawn'}</span>
                         )}
                       </div>
                     </div>
@@ -14388,6 +14463,21 @@ function App() {
 
     applyUpgradeFromReturn();
   }, [authUser]);
+
+  // Stripe return handler for a paid curated introduction. The webhook performs
+  // the actual unlock server-side; this just confirms it to the returning
+  // recruiter and clears the params. The dashboard's own match load reflects the
+  // new paid_unlocked status.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'engaged') {
+      showToast('✓ Introduction unlocked. Contact details are now available on your dashboard.');
+      params.delete('checkout');
+      params.delete('match');
+      const qs = params.toString();
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''));
+    }
+  }, []);
 
   function scrollToSection(view, id) {
     // scrollToSection('profile') from hero — if signed in, go to profile FORM (not myprofile)

@@ -64,7 +64,8 @@ are left as recommendations, not changed.
 | HIGH-1 | Failed profile/brief/posting save shows an error (not "success") | ❌ **FAILED** (silent success on DB failure) — **FIXED** |
 | HIGH-2 | Candidate cannot create a match with a blocked/own employer | ❌ **FAILED** (candidate-interest path skipped the block filter) — **FIXED** |
 | HIGH-3 | A paid-but-unprocessed Stripe event is never lost silently | ❌ **FAILED** (handler swallowed errors, returned 200, no alert) — **FIXED** |
-| HIGH-4 | "Complimentary" (founding/early-career) introduction actually delivers contact | ❌ **FAILED** (only sets `recruiter_interested`, never unlocks) — open |
+| HIGH-4 | Self-serve introduction/unlock flow works end-to-end (approve → pay → unlock → reveal) | ❌ **FAILED** (flow only half-wired; non-founding recruiters deadlocked) — **FIXED** |
+| CRIT-4 | Candidate identity NOT revealed to recruiter at `mutual_interest` (before payment) | ❌ **FAILED** (recruiter saw `candidate_email` at mutual) — **FIXED** |
 | HIGH-5 | Dashboard match counts equal the live (non-terminal) matches shown | ❌ **FAILED** (counts include declined/withdrawn/expired) — open |
 | MED-1 | No raw technical errors shown to users | ❌ **FAILED** in 2 spots — **FIXED** |
 | MED-2 | Duplicate Stripe webhook delivery cannot double-insert a paid intro | ❌ **FAILED** (no idempotency key) — open |
@@ -147,7 +148,7 @@ processed.
 | CRIT-1 | Tiered introductions never unlocked after payment (ad-hoc price ID vs `isIntroductionPrice`). | Critical | **FIXED** |
 | HIGH-3 | Webhook caught all handler errors and returned 200 with **no alert** → a customer could pay while the DB update failed, lost silently with no Stripe retry. | High | **FIXED** (admin alert added on failure) |
 | MED-2 | No idempotency guard: a duplicate Stripe `checkout.session.completed` delivery would insert a **duplicate** `fed_paid_introductions` row and re-send emails/alerts. (Re-charge at *checkout creation* is blocked because `resolveIntroductionPrice` requires `awaiting_payment`.) | Medium | Open |
-| HIGH-4 | "Complimentary" introductions (founding recruiter or early-career candidate) only set `recruiter_interested`/`mutual_interest` — they **never reach `paid_unlocked`/`introduced`**, so no contact is exchanged, yet the UI says "introduction confirmed." Also, the founding-complimentary branch returns before the `awaiting_payment` candidate-approval check, **bypassing the approval gate**. | High | Open |
+| HIGH-4 | The self-serve introduction/unlock flow was **only half-wired**: the backend implemented the full state machine, but the UI stopped at `mutual_interest`, the recruiter's initial "Indicate Interest" button routed through a payment checkout that the server rejected unless already `awaiting_payment` (**deadlocking every non-founding recruiter**), and "complimentary" introductions only set `recruiter_interested`/`mutual_interest` — never reaching `paid_unlocked`. The founding-complimentary branch also bypassed the candidate-approval gate. | High | **FIXED** (full self-serve flow built) |
 | PAY-1 | Pricing is inconsistent across the codebase: headers/UI say "flat $249" while the live `fed_matches` path charges compensation tiers ($99–$2,500). The *charged* amount is correct (driven by `price_data`/`amount_total`), but copy and the `'$249'` fallback in `handleIntroductionPaid` are misleading. | Low | Open |
 | PAY-2 | Declined cards / failed initial payment: Stripe Checkout handles declines on its hosted page (no app code path needed). Renewal failures (`invoice.payment_failed`) correctly alert the desk and downgrade. Verified by reading; **exercise in Stripe test mode before launch** (cards `4000000000000002` decline, `4000000000009995` insufficient funds). | — | Verify live |
 
@@ -194,10 +195,9 @@ not corrupted score values.
    `paid_unlocked`. Move recruiter match loading to a server endpoint that returns
    `identity.redactCandidate()`-filtered rows. *Until proven, treat anonymity as
    broken.*
-2. **HIGH-4:** Make "complimentary" introductions actually transition to
-   `paid_unlocked`/`introduced` (and route them through the candidate-approval
-   `awaiting_payment` gate) so contact is genuinely exchanged — or stop telling
-   the user the introduction is "confirmed."
+2. **HIGH-4 — DONE.** The full self-serve introduction/unlock flow has been wired
+   end-to-end (see §9, second pass). Remaining: exercise it in Stripe test mode
+   on the live deploy (item 4).
 3. **MATCH-1:** Delete (or regenerate from `api/`) the divergent root-level
    `*.js` duplicates so there is one canonical copy of the payment/matching logic.
    *(Left to the owner because the repo's "Add files via upload" history suggests a
@@ -232,6 +232,19 @@ All committed on `claude/pre-launch-qa-audit-Jhlq2`; `npm run build` passes.
 | `src/main.jsx` | **CRIT-3:** removed client-side tier self-grant; webhook is now the sole source of truth, with DB-poll confirmation on return. **HIGH-1:** profile save, recruiter brief, and intern posting now detect `{ error }` from Supabase and show a clean failure message instead of false "success". **MED-1:** intern publish no longer leaks `error.message`. **UI-5:** intern email format check. |
 | `src/talent-match.jsx` | **MED-1:** questionnaire submit no longer surfaces raw network/runtime exception text to candidates. |
 
+### Second pass — HIGH-4: full self-serve introduction/unlock flow
+
+The fed_matches paid-introduction flow was only half-wired (backend complete, UI
+stopped at `mutual_interest`). It is now wired end-to-end, and two further bugs
+found during the work were fixed:
+
+| File | Change |
+|---|---|
+| `src/main.jsx` (recruiter) | `indicateInterest` no longer routes the *initial* signal through checkout — it now calls `recruiter_interest` directly (**free**), fixing the **non-founding-recruiter deadlock** where the initial click hit a payment gate it could never satisfy. Added the `awaiting_payment` → **Unlock Introduction** button (`unlockIntroduction`, Stripe or $0 complimentary) and the `paid_unlocked`/`introduced` contact-revealed state. **CRIT-4:** candidate contact (`candidate_email`) is now revealed only when `paid_unlocked`/`introduced` — previously shown at `mutual_interest`, before payment. Added a paid-return success toast. |
+| `src/main.jsx` (candidate) | Added **Approve Introduction** / **Withdraw** actions at `mutual_interest` (→ `awaiting_payment`/`candidate_withdrew`), plus `awaiting_payment` and `paid_unlocked`/`introduced` states. Firm identity is now revealed to the candidate only after unlock (was shown at `mutual_interest`). |
+| `api/match-action.js` | New `complimentary_unlock` action: performs the same side effects as the webhook's paid unlock (status `paid_unlocked`, `fed_paid_introductions` row at $0, bilateral notifications + emails) for founding/early-career $0 introductions. Gated to the recruiter + `awaiting_payment`; idempotent. |
+| `api/create-checkout-session.js` | Resolve price (which enforces the `awaiting_payment` candidate-approval gate) **before** the founding/complimentary branches, closing the **approval-gate bypass**. Founding lookup now falls back to email. Introduction `success_url`/`cancel_url` now return to the fed dashboard (`?view=recruiter-dash`) instead of the unrelated legacy `recruiter-talent.html` app. |
+
 ---
 
 ## 10. Final launch recommendation
@@ -239,23 +252,27 @@ All committed on `claude/pre-launch-qa-audit-Jhlq2`; `npm run build` passes.
 > ### 🔴 DO NOT LAUNCH YET — conditional GO after blockers cleared
 
 The two most dangerous defects were a **payment that delivered nothing**
-(CRIT-1) and a **paid-tier self-grant** (CRIT-3); both are **fixed** in this
-branch. However, launch must **not** proceed until:
+(CRIT-1) and a **paid-tier self-grant** (CRIT-3); both are **fixed**. The
+self-serve introduction/unlock flow (**HIGH-4**) — including a previously
+undiscovered **non-founding-recruiter deadlock** and a **premature identity
+reveal at `mutual_interest`** (CRIT-4) — has now been built and fixed end-to-end.
+However, launch must **not** proceed until:
 
 1. **CRIT-2 / SEC-1 is resolved and verified live** — the candidate-anonymity
    guarantee currently depends on RLS that is not in the repo and that the
    browser-side query (`fed_matches.select('*')`) would defeat if absent. This is
    the single highest privacy risk and the platform's core promise. **Confirm it
    against the live database, with the recommended server-side redaction in
-   place, before any real candidate data is loaded.**
-2. **HIGH-4 (complimentary introductions) is fixed** so the unlock workflow is
-   complete and honest for founding/early-career flows.
-3. **MATCH-1 (divergent duplicate files) is reconciled** so the audited `api/`
+   place, before any real candidate data is loaded.** (Note: CRIT-4 fixed the UI
+   from *displaying* contact pre-payment, but the raw column is still shipped to
+   the browser until this is closed.)
+2. **MATCH-1 (divergent duplicate files) is reconciled** so the audited `api/`
    logic is the only logic that can ship.
-4. **The Stripe test-mode matrix is run end-to-end on the deployed environment**
-   (the one workflow this code-level audit could not exercise).
+3. **The Stripe test-mode matrix is run end-to-end on the deployed environment**
+   (the one workflow this code-level audit could not exercise) — now including the
+   full approve → unlock → pay → reveal path and the $0 complimentary unlock.
 
-Once those four are done — and the should-fix matching/count and idempotency
+Once those three are done — and the should-fix matching/count and idempotency
 items are scheduled — the platform is in good shape to launch. The payment state
-machine, candidate approval gate, server unlock rule, and error/empty-state
-handling are otherwise sound.
+machine, candidate approval gate, self-serve unlock flow, server unlock rule, and
+error/empty-state handling are otherwise sound.

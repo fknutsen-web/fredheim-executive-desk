@@ -11,9 +11,10 @@
 //   mark_viewed          — recruiter marks job matches as viewed (clears new count)
 
 const { createClient } = require('@supabase/supabase-js');
-const { createNotification } = require('./lib/notifications');
+const { createNotification, createPaymentNotification } = require('./lib/notifications');
 const { canTransition, isValidMatchState } = require('./lib/match-states');
 const { EVENTS, logEvent } = require('./lib/audit');
+const { sendEmail, brandedHtml } = require('./lib/email');
 
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 const db = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
@@ -136,6 +137,85 @@ module.exports = async function handler(req, res) {
         `A search firm has withdrawn their interest in you for the ${match.fed_jobs?.title || 'role'}.`);
 
       return res.status(200).json({ ok: true, status: 'recruiter_withdrawn' });
+    }
+
+    // ── RECRUITER: Complimentary unlock (founding / early-career — $0) ──
+    // For introductions that carry no fee, this performs the SAME side effects
+    // as the Stripe webhook's paid unlock. It is gated exactly like a paid
+    // unlock: the caller must be the recruiter on the match AND the candidate
+    // must already have approved the introduction (status `awaiting_payment`).
+    // Eligibility for $0 is decided server-side by /api/create-checkout-session
+    // (it returns { complimentary: true } only for founding recruiters or
+    // complimentary candidate classes); the client calls this only in that case.
+    if (action === 'complimentary_unlock') {
+      if (!match_id) return res.status(400).json({ error: 'match_id required.' });
+
+      const { data: match } = await db
+        .from('fed_matches')
+        .select('*, fed_jobs(title, firm_name, firm_email)')
+        .eq('id', match_id)
+        .single();
+      if (!match) return res.status(404).json({ error: 'Match not found.' });
+      if (match.recruiter_email.toLowerCase() !== callerEmail) {
+        return res.status(403).json({ error: 'Not authorized for this match.' });
+      }
+      // Idempotent: already unlocked.
+      if (match.status === 'paid_unlocked' || match.status === 'introduced') {
+        return res.status(200).json({ ok: true, status: match.status });
+      }
+      if (!canTransition(match.status, 'paid_unlocked')) {
+        return res.status(409).json({ error: 'This introduction is not approved for unlock yet. The candidate must approve it first.' });
+      }
+
+      const now = new Date().toISOString();
+      const { error: upErr } = await db.from('fed_matches').update({
+        status:                   'paid_unlocked',
+        unlocked_at:              now,
+        payment_completed_at:     now,
+        recruiter_interested_at:  match.recruiter_interested_at || now,
+        introduction_fee_paid:    true,
+        introduction_fee_amount:  '$0',
+        introduction_fee_bracket: 'complimentary',
+      }).eq('id', match_id);
+      if (upErr) throw upErr;
+
+      // Durable source of truth for the unlock (amount 0).
+      await db.from('fed_paid_introductions').insert({
+        match_id:        match_id,
+        job_id:          match.job_id,
+        candidate_email: match.candidate_email,
+        recruiter_email: callerEmail,
+        amount_paid:     0,
+        currency:        'usd',
+        paid_at:         now,
+        status:          'paid',
+      });
+
+      const jobTitle = match.fed_jobs?.title || 'a senior search';
+      const firmName  = match.fed_jobs?.firm_name || 'A search firm';
+
+      await logEvent(db, { type: EVENTS.PROFILE_UNLOCKED, actorEmail: callerEmail, actorRole: 'recruiter', matchId: match_id, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail: callerEmail, amount: 0, detail: { bracket: 'complimentary' } });
+      await logEvent(db, { type: EVENTS.INTRODUCTION_SENT, actorRole: 'system', matchId: match_id, jobId: match.job_id, candidateEmail: match.candidate_email, recruiterEmail: callerEmail });
+
+      await createPaymentNotification(db, {
+        recipientEmail: match.candidate_email, role: 'candidate', type: 'paid_unlocked',
+        matchId: match_id, jobId: match.job_id,
+        title: `Curated introduction confirmed — ${jobTitle}`,
+        body:  `${firmName} has completed a complimentary curated introduction for ${jobTitle}. Fredheim has shared your approved contact details with the firm and they will reach out directly.`,
+      });
+      await createPaymentNotification(db, {
+        recipientEmail: callerEmail, role: 'recruiter', type: 'paid_unlocked',
+        matchId: match_id, jobId: match.job_id,
+        title: `Contact unlocked — ${jobTitle}`,
+        body:  `Your complimentary curated introduction is confirmed. Approved contact details are now available on your dashboard.`,
+      });
+
+      const candBody = `${firmName} has completed a complimentary curated introduction for the ${jobTitle} search. They have your approved contact details and will be in touch directly.`;
+      const recBody  = `Your complimentary curated introduction is confirmed. Approved contact details for this candidate are now available on your dashboard.`;
+      await sendEmail({ to: match.candidate_email, subject: `Curated introduction confirmed — ${jobTitle}`, text: candBody, html: brandedHtml(candBody, { heading: `Curated introduction confirmed — ${jobTitle}` }) });
+      await sendEmail({ to: callerEmail, subject: `Contact unlocked — ${jobTitle}`, text: recBody, html: brandedHtml(recBody, { heading: `Contact unlocked — ${jobTitle}` }) });
+
+      return res.status(200).json({ ok: true, status: 'paid_unlocked' });
     }
 
     // ── CANDIDATE: Indicate Interest ──────────────────────────
