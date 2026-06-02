@@ -409,7 +409,12 @@ function App() {
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e) {
-      setError(e.message);
+      // Show app-controlled messages as-is, but never surface raw network/runtime
+      // exception text (e.g. "Failed to fetch") to the candidate.
+      console.error('Questionnaire submit failed:', e);
+      setError(e && e.name !== 'TypeError' && e.message
+        ? e.message
+        : 'We couldn’t submit your profile right now. Please check your connection and try again.');
     } finally {
       setSubmitting(false);
     }

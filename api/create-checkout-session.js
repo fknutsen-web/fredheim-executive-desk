@@ -148,13 +148,21 @@ module.exports = async function handler(req, res) {
     if (type === 'engagement' || type === 'introduction') {
       if (!match_id) return res.status(400).json({ error: 'match_id is required for curated introduction.' });
 
-      // Founding window override - introductions complimentary for founding recruiters.
-      if (recruiter_id && isFoundingWindowActive()) {
-        const { data: rec } = await supabase
-          .from('talent_recruiters')
-          .select('tier')
-          .eq('id', recruiter_id)
-          .maybeSingle();
+      // Resolve the price FIRST. For the live fed_matches flow this enforces the
+      // candidate-approval gate (the match must be in `awaiting_payment`), so NO
+      // path below — including the founding/early-career complimentary unlocks —
+      // can ever fire before the candidate has approved the introduction.
+      const resolved = await resolveIntroductionPrice(match_id);
+      if (resolved.error) return res.status(400).json({ error: resolved.error });
+
+      // Founding window override — introductions are complimentary for founding
+      // recruiters, but only once approved (guaranteed by the resolve above).
+      // Look up the recruiter by id, falling back to email when no id was passed.
+      if (isFoundingWindowActive() && (recruiter_id || email)) {
+        const recQuery = supabase.from('talent_recruiters').select('tier');
+        const { data: rec } = await (recruiter_id
+          ? recQuery.eq('id', recruiter_id).maybeSingle()
+          : recQuery.eq('email', String(email).toLowerCase()).maybeSingle());
         if (rec && rec.tier === 'founding') {
           return res.status(200).json({
             complimentary: true,
@@ -163,9 +171,6 @@ module.exports = async function handler(req, res) {
           });
         }
       }
-
-      const resolved = await resolveIntroductionPrice(match_id);
-      if (resolved.error) return res.status(400).json({ error: resolved.error });
 
       if (resolved.bracket === 'complimentary') {
         return res.status(200).json({
@@ -189,8 +194,8 @@ module.exports = async function handler(req, res) {
         mode: 'payment',
         customer_email: email || undefined,
         line_items: [lineItem],
-        success_url: `${baseUrl}/recruiter-talent.html?checkout=engaged&match=${match_id}`,
-        cancel_url:  `${baseUrl}/recruiter-talent.html?checkout=cancelled`,
+        success_url: `${baseUrl}/?view=recruiter-dash&checkout=engaged&match=${match_id}`,
+        cancel_url:  `${baseUrl}/?view=recruiter-dash&checkout=cancelled`,
         metadata: {
           type:             'introduction',
           match_id,

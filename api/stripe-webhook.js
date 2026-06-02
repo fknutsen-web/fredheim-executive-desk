@@ -203,7 +203,15 @@ module.exports = async function handler(req, res) {
         // Updates BOTH fed_matches (executive product) and talent_matches
         // (legacy talent product) so either match record advances.
         const matchId = meta.match_id;
-        if ((meta.type === 'introduction' || meta.type === 'engagement') && matchId && isIntroductionPrice(priceId)) {
+        // Identify a curated-introduction checkout. The compensation-tiered flow
+        // uses inline `price_data`, so Stripe mints an ad-hoc price ID that will
+        // NOT match any configured PRICE_INTRO_* env var — therefore we must NOT
+        // gate on isIntroductionPrice() for those. We trust our own server-set
+        // metadata (meta.type), and keep isIntroductionPrice() only as a fallback
+        // for legacy price-ID-only checkouts where metadata may be absent.
+        const isIntroductionCheckout =
+          meta.type === 'introduction' || meta.type === 'engagement' || isIntroductionPrice(priceId);
+        if (isIntroductionCheckout && matchId) {
           await handleIntroductionPaid(matchId, meta.bracket, meta.fee_amount, custId, email, session);
           await handleEngagementPaid(matchId, meta.bracket, meta.fee_amount, custId, email);
           break;
@@ -353,7 +361,25 @@ module.exports = async function handler(req, res) {
     }
   } catch (err) {
     console.error('Webhook handler error:', err);
-    // Return 200 regardless — Stripe retries on non-200
+    // We still return 200 (so Stripe does not retry an event whose Stripe-side
+    // state is already final), but a money event was received and our side
+    // effects FAILED — e.g. a customer paid but their unlock/tier was never
+    // written. That must never be lost silently: alert the desk so it can be
+    // reconciled manually. The alert itself is best-effort and never throws.
+    try {
+      await sendAdminAlert({
+        subject: `⚠ Stripe webhook handler error — ${event?.type || 'unknown event'}`,
+        text:
+          `A Stripe event was received but processing FAILED.\n\n` +
+          `Event type: ${event?.type || 'unknown'}\n` +
+          `Event ID:   ${event?.id || 'n/a'}\n` +
+          `Error:      ${err && err.message ? err.message : String(err)}\n\n` +
+          `A customer may have paid without their account/unlock being updated. ` +
+          `Reconcile against Stripe immediately.`,
+      });
+    } catch (alertErr) {
+      console.error('Failed to send webhook-failure admin alert:', alertErr);
+    }
   }
 
   return res.status(200).json({ received: true });
