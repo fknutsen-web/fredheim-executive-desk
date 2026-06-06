@@ -12,6 +12,7 @@ Supabase migration system (`apply_migration`) and is reproducible from here.
 | 3 | `2026-06-06_align_placements_and_industry_verticals.sql` | Add `fed_placements.placement_status` (read by `leaderboard.js`); run the six-vertical industry normalisation across all industry columns. |
 | 4 | `2026-06-06_enable_rls_on_pii_tables.sql` | Enable RLS on `fed_profiles` and `fed_matches` and drop the over-broad public read on `fed_profiles`, so the shipped publishable key can no longer read confidential candidate data. |
 | 5 | `2026-06-06_lock_down_ghost_rpc_execute.sql` | Revoke client `EXECUTE` on the ghost-increment RPC (server/cron only). |
+| 6 | `2026-06-06_lock_down_admin_managed_billing_tables.sql` | Add `fed_recruiter_billing.admin_reviewed_at`; drop the permissive policies from migration 2 now that admin billing/override reads & writes go through service-role endpoints. Supersedes migration 2. |
 
 `fed-vertical-migration.sql` in the repo root is the original (pre-existing)
 vertical migration; migration 3 supersedes/repeats it in an idempotent,
