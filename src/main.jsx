@@ -3755,12 +3755,14 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
         </div>
 
         <div className="hero-stats">
+          {authUser && (
           <div className="stat-item">
             <div className="stat-num">{jobCount || '—'}</div>
             <div className="stat-label">Active Searches</div>
           </div>
+          )}
           <div className="stat-item">
-            <div className="stat-num">4</div>
+            <div className="stat-num">6</div>
             <div className="stat-label">Industry Verticals</div>
           </div>
           <div className="stat-item">
@@ -14855,28 +14857,37 @@ function App() {
         {activeView === 'jobs' && (
           <>
             <div className="section-header">
-              <h2 className="section-title">Active Searches</h2>
-              <div className="section-count">
-                {loading ? 'Loading…' : `${filtered.length} of ${jobs.length} opportunities`}
-              </div>
+              <h2 className="section-title">{authUser ? 'Active Searches' : 'Example Searches'}</h2>
+              {authUser && (
+                <div className="section-count">
+                  {loading ? 'Loading…' : `${filtered.length} of ${jobs.length} opportunities`}
+                </div>
+              )}
             </div>
 
-            <div className="filters">
-              <div className="search-wrap">
-                <span className="search-icon">⌕</span>
-                <input className="search-input" placeholder="Search by title, firm, or keyword…" value={search} onChange={e=>setSearch(e.target.value)} />
+            {authUser ? (
+              <div className="filters">
+                <div className="search-wrap">
+                  <span className="search-icon">⌕</span>
+                  <input className="search-input" placeholder="Search by title, firm, or keyword…" value={search} onChange={e=>setSearch(e.target.value)} />
+                </div>
+                <select className="filter-select" value={industry} onChange={e=>setIndustry(e.target.value)}>
+                  {INDUSTRIES.map(i=><option key={i}>{i}</option>)}
+                </select>
+                <select className="filter-select" value={func} onChange={e=>setFunc(e.target.value)}>
+                  {FUNCTIONS.map(f=><option key={f}>{f}</option>)}
+                </select>
+                <select className="filter-select" value={salaryBand} onChange={e=>setSalaryBand(Number(e.target.value))}>
+                  {SALARY_BANDS.map(b=><option key={b.min} value={b.min}>{b.label}</option>)}
+                </select>
+                <button className="filter-clear" onClick={clearFilters}>Clear</button>
               </div>
-              <select className="filter-select" value={industry} onChange={e=>setIndustry(e.target.value)}>
-                {INDUSTRIES.map(i=><option key={i}>{i}</option>)}
-              </select>
-              <select className="filter-select" value={func} onChange={e=>setFunc(e.target.value)}>
-                {FUNCTIONS.map(f=><option key={f}>{f}</option>)}
-              </select>
-              <select className="filter-select" value={salaryBand} onChange={e=>setSalaryBand(Number(e.target.value))}>
-                {SALARY_BANDS.map(b=><option key={b.min} value={b.min}>{b.label}</option>)}
-              </select>
-              <button className="filter-clear" onClick={clearFilters}>Clear</button>
-            </div>
+            ) : (
+              <p style={{fontSize:'0.9rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:680,margin:'0 0 1.5rem'}}>
+                A sample of the kinds of mandates placed across our verticals. Live searches are private —
+                sign in or create a free executive profile to browse current openings and signal interest confidentially.
+              </p>
+            )}
 
             {loading ? (
               <div className="loading-state"><span className="spinner" />Loading searches…</div>
@@ -14888,13 +14899,13 @@ function App() {
               </div>
             ) : (
               <>
-                {/* Public-side marketplace gate. Unauthenticated visitors see a
-                    sample of the first 3 searches; the rest are locked behind
-                    sign-in. The strategic doc prohibits open marketplace
-                    browsing to protect candidate confidentiality and prevent
-                    recruiter harvesting. */}
+                {/* Public-side marketplace gate. Unauthenticated visitors see
+                    only the per-vertical SAMPLE postings (loadJobs restricts to
+                    demo_post=true; RLS enforces the same), with no count or
+                    search. Live searches require an account — this protects
+                    candidate confidentiality and prevents recruiter harvesting. */}
                 <div className="jobs-grid">
-                  {(authUser ? filtered : filtered.slice(0, 3)).map(j => (
+                  {filtered.map(j => (
                     <JobCard key={j.id} job={j} onClick={async (job) => {
                       setSelectedJob(job);
                       sb.from('fed_jobs').update({ view_count: (job.view_count || 0) + 1 }).eq('id', job.id).then(() => {
@@ -14903,7 +14914,7 @@ function App() {
                     }} />
                   ))}
                 </div>
-                {!authUser && filtered.length > 3 && (
+                {!authUser && (
                   <div style={{
                     marginTop:'1.5rem',
                     padding:'1.5rem 1.75rem',
@@ -14926,12 +14937,12 @@ function App() {
                       color:'var(--ink-1)',
                       marginBottom:'0.5rem',
                     }}>
-                      More searches available to members
+                      Live searches are private
                     </div>
                     <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:560,margin:'0 auto 1rem'}}>
-                      Fredheim Desk is a private executive marketplace. Sign in or create a
-                      free executive profile to browse the full set of curated searches and
-                      signal interest confidentially.
+                      The postings above are illustrative examples. Sign in or create a
+                      free executive profile to browse live searches and signal interest
+                      confidentially.
                     </p>
                     <div style={{display:'flex',gap:'0.625rem',justifyContent:'center',flexWrap:'wrap'}}>
                       <button className="btn-primary" onClick={() => goToView('profile')}>Create Executive Profile</button>
