@@ -12924,6 +12924,27 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
     </div>
   );
 
+  // Self-serve recruiter account closure — server scrubs firm/contact/billing
+  // PII, archives postings, and closes matches, then we sign out.
+  async function deleteAccount() {
+    if (!window.confirm('Close your recruiter account? This archives your searches, removes your firm and billing details, and signs you out. This cannot be undone.')) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token || '';
+      const resp = await fetch('/api/recruiter-billing', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ action: 'delete_account' }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) { showToast(data.error || 'Could not close account. Please try again.'); return; }
+      showToast('Your recruiter account has been closed.');
+      setTimeout(() => onSignOut(), 1600);
+    } catch(e) {
+      showToast('Could not close account. Please try again.');
+    }
+  }
+
   return (
     <div className="recruiter-dash-page">
       <div className="recruiter-dash-header">
@@ -13161,6 +13182,19 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
       <div style={{marginTop:'2rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
         Questions about your account or a posting?{' '}
         <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+      </div>
+
+      {/* Close account */}
+      <div className="profile-card" style={{marginTop:'1.5rem',borderColor:'#c0392b'}}>
+        <div className="profile-card-header">
+          <div className="profile-card-title">Close Account</div>
+        </div>
+        <p style={{fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:1.6,margin:'0 0 0.875rem'}}>
+          Closing your account archives your active searches, removes your firm and billing details,
+          and ends your access. Anonymized records may be retained only where required for finance or
+          compliance. This cannot be undone.
+        </p>
+        <button className="admin-action-btn danger" onClick={deleteAccount}>Close my account</button>
       </div>
       </div>
       )}

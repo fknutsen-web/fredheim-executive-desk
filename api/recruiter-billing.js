@@ -64,6 +64,33 @@ module.exports = async function handler(req, res) {
   const email = user.email.toLowerCase();
 
   try {
+    // ── CLOSE ACCOUNT (self-serve, GDPR) ──────────────────────────────────────
+    // Authenticated above as `email`. Archives the recruiter's postings, closes
+    // their matches, and scrubs firm/contact/billing PII.
+    if (action === 'delete_account') {
+      const now = new Date().toISOString();
+      const tombstone = `removed_${Date.now()}@deleted`;
+      // Archive postings + strip firm contact details so they leave the board.
+      await db.from('fed_jobs')
+        .update({ status: 'archived', archived_at: now, firm_email: tombstone, firm_contact: null })
+        .ilike('firm_email', email);
+      // Close any matches tied to this recruiter and drop the identifier.
+      await db.from('fed_matches')
+        .update({ status: 'closed', recruiter_email: tombstone })
+        .ilike('recruiter_email', email);
+      // Scrub submissions, billing, and profile.
+      await db.from('fed_recruiter_submissions')
+        .update({ contact_name: '[REMOVED]', email: tombstone, status: 'removed' })
+        .ilike('email', email);
+      await db.from('fed_recruiter_billing')
+        .update({ billing_status: 'closed', invoice_company_name: null, invoice_company_address: null,
+                  invoice_contact_name: null, invoice_contact_email: null, invoice_billing_notes: null, updated_at: now })
+        .ilike('recruiter_email', email);
+      await db.from('fed_recruiter_profiles').delete().ilike('recruiter_email', email);
+      await db.from('fed_notifications').delete().ilike('recipient_email', email);
+      return res.status(200).json({ ok: true, message: 'Recruiter account closed.' });
+    }
+
     // ── GET CURRENT BILLING STATUS ───────────────────────────────────────────
     if (action === 'get_status' || req.method === 'GET') {
       const { data: billing } = await db
