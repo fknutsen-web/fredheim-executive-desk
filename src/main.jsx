@@ -9795,12 +9795,31 @@ function AdminBillingTab({ showToast }) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const { data } = await sb.from('fed_recruiter_billing').select('*').order('created_at', {ascending:false});
-      setBillings(data || []);
+      const adminTok = sessionStorage.getItem('fed_admin_token') || '';
+      const data = await fetch('/api/admin-oversight?resource=billing', { headers: { 'Authorization': 'Bearer ' + adminTok } })
+        .then(r => r.json()).then(d => d.billing || []).catch(() => []);
+      setBillings(data);
       setLoading(false);
     }
     load();
   }, []);
+
+  // Billing status changes run server-side (fed_recruiter_billing is service-role
+  // only); update local state optimistically on success.
+  async function adminSetBilling(target_email, payload, optimistic, toast) {
+    try {
+      const adminTok = sessionStorage.getItem('fed_admin_token') || '';
+      const resp = await fetch('/api/recruiter-billing', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + adminTok },
+        body: JSON.stringify({ action:'admin_set_status', target_email, ...payload }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) { showToast(data.error || 'Update failed.'); return; }
+      setBillings(p => p.map(x => x.recruiter_email === target_email ? {...x, ...optimistic} : x));
+      showToast(toast);
+    } catch(e) { showToast('Error updating billing.'); }
+  }
 
   function fmt(ts) { if (!ts) return '—'; return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
 
@@ -9844,39 +9863,35 @@ function AdminBillingTab({ showToast }) {
                     <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
                       {b.billing_status === 'invoice_billing_pending' && b.admin_review_status === 'pending' && (
                         <>
-                          <button className="admin-action-btn approve" onClick={async()=>{
-                            const now = new Date().toISOString();
-                            await sb.from('fed_recruiter_billing').update({
-                              billing_status:'invoice_billing_approved',
-                              admin_review_status:'approved',
-                              admin_reviewed_at: now,
-                            }).eq('recruiter_email', b.recruiter_email);
-                            setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'invoice_billing_approved',admin_review_status:'approved'}:x));
-                            showToast('Invoice billing approved.');
-                          }}>Approve</button>
-                          <button className="admin-action-btn danger" onClick={async()=>{
-                            await sb.from('fed_recruiter_billing').update({
-                              billing_status:'no_billing_setup',
-                              admin_review_status:'rejected',
-                            }).eq('recruiter_email', b.recruiter_email);
-                            setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'no_billing_setup',admin_review_status:'rejected'}:x));
-                            showToast('Invoice billing rejected.');
-                          }}>Reject</button>
+                          <button className="admin-action-btn approve" onClick={()=>adminSetBilling(
+                            b.recruiter_email,
+                            { billing_status:'invoice_billing_approved', admin_review_status:'approved' },
+                            { billing_status:'invoice_billing_approved', admin_review_status:'approved' },
+                            'Invoice billing approved.'
+                          )}>Approve</button>
+                          <button className="admin-action-btn danger" onClick={()=>adminSetBilling(
+                            b.recruiter_email,
+                            { billing_status:'no_billing_setup', admin_review_status:'rejected' },
+                            { billing_status:'no_billing_setup', admin_review_status:'rejected' },
+                            'Invoice billing rejected.'
+                          )}>Reject</button>
                         </>
                       )}
                       {b.billing_status === 'payment_failed' && (
-                        <button className="admin-action-btn danger" onClick={async()=>{
-                          await sb.from('fed_recruiter_billing').update({billing_status:'suspended',suspended_at:new Date().toISOString()}).eq('recruiter_email',b.recruiter_email);
-                          setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'suspended'}:x));
-                          showToast('Account suspended.');
-                        }}>Suspend</button>
+                        <button className="admin-action-btn danger" onClick={()=>adminSetBilling(
+                          b.recruiter_email,
+                          { billing_status:'suspended' },
+                          { billing_status:'suspended' },
+                          'Account suspended.'
+                        )}>Suspend</button>
                       )}
                       {b.billing_status === 'suspended' && (
-                        <button className="admin-action-btn approve" onClick={async()=>{
-                          await sb.from('fed_recruiter_billing').update({billing_status:'payment_method_added',suspended_at:null}).eq('recruiter_email',b.recruiter_email);
-                          setBillings(p=>p.map(x=>x.recruiter_email===b.recruiter_email?{...x,billing_status:'payment_method_added'}:x));
-                          showToast('Account reinstated.');
-                        }}>Reinstate</button>
+                        <button className="admin-action-btn approve" onClick={()=>adminSetBilling(
+                          b.recruiter_email,
+                          { billing_status:'payment_method_added', clear_suspended:true },
+                          { billing_status:'payment_method_added' },
+                          'Account reinstated.'
+                        )}>Reinstate</button>
                       )}
                       {b.invoice_contact_email && (
                         <a href={`mailto:${b.invoice_contact_email}`} style={{textDecoration:'none'}}>
@@ -9907,9 +9922,11 @@ function AdminLeaderboardTab({ showToast }) {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [{ data: bil }, { data: ov }, lbResp] = await Promise.all([
-        sb.from('fed_recruiter_billing').select('recruiter_email,billing_status').order('created_at',{ascending:false}),
-        sb.from('fed_leaderboard_overrides').select('*'),
+      const adminTok = sessionStorage.getItem('fed_admin_token') || '';
+      const authHdr = { 'Authorization': 'Bearer ' + adminTok };
+      const [bil, ov, lbResp] = await Promise.all([
+        fetch('/api/admin-oversight?resource=billing', { headers: authHdr }).then(r=>r.json()).then(d=>d.billing||[]).catch(()=>[]),
+        fetch('/api/admin-oversight?resource=overrides', { headers: authHdr }).then(r=>r.json()).then(d=>d.overrides||[]).catch(()=>[]),
         fetch('/api/leaderboard?period=all').then(r=>r.json()).catch(()=>({leaderboard:[]})),
       ]);
       setRecruiterEmails((bil||[]).map(b=>b.recruiter_email));

@@ -26,6 +26,33 @@ module.exports = async function handler(req, res) {
 
   const { action } = req.method === 'GET' ? req.query : (req.body || {});
 
+  // ── ADMIN: set a recruiter's billing status (admin console) ────────────────
+  // Authenticated via the admin HMAC token, not a Supabase user session. This
+  // replaces the previous client-side writes to fed_recruiter_billing so the
+  // table no longer needs a public write policy.
+  if (action === 'admin_set_status') {
+    const { isAuthorizedAdmin } = require('./admin-auth');
+    if (!isAuthorizedAdmin(req)) {
+      return res.status(403).json({ error: 'Admin authentication required.' });
+    }
+    const { target_email, billing_status, admin_review_status, clear_suspended } = req.body || {};
+    if (!target_email || !billing_status) {
+      return res.status(400).json({ error: 'target_email and billing_status required.' });
+    }
+    const now = new Date().toISOString();
+    const patch = { billing_status, updated_at: now };
+    if (admin_review_status) { patch.admin_review_status = admin_review_status; patch.admin_reviewed_at = now; }
+    if (billing_status === 'suspended') patch.suspended_at = now;
+    if (clear_suspended) patch.suspended_at = null;
+
+    const { error } = await db
+      .from('fed_recruiter_billing')
+      .update(patch)
+      .eq('recruiter_email', String(target_email).toLowerCase());
+    if (error) return res.status(500).json({ error: error.message });
+    return res.status(200).json({ ok: true, billing_status });
+  }
+
   // Auth required for all actions except public check
   const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
   if (!token) return res.status(401).json({ error: 'Authorization required.' });

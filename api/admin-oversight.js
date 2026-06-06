@@ -43,6 +43,36 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // Recruiter billing roster — fed_recruiter_billing is service-role only, so
+  // the admin billing tab loads it through here rather than the anon client.
+  if (req.query.resource === 'billing') {
+    try {
+      const { data, error } = await db
+        .from('fed_recruiter_billing')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return res.status(200).json({ ok: true, billing: data || [] });
+    } catch (e) {
+      console.error('admin-oversight billing error:', e);
+      return res.status(500).json({ error: e.message || 'Internal error.' });
+    }
+  }
+
+  // Leaderboard overrides — service-role only; read here for the admin tab.
+  if (req.query.resource === 'overrides') {
+    try {
+      const { data, error } = await db
+        .from('fed_leaderboard_overrides')
+        .select('*');
+      if (error) throw error;
+      return res.status(200).json({ ok: true, overrides: data || [] });
+    } catch (e) {
+      console.error('admin-oversight overrides error:', e);
+      return res.status(500).json({ error: e.message || 'Internal error.' });
+    }
+  }
+
   try {
     // Pending mutual interests — both signaled, awaiting payment/unlock.
     const { data: pendingMutual } = await db
