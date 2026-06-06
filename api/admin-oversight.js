@@ -26,6 +26,23 @@ module.exports = async function handler(req, res) {
     return res.status(403).json({ error: 'Admin authentication required.' });
   }
 
+  // Admin profile roster. fed_profiles RLS no longer permits a blanket client
+  // read (confidential profiles must not be reachable via the publishable key),
+  // so the admin console loads the full roster through this service-role route.
+  if (req.query.resource === 'profiles') {
+    try {
+      const { data: profiles, error } = await db
+        .from('fed_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return res.status(200).json({ ok: true, profiles: profiles || [] });
+    } catch (e) {
+      console.error('admin-oversight profiles error:', e);
+      return res.status(500).json({ error: e.message || 'Internal error.' });
+    }
+  }
+
   try {
     // Pending mutual interests — both signaled, awaiting payment/unlock.
     const { data: pendingMutual } = await db
