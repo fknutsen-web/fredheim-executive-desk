@@ -14,6 +14,10 @@ Supabase migration system (`apply_migration`) and is reproducible from here.
 | 5 | `2026-06-06_lock_down_ghost_rpc_execute.sql` | Revoke client `EXECUTE` on the ghost-increment RPC (server/cron only). |
 | 6 | `2026-06-06_lock_down_admin_managed_billing_tables.sql` | Add `fed_recruiter_billing.admin_reviewed_at`; drop the permissive policies from migration 2 now that admin billing/override reads & writes go through service-role endpoints. Supersedes migration 2. |
 | 7 | `2026-06-06_unique_paid_introduction_per_stripe_session.sql` | Unique index on `fed_paid_introductions.stripe_session_id` — DB backstop for the webhook idempotency guard (MED-2). |
+| 8 | `2026-06-06_gate_live_job_postings_behind_auth.sql` | Gate `fed_jobs` reads: anon sees only active sample postings (`demo_post=true`); authenticated sees active postings + their own. |
+| 9 | `2026-06-06_align_fed_jobs_industry_check_to_six_verticals.sql` | Allow the six canonical verticals (was rejecting `Commodity Trading` / `Logistics & Supply Chain`); keep legacy labels valid. |
+
+Seed (not a migration): `seed_sample_postings.sql` — one sample (`demo_post=true`) posting per vertical for the public home board. Re-runnable (delete-then-insert).
 
 `fed-vertical-migration.sql` in the repo root is the original (pre-existing)
 vertical migration; migration 3 supersedes/repeats it in an idempotent,
