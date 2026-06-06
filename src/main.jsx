@@ -8886,9 +8886,13 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   async function loadAll() {
     setRefreshing(true);
     try {
+      // Confidential profiles are no longer client-readable in bulk (RLS); the
+      // admin roster is loaded through the service-role admin-oversight route.
+      const adminTok = sessionStorage.getItem('fed_admin_token') || '';
       const [s, p, j, i] = await Promise.all([
         sb.from('fed_recruiter_submissions').select('*').order('created_at', {ascending:false}),
-        sb.from('fed_profiles').select('*').order('created_at', {ascending:false}),
+        fetch('/api/admin-oversight?resource=profiles', { headers: { 'Authorization': 'Bearer ' + adminTok } })
+          .then(r => r.json()).then(d => ({ data: d.profiles || [] })).catch(() => ({ data: [] })),
         sb.from('fed_jobs').select('*').order('created_at', {ascending:false}),
         sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
       ]);
