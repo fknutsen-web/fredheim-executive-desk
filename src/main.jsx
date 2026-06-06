@@ -12799,9 +12799,12 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
           .order('created_at', {ascending:false});
         setInterests(iData || []);
 
-        // Load bidirectional match data
+        // Load bidirectional match data through the secure view. It masks
+        // candidate_email until the introduction is unlocked (paid) and scopes
+        // rows to the authenticated recruiter, so candidate identity is never
+        // exposed to the recruiter's client before payment.
         const { data: mData } = await sb
-          .from('fed_matches')
+          .from('fed_matches_secure')
           .select('*')
           .in('job_id', jobIds)
           .not('status', 'in', '("candidate_hidden")')
@@ -12815,8 +12818,8 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
           }).then(r => r.json()).then(result => {
             if (result.matches_created > 0) {
-              // Refresh matches after computation
-              sb.from('fed_matches').select('*')
+              // Refresh matches after computation (secure view — see above)
+              sb.from('fed_matches_secure').select('*')
                 .in('job_id', jobIds)
                 .not('status', 'in', '("candidate_hidden")')
                 .order('match_score', { ascending: false })
