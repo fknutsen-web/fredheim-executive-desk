@@ -12407,11 +12407,15 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
   }
 
   // Aggregate stats
-  const totalMatches      = matches.length;
-  const interestSent      = matches.filter(m => ['recruiter_interested','mutual_interest'].includes(m.status)).length;
-  const candidateInterest = matches.filter(m => m.status === 'candidate_interested').length;
-  const mutualMatches     = matches.filter(m => m.status === 'mutual_interest').length;
-  const newMatches        = matches.filter(m => !m.last_recruiter_view_at).length;
+  // Terminal states are not live, actionable matches — exclude them from the
+  // dashboard counts and per-job cards (declined/withdrawn/expired/hidden/closed).
+  const TERMINAL_MATCH_STATES = ['candidate_declined','candidate_withdrew','recruiter_withdrawn','candidate_hidden','expired','closed'];
+  const liveMatches       = matches.filter(m => !TERMINAL_MATCH_STATES.includes(m.status));
+  const totalMatches      = liveMatches.length;
+  const interestSent      = liveMatches.filter(m => ['recruiter_interested','mutual_interest'].includes(m.status)).length;
+  const candidateInterest = liveMatches.filter(m => m.status === 'candidate_interested').length;
+  const mutualMatches     = liveMatches.filter(m => m.status === 'mutual_interest').length;
+  const newMatches        = liveMatches.filter(m => !m.last_recruiter_view_at).length;
 
   function scoreColor(s) { return s >= 80 ? 'var(--green)' : s >= 60 ? 'var(--gold)' : 'var(--ink-3)'; }
 
@@ -12444,7 +12448,7 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
           No active searches. Post a search to start seeing candidate matches.
         </div>
       ) : jobs.map(job => {
-        const jobMatches = matches.filter(m => m.job_id === job.id);
+        const jobMatches = liveMatches.filter(m => m.job_id === job.id);
         const jNew       = jobMatches.filter(m => !m.last_recruiter_view_at).length;
         const jSent      = jobMatches.filter(m => ['recruiter_interested','mutual_interest'].includes(m.status)).length;
         const jReceived  = jobMatches.filter(m => m.status === 'candidate_interested').length;

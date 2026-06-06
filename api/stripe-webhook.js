@@ -404,6 +404,22 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     .maybeSingle();
   if (mErr || !match) return; // not a fed_matches record
 
+  // Idempotency: Stripe may deliver checkout.session.completed more than once.
+  // If this session already produced a paid introduction, do not re-insert the
+  // record or re-send notifications/emails. (A unique index on stripe_session_id
+  // is the DB-level backstop.)
+  if (session?.id) {
+    const { data: already } = await supabase
+      .from('fed_paid_introductions')
+      .select('id')
+      .eq('stripe_session_id', session.id)
+      .maybeSingle();
+    if (already) {
+      console.log(`Duplicate checkout.session.completed for session ${session.id} — already processed; skipping.`);
+      return;
+    }
+  }
+
   // Payment confirmed -> the match is UNLOCKED. Contact may now be revealed.
   const wasMutual = match.status === 'candidate_interested' || match.status === 'mutual_interest';
   const update = {

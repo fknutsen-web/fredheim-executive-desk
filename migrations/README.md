@@ -13,6 +13,7 @@ Supabase migration system (`apply_migration`) and is reproducible from here.
 | 4 | `2026-06-06_enable_rls_on_pii_tables.sql` | Enable RLS on `fed_profiles` and `fed_matches` and drop the over-broad public read on `fed_profiles`, so the shipped publishable key can no longer read confidential candidate data. |
 | 5 | `2026-06-06_lock_down_ghost_rpc_execute.sql` | Revoke client `EXECUTE` on the ghost-increment RPC (server/cron only). |
 | 6 | `2026-06-06_lock_down_admin_managed_billing_tables.sql` | Add `fed_recruiter_billing.admin_reviewed_at`; drop the permissive policies from migration 2 now that admin billing/override reads & writes go through service-role endpoints. Supersedes migration 2. |
+| 7 | `2026-06-06_unique_paid_introduction_per_stripe_session.sql` | Unique index on `fed_paid_introductions.stripe_session_id` — DB backstop for the webhook idempotency guard (MED-2). |
 
 `fed-vertical-migration.sql` in the repo root is the original (pre-existing)
 vertical migration; migration 3 supersedes/repeats it in an idempotent,

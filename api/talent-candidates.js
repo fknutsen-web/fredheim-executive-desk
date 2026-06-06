@@ -8,6 +8,9 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
+const { isAuthorizedAdmin } = require('./admin-auth');
+
 // Answer value → raw points (A=1 … E=5, missing=0)
 function pts(ans) {
   return { A: 1, B: 2, C: 3, D: 4, E: 5 }[ans] || 0;
@@ -424,25 +427,64 @@ module.exports = async function handler(req, res) {
     }
 
     // ── REQUEST removal (GDPR/CCPA) ──────────────────────────
+    // Scrubs personal data across BOTH the legacy talent product and the
+    // executive (fed) product, plus related match rows and addressed
+    // notifications. Caller must be the data subject (a valid Supabase session
+    // for that email) or an authorised admin.
     if (req.method === 'DELETE' && action === 'remove') {
-      const { email, reason } = req.body;
+      const { email, reason } = req.body || {};
       if (!email) return res.status(400).json({ error: 'email required.' });
+      const target = email.toLowerCase();
 
-      const { error } = await supabase
-        .from('talent_candidates')
-        .update({
-          status: 'archived',
-          removal_requested_at: new Date().toISOString(),
-          removal_reason: reason || 'User requested removal',
-          first_name: '[REMOVED]',
-          email: `removed_${Date.now()}@deleted`,
-          phone: null,
-          answers: {},
-        })
-        .eq('email', email.toLowerCase());
+      // Authorisation — admin token, or a session whose email matches the target.
+      let authorised = isAuthorizedAdmin(req);
+      if (!authorised) {
+        const token = (req.headers.authorization || '').replace('Bearer ', '').trim();
+        if (token) {
+          const anon = createClient(process.env.SUPABASE_URL, ANON_KEY);
+          const { data: { user } } = await anon.auth.getUser(token);
+          if (user?.email && user.email.toLowerCase() === target) authorised = true;
+        }
+      }
+      if (!authorised) {
+        return res.status(403).json({ error: 'You can only remove your own profile.' });
+      }
 
-      if (error) throw error;
-      return res.status(200).json({ success: true, message: 'Profile removed per your request.' });
+      const now = new Date().toISOString();
+      const tombstone = `removed_${Date.now()}@deleted`;
+
+      // 1. Legacy talent candidate.
+      await supabase.from('talent_candidates').update({
+        status: 'archived',
+        removal_requested_at: now,
+        removal_reason: reason || 'User requested removal',
+        first_name: '[REMOVED]',
+        email: tombstone,
+        phone: null,
+        answers: {},
+      }).eq('email', target);
+
+      // 2. Executive (fed) profile — scrub identity + rich personal content.
+      await supabase.from('fed_profiles').update({
+        status: 'removed',
+        visibility: 'private',
+        first_name: '[REMOVED]', last_name: '', email: tombstone,
+        linkedin_url: null, current_company: null, current_title: null,
+        career_timeline: null, achievements: null, big_five: null,
+        candidate_operating_profile: null, candidate_preferences: null,
+        candidate_scope: null,
+      }).eq('email', target);
+
+      // 3. Related match rows lose the candidate identifier.
+      await supabase.from('fed_matches')
+        .update({ candidate_email: tombstone, status: 'closed' })
+        .eq('candidate_email', target);
+
+      // 4. Notifications addressed to the user (contain personal context).
+      await supabase.from('fed_notifications').delete().eq('recipient_email', target);
+      await supabase.from('talent_notifications').delete().eq('recipient_email', target);
+
+      return res.status(200).json({ success: true, message: 'Profile and associated personal data removed per your request.' });
     }
 
     // ── RUN re-engagement job (cron / admin only) ─────────────
