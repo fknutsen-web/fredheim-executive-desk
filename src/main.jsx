@@ -10639,6 +10639,28 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
     }
   }
 
+  // Self-serve account deletion. Calls the auth-gated removal endpoint with the
+  // user's own session token (server scrubs fed_profiles, matches, talent
+  // record, and notifications), then signs out.
+  async function deleteAccount() {
+    if (!window.confirm('Delete your account? This removes your profile, hides you from all recruiters, and erases your personal data. This cannot be undone.')) return;
+    try {
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token || '';
+      const resp = await fetch('/api/talent-candidates?action=remove', {
+        method: 'DELETE',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ email: user.email, reason: 'User requested account deletion' }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) { showToast(data.error || 'Could not delete account. Please try again.'); return; }
+      showToast('Your account and personal data have been removed.');
+      setTimeout(() => onSignOut(), 1600);
+    } catch(e) {
+      showToast('Could not delete account. Please try again.');
+    }
+  }
+
   function fmt(ts) {
     if (!ts) return '—';
     return new Date(ts).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
@@ -11250,6 +11272,18 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
         {/* Executive preferences — advanced matching */}
         <CandidatePreferencesSection userEmail={user.email} showToast={showToast} />
 
+      </div>
+
+      {/* Close account */}
+      <div className="profile-card" style={{marginTop:'1.5rem',borderColor:'#c0392b'}}>
+        <div className="profile-card-header">
+          <div className="profile-card-title">Close Account</div>
+        </div>
+        <p style={{fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:1.6,margin:'0 0 0.875rem'}}>
+          Deleting your account removes your profile, hides you from all recruiters, and erases your personal data.
+          Anonymized records may be retained only where required for finance or compliance. This cannot be undone.
+        </p>
+        <button className="admin-action-btn danger" onClick={deleteAccount}>Delete my account</button>
       </div>
     </div>
   );
@@ -14338,14 +14372,19 @@ function App() {
   async function loadJobs() {
     setLoading(true);
     try {
-      const { data } = await sb.from('fed_jobs').select('*').eq('status','active').order('created_at',{ascending:false});
+      // Live postings require an account: signed-in users see real postings,
+      // everyone else sees only the per-vertical sample postings. (RLS enforces
+      // the same rule server-side; this keeps the UI consistent.)
+      let q = sb.from('fed_jobs').select('*').eq('status','active');
+      q = authUser ? q.eq('demo_post', false) : q.eq('demo_post', true);
+      const { data } = await q.order('created_at',{ascending:false});
       setJobs(data || []);
     } catch(e) { setJobs([]); }
     setLoading(false);
   }
 
-  // Initial load
-  useEffect(() => { loadJobs(); }, []);
+  // Load on mount and whenever auth changes (samples ⇄ live postings)
+  useEffect(() => { loadJobs(); }, [authUser]);
 
   // Reload jobs whenever admin mode is closed so newly published posts appear immediately
   useEffect(() => {
