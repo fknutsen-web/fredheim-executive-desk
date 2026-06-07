@@ -3484,14 +3484,62 @@ function getMatchConfidence(score, reasons, gaps) {
   return { level, label, score, gapDescriptions, strengths, advisory, shouldWarn: level === 'stretch' || level === 'low' };
 }
 
+// ── MATCH SCORE RING ─────────────────────────────────────────────────────────
+// Circular gauge of the composite match_score, colour-keyed to the confidence
+// band (green ≥80, gold ≥60, orange ≥40, grey below). The score is the same
+// number getMatchConfidence buckets, just rendered as the card's lead visual.
+function ScoreRing({ pct }) {
+  const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
+  const r = 26, circ = 2 * Math.PI * r;
+  const offset = circ - (p / 100) * circ;
+  const color = p >= 80 ? '#1b5e20' : p >= 60 ? '#b8922a' : p >= 40 ? '#bf360c' : '#8fa0b4';
+  return (
+    <div className="score-ring">
+      <svg width="60" height="60" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r={r} fill="none" stroke="#eceae4" strokeWidth="4" />
+        <circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="4"
+          strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"
+          transform="rotate(-90 30 30)" />
+      </svg>
+      <div className="score-ring-label">
+        <span className="score-ring-num" style={{color}}>{p}</span>
+        <span className="score-ring-pct">match</span>
+      </div>
+    </div>
+  );
+}
+
+// ── MATCH DIMENSION BARS ─────────────────────────────────────────────────────
+// Per-dimension breakdown (scope/complexity/function/industry/comp/location)
+// carried on match_reasons.__dimensions by /api/compute-matches. Returns null
+// for legacy match rows scored before the breakdown existed — the ring still
+// renders from match_score in that case.
+function MatchDimensionBars({ dimensions }) {
+  if (!Array.isArray(dimensions) || dimensions.length === 0) return null;
+  return (
+    <div className="dim-bars">
+      {dimensions.map(d => {
+        const pct = d.max ? Math.max(0, Math.min(100, Math.round((d.earned / d.max) * 100))) : 0;
+        return (
+          <div key={d.key} className="dim-bar-row">
+            <span className="dim-bar-label">{d.label}</span>
+            <div className="dim-bar-track"><div className="dim-bar-fill" style={{width:`${pct}%`}} /></div>
+            <span className="dim-bar-val">{d.earned}/{d.max}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── MATCH CONFIDENCE BADGE ───────────────────────────────────────────────────
-function MatchConfidenceBadge({ score, reasons, gaps, compact }) {
+function MatchConfidenceBadge({ score, reasons, gaps, compact, hidePct }) {
   const conf = getMatchConfidence(score, reasons, gaps);
   return (
     <div>
       <div style={{display:'flex',alignItems:'center',gap:'0.625rem',flexWrap:'wrap'}}>
         <span className={`match-confidence-badge ${conf.level}`}>{conf.label}</span>
-        <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)'}}>{score}% fit</span>
+        {!hidePct && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)'}}>{score}% fit</span>}
       </div>
       {!compact && conf.gapDescriptions.length > 0 && (
         <div className="match-gap-list">
@@ -12541,15 +12589,19 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
                   return (
                     <div key={match.id} className={`match-candidate-card ${isMutual ? 'mutual-border' : ''}`}
                          style={isMutual ? {borderTop:'2px solid var(--green)'} : {}}>
-                      {/* Match Confidence — categorical label is the lead signal. */}
-                      <div style={{marginBottom:'0.625rem'}}>
+                      {/* Match score ring + confidence label as the lead signal,
+                          with the per-dimension breakdown beneath. */}
+                      <div className="match-card-head" style={{marginBottom:'0.625rem'}}>
+                        <ScoreRing pct={match.match_score} />
                         <MatchConfidenceBadge
                           score={match.match_score}
                           reasons={reasons}
                           gaps={[]}
                           compact={false}
+                          hidePct={true}
                         />
                       </div>
+                      <MatchDimensionBars dimensions={reasons.__dimensions} />
 
                       {/* Anonymized identity — surface candidate's equivalent leadership
                           label when available (denormalized onto match record by
