@@ -2023,22 +2023,40 @@ function AdminCompBenchmarksTab({ showToast }) {
 
   async function save() {
     setSaving(true);
-    if (editing.id) {
-      await sb.from('fed_comp_benchmarks').update(editing).eq('id', editing.id);
-    } else {
-      const { data } = await sb.from('fed_comp_benchmarks').insert(editing).select('*').single();
-      if (data) setBenchmarks(p => [data, ...p]);
+    try {
+      // Writes go through the admin endpoint (service role); the anon key no
+      // longer has write access to fed_comp_benchmarks.
+      const resp = await fetch('/api/admin-actions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || '') },
+        body: JSON.stringify({ action: 'benchmark_save', row: editing }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Save failed.');
+      const { data: rows } = await sb.from('fed_comp_benchmarks').select('*').order('role_level').order('industry');
+      setBenchmarks(rows || []);
+      setEditing(null);
+      showToast('✓ Benchmark saved.');
+    } catch (e) {
+      showToast(e.message || 'Save failed.');
     }
-    await sb.from('fed_comp_benchmarks').select('*').order('role_level').order('industry').then(({data})=>setBenchmarks(data||[]));
-    setEditing(null);
     setSaving(false);
-    showToast('✓ Benchmark saved.');
   }
 
   async function toggleActive(id, active) {
-    await sb.from('fed_comp_benchmarks').update({is_active:!active}).eq('id',id);
-    setBenchmarks(p=>p.map(b=>b.id===id?{...b,is_active:!active}:b));
-    showToast(active ? 'Benchmark disabled.' : 'Benchmark enabled.');
+    try {
+      const resp = await fetch('/api/admin-actions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || '') },
+        body: JSON.stringify({ action: 'benchmark_toggle', id, is_active: !active }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Update failed.');
+      setBenchmarks(p=>p.map(b=>b.id===id?{...b,is_active:!active}:b));
+      showToast(active ? 'Benchmark disabled.' : 'Benchmark enabled.');
+    } catch (e) {
+      showToast(e.message || 'Update failed.');
+    }
   }
 
   return (
