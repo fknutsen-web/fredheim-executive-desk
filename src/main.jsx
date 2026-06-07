@@ -1261,7 +1261,6 @@ function InternJobCard({ job, onClick }) {
   const seasonLabel = job.season ? INTERN_SEASONS[job.season] || job.season : null;
   return (
     <div className="intern-job-card" onClick={() => onClick && onClick(job)}>
-      {job.demo_post && <div className="demo-watermark">Example</div>}
       <div style={{flex:1}}>
         <div className="intern-job-title">{job.title}</div>
         <div className="intern-job-employer">
@@ -1271,6 +1270,7 @@ function InternJobCard({ job, onClick }) {
           {job.location} · {job.work_arrangement ? (job.work_arrangement.charAt(0).toUpperCase()+job.work_arrangement.slice(1)) : ''} · {INTERN_HOURS[job.hours_per_week] || job.hours_per_week || 'Full-time'}
         </div>
         <div className="intern-job-tags">
+          {job.demo_post && <span className="intern-tag sample">Sample</span>}
           {seasonLabel && <span className="intern-tag season">{seasonLabel}</span>}
           {job.is_paid && <span className="intern-tag paid">Paid</span>}
           {job.sponsorship_available && <span className="intern-tag">Sponsorship Available</span>}
