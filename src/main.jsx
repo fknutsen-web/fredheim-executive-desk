@@ -9029,7 +9029,10 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
       // admin roster is loaded through the service-role admin-oversight route.
       const adminTok = sessionStorage.getItem('fed_admin_token') || '';
       const [s, p, j, i] = await Promise.all([
-        sb.from('fed_recruiter_submissions').select('*').order('created_at', {ascending:false}),
+        // Submissions are no longer client-readable in bulk (RLS); load the
+        // full roster through the service-role admin-oversight route.
+        fetch('/api/admin-oversight?resource=submissions', { headers: { 'Authorization': 'Bearer ' + adminTok } })
+          .then(r => r.json()).then(d => ({ data: d.submissions || [] })).catch(() => ({ data: [] })),
         fetch('/api/admin-oversight?resource=profiles', { headers: { 'Authorization': 'Bearer ' + adminTok } })
           .then(r => r.json()).then(d => ({ data: d.profiles || [] })).catch(() => ({ data: [] })),
         sb.from('fed_jobs').select('*').order('created_at', {ascending:false}),
@@ -9086,10 +9089,16 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
 
   async function updateSubmissionStatus(id, status) {
     try {
-      await sb.from('fed_recruiter_submissions').update({ status }).eq('id', id);
+      const resp = await fetch('/api/admin-actions', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || '') },
+        body: JSON.stringify({ action: 'submission_status', id, status }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Update failed.');
       setSubmissions(prev => prev.map(s => s.id === id ? {...s, status} : s));
       showToast(`Submission ${status === 'approved' ? 'approved' : status === 'rejected' ? 'rejected' : 'updated'}.`);
-    } catch(e) { showToast('Update failed.'); }
+    } catch(e) { showToast(e.message || 'Update failed.'); }
   }
 
   async function publishJob(submission) {

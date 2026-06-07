@@ -46,6 +46,15 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      // ── Recruiter submissions (admin moderation) ────────────────────────
+      case 'submission_status': {
+        const { id, status } = body;
+        if (!id || !status) return res.status(400).json({ error: 'id and status required.' });
+        const { error } = await db.from('fed_recruiter_submissions').update({ status }).eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ ok: true });
+      }
+
       default:
         return res.status(400).json({ error: `Unknown action: ${action}` });
     }
