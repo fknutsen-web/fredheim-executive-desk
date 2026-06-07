@@ -46,6 +46,26 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      // ── Job closures / placements (admin review) ────────────────────────
+      case 'closure_review': {
+        const { id, status } = body;
+        if (!id || !status) return res.status(400).json({ error: 'id and status required.' });
+        const patch = { admin_review_status: status };
+        if (status === 'approved') patch.admin_reviewed_at = new Date().toISOString();
+        const { error } = await db.from('fed_job_closures').update(patch).eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ ok: true });
+      }
+      case 'placement_review': {
+        const { id, status } = body;
+        if (!id || !status) return res.status(400).json({ error: 'id and status required.' });
+        const patch = { admin_review_status: status };
+        if (status === 'approved') { const now = new Date().toISOString(); patch.admin_reviewed_at = now; patch.locked_at = now; }
+        const { error } = await db.from('fed_placements').update(patch).eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ ok: true });
+      }
+
       // ── Recruiter submissions (admin moderation) ────────────────────────
       case 'submission_status': {
         const { id, status } = body;

@@ -10224,15 +10224,29 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
   const [ctab, setCtab]             = useState('closures');
   const [loading, setLoading]       = useState(true);
 
+  // Admin closure/placement writes go through the service-role endpoint; the
+  // anon key no longer has access to these rows in bulk.
+  async function adminAction(payload) {
+    const resp = await fetch('/api/admin-actions', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || '') },
+      body: JSON.stringify(payload),
+    });
+    if (!resp.ok) { const d = await resp.json().catch(()=>({})); throw new Error(d.error || 'Action failed.'); }
+    return resp.json();
+  }
+
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const [{ data: cl }, { data: pl }] = await Promise.all([
-        sb.from('fed_job_closures').select('*').order('created_at', {ascending:false}),
-        sb.from('fed_placements').select('*').order('created_at', {ascending:false}),
+      const tok = sessionStorage.getItem('fed_admin_token') || '';
+      const hdr = { headers: { 'Authorization': 'Bearer ' + tok } };
+      const [cl, pl] = await Promise.all([
+        fetch('/api/admin-oversight?resource=closures', hdr).then(r=>r.json()).then(d=>d.closures||[]).catch(()=>[]),
+        fetch('/api/admin-oversight?resource=placements', hdr).then(r=>r.json()).then(d=>d.placements||[]).catch(()=>[]),
       ]);
-      setClosures(cl || []);
-      setPlacements(pl || []);
+      setClosures(cl);
+      setPlacements(pl);
       setLoading(false);
     }
     load();
@@ -10291,23 +10305,30 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                           {c.admin_review_status === 'pending' && (
                             <>
                               <button className="admin-action-btn approve" onClick={async()=>{
-                                await sb.from('fed_job_closures').update({admin_review_status:'approved',admin_reviewed_at:new Date().toISOString()}).eq('id',c.id);
-                                setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'approved'}:x));
-                                showToast('Closure approved.');
+                                try {
+                                  await adminAction({action:'closure_review', id:c.id, status:'approved'});
+                                  setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'approved'}:x));
+                                  showToast('Closure approved.');
+                                } catch(e){ showToast(e.message||'Update failed.'); }
                               }}>Approve</button>
                               <button className="admin-action-btn danger" onClick={async()=>{
-                                await sb.from('fed_job_closures').update({admin_review_status:'disputed'}).eq('id',c.id);
-                                await sb.from('fed_jobs').update({status:'active',admin_flagged:true}).eq('id',c.job_id);
-                                setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'disputed'}:x));
-                                showToast('Closure disputed. Job reopened for review.');
+                                try {
+                                  await adminAction({action:'closure_review', id:c.id, status:'disputed'});
+                                  await sb.from('fed_jobs').update({status:'active',admin_flagged:true}).eq('id',c.job_id);
+                                  setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'disputed'}:x));
+                                  showToast('Closure disputed. Job reopened for review.');
+                                } catch(e){ showToast(e.message||'Update failed.'); }
                               }}>Dispute</button>
                             </>
                           )}
                           {c.admin_review_status !== 'reopened' && (
                             <button className="admin-action-btn" onClick={async()=>{
-                              await sb.from('fed_jobs').update({status:'active'}).eq('id',c.job_id);
-                              await sb.from('fed_job_closures').update({admin_review_status:'reopened'}).eq('id',c.id);
-                              showToast('Job reopened.');
+                              try {
+                                await sb.from('fed_jobs').update({status:'active'}).eq('id',c.job_id);
+                                await adminAction({action:'closure_review', id:c.id, status:'reopened'});
+                                setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'reopened'}:x));
+                                showToast('Job reopened.');
+                              } catch(e){ showToast(e.message||'Update failed.'); }
                             }}>Reopen</button>
                           )}
                         </div>
@@ -10350,8 +10371,8 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                           {p.admin_review_status === 'pending' && (
                             <>
                               <button className="admin-action-btn approve" onClick={async()=>{
-                                const now = new Date().toISOString();
-                                await sb.from('fed_placements').update({admin_review_status:'approved',admin_reviewed_at:now,locked_at:now}).eq('id',p.id);
+                                try {
+                                await adminAction({action:'placement_review', id:p.id, status:'approved'});
                                 setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'approved'}:x));
                                 // Auto-draft activity item for admin review
                                 const job = jobs.find(j=>j.id===p.job_id);
@@ -10372,9 +10393,11 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                                   }),
                                 }).catch(()=>{});
                                 showToast('Placement approved and locked. Activity draft created for review.');
+                                } catch(e){ showToast(e.message||'Update failed.'); }
                               }}>Approve</button>
                               <button className="admin-action-btn danger" onClick={async()=>{
-                                await sb.from('fed_placements').update({admin_review_status:'disputed'}).eq('id',p.id);
+                                try {
+                                await adminAction({action:'placement_review', id:p.id, status:'disputed'});
                                 setPlacements(prev=>prev.map(x=>x.id===p.id?{...x,admin_review_status:'disputed'}:x));
                                 // Suppress any published activity item linked to this placement
                                 const adminToken = sessionStorage.getItem('fed_admin_token')||'';
@@ -10384,6 +10407,7 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                                   body:JSON.stringify({action:'flag_disputed',related_placement_id:p.id}),
                                 }).catch(()=>{});
                                 showToast('Placement disputed. Any published activity item has been suppressed.');
+                                } catch(e){ showToast(e.message||'Update failed.'); }
                               }}>Dispute</button>
                             </>
                           )}
