@@ -1,5 +1,42 @@
 # scripts
 
+## `prod-env-check.sh` + `/api/env-check`
+
+Confirms the Stripe billing env vars (`STRIPE_SECRET_KEY` + `PRICE_*`) actually
+**resolve in the deployed runtime** — the gap `stripe-verification.sh` can't
+close (that script checks a Stripe account from wherever you run it; this checks
+the vars Vercel injected into the live serverless function).
+
+`api/env-check.js` is an **admin-gated, read-only** endpoint — the server-side
+equivalent of `stripe-verification.sh prices`:
+
+| Query | What it checks |
+|---|---|
+| `GET /api/env-check` | Presence: each `REQUIRED_CHECKOUT_ENV` var is set and non-empty. |
+| `GET /api/env-check?live=1` | Also authenticates `STRIPE_SECRET_KEY` (balance read → real `livemode`) and confirms each known `PRICE_*` resolves in Stripe and matches its published amount/type/interval ($199/mo, $299/yr, $49/yr, $249 one-time). |
+
+Returns `200` when everything resolves, `500` (with `ok:false`) otherwise — so a
+CI step can gate on it.
+
+**Safety:** requires admin auth (same Bearer-token / `X-Admin-Secret` as every
+other admin endpoint), so the env inventory is never publicly enumerable. It
+**never returns a secret value** — `STRIPE_SECRET_KEY` is reported only as
+`{ present, keyMode }` (mode parsed from the non-secret `sk_live`/`sk_test`
+prefix). Price IDs are not secret (they're already sent to the browser at
+checkout), so they're returned. GET only; no writes.
+
+Run it from the Vercel dashboard URL or a CI step via the wrapper:
+
+```bash
+BASE_URL=https://desk.fredheimtech.com ADMIN_PASSWORD=… ./scripts/prod-env-check.sh
+# or with a pre-minted token:
+BASE_URL=https://desk.fredheimtech.com ADMIN_TOKEN=… LIVE=1 ./scripts/prod-env-check.sh
+```
+
+The wrapper exchanges `ADMIN_PASSWORD` for a short-lived token (or uses
+`ADMIN_TOKEN`), calls the endpoint, pretty-prints the JSON, and exits non-zero
+on failure.
+
 ## `stripe-verification.sh`
 
 Verifies the Stripe checkout / webhook wiring against a real Stripe account.
