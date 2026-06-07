@@ -77,6 +77,19 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // Full job roster — admin moderation needs every job (incl. archived/expired/
+  // flagged), which the scoped client read policies don't expose. Service role.
+  if (req.query.resource === 'jobs') {
+    try {
+      const { data, error } = await db.from('fed_jobs').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return res.status(200).json({ ok: true, jobs: data || [] });
+    } catch (e) {
+      console.error('admin-oversight jobs error:', e);
+      return res.status(500).json({ error: e.message || 'Internal error.' });
+    }
+  }
+
   // Job closures + placements rosters — admin moderation reads (service role).
   // Recruiters still read their OWN rows via scoped RLS policies.
   if (req.query.resource === 'closures') {

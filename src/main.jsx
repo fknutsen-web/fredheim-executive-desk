@@ -18,6 +18,19 @@ const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Admin write helper — posts to the service-role /api/admin-actions endpoint
+// with the admin bearer token. Used wherever the browser used to write
+// privileged rows via the anon key (RLS hardening Phase 2).
+async function adminPost(payload) {
+  const resp = await fetch('/api/admin-actions', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'Authorization': 'Bearer ' + (sessionStorage.getItem('fed_admin_token') || '') },
+    body: JSON.stringify(payload),
+  });
+  if (!resp.ok) { const d = await resp.json().catch(()=>({})); throw new Error(d.error || 'Action failed.'); }
+  return resp.json();
+}
+
 // ── SAMPLE FALLBACKS ──────────────────────────────────────────────────────────
 // Hardcoded per-vertical examples used when the live sample query returns no
 // rows (e.g. transient Supabase read failure), so the Executive Search and
@@ -3986,8 +3999,9 @@ function JobModal({ job, onClose, showToast }) {
           showToast('Could not register interest. Please try again.');
         }
       } else {
-        // Sync interest_count on fed_jobs non-blocking
-        sb.from('fed_jobs').update({ interest_count: (job.interest_count || 0) + 1 }).eq('id', job.id);
+        // Sync interest_count on fed_jobs non-blocking (service-definer RPC;
+        // the anon key no longer has a blanket UPDATE on fed_jobs).
+        sb.rpc('fed_increment_job_interest', { p_job_id: job.id });
         // Notify recruiter (anonymously) and admin — non-blocking
         fetch('/api/notify-interest', {
           method: 'POST',
@@ -9035,7 +9049,10 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
           .then(r => r.json()).then(d => ({ data: d.submissions || [] })).catch(() => ({ data: [] })),
         fetch('/api/admin-oversight?resource=profiles', { headers: { 'Authorization': 'Bearer ' + adminTok } })
           .then(r => r.json()).then(d => ({ data: d.profiles || [] })).catch(() => ({ data: [] })),
-        sb.from('fed_jobs').select('*').order('created_at', {ascending:false}),
+        // Full job roster (incl. archived/expired/flagged) via the service role;
+        // the scoped client read policies only expose active/own jobs.
+        fetch('/api/admin-oversight?resource=jobs', { headers: { 'Authorization': 'Bearer ' + adminTok } })
+          .then(r => r.json()).then(d => ({ data: d.jobs || [] })).catch(() => ({ data: [] })),
         sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
       ]);
       setSubmissions(s.data || []);
@@ -9170,10 +9187,11 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         interest_count:   0,
       };
 
-      const { data, error } = await sb.from('fed_jobs').insert(jobData).select();
-      if (error) {
-        console.error('Publish error:', error);
-        showToast(`Publish failed: ${error.message}`);
+      try {
+        await adminPost({ action: 'job_insert', job: jobData });
+      } catch (err) {
+        console.error('Publish error:', err);
+        showToast(`Publish failed: ${err.message}`);
         return;
       }
       await updateSubmissionStatus(submission.id, 'posted');
@@ -9458,27 +9476,29 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                       <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap'}}>
                         {j.status === 'active' && (
                           <button className="admin-action-btn danger" onClick={async()=>{
-                            // Admin expires — still writes audit log
-                            await sb.from('fed_jobs').update({status:'expired'}).eq('id',j.id);
-                            await sb.from('fed_job_status_history').insert({
-                              job_id: j.id, previous_status:'active', new_status:'expired',
-                              changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
-                              changed_by_role: 'admin', reason: 'admin_expired',
-                            });
-                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'expired'}:x));
-                            showToast('Posting expired.');
+                            try {
+                              // Admin expires — still writes audit log (server-side)
+                              await adminPost({ action:'job_admin_update', id:j.id, patch:{status:'expired'}, history:{
+                                job_id: j.id, previous_status:'active', new_status:'expired',
+                                changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
+                                changed_by_role: 'admin', reason: 'admin_expired',
+                              }});
+                              setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'expired'}:x));
+                              showToast('Posting expired.');
+                            } catch(e){ showToast(e.message||'Update failed.'); }
                           }}>Expire</button>
                         )}
                         {['expired','closed_unfilled','filled_external','pending_fill_review'].includes(j.status) && (
                           <button className="admin-action-btn approve" onClick={async()=>{
-                            await sb.from('fed_jobs').update({status:'active',admin_flagged:false}).eq('id',j.id);
-                            await sb.from('fed_job_status_history').insert({
-                              job_id: j.id, previous_status: j.status, new_status:'active',
-                              changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
-                              changed_by_role: 'admin', reason: 'admin_reactivated',
-                            });
-                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'active',admin_flagged:false}:x));
-                            showToast('Posting reactivated.');
+                            try {
+                              await adminPost({ action:'job_admin_update', id:j.id, patch:{status:'active',admin_flagged:false}, history:{
+                                job_id: j.id, previous_status: j.status, new_status:'active',
+                                changed_by_email: sessionStorage.getItem('fed_admin_email') || 'admin',
+                                changed_by_role: 'admin', reason: 'admin_reactivated',
+                              }});
+                              setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'active',admin_flagged:false}:x));
+                              showToast('Posting reactivated.');
+                            } catch(e){ showToast(e.message||'Update failed.'); }
                           }}>Reactivate</button>
                         )}
                         {j.admin_flagged && (
@@ -9489,9 +9509,11 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                         )}
                         {!['archived'].includes(j.status) && (
                           <button className="admin-action-btn" style={{fontSize:'0.6rem'}} onClick={async()=>{
-                            await sb.from('fed_jobs').update({status:'archived',archived_at:new Date().toISOString()}).eq('id',j.id);
-                            setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'archived'}:x));
-                            showToast('Archived.');
+                            try {
+                              await adminPost({ action:'job_admin_update', id:j.id, patch:{status:'archived',archived_at:new Date().toISOString()} });
+                              setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'archived'}:x));
+                              showToast('Archived.');
+                            } catch(e){ showToast(e.message||'Update failed.'); }
                           }}>Archive</button>
                         )}
                       </div>
@@ -10314,7 +10336,7 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                               <button className="admin-action-btn danger" onClick={async()=>{
                                 try {
                                   await adminAction({action:'closure_review', id:c.id, status:'disputed'});
-                                  await sb.from('fed_jobs').update({status:'active',admin_flagged:true}).eq('id',c.job_id);
+                                  await adminAction({action:'job_admin_update', id:c.job_id, patch:{status:'active',admin_flagged:true}});
                                   setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'disputed'}:x));
                                   showToast('Closure disputed. Job reopened for review.');
                                 } catch(e){ showToast(e.message||'Update failed.'); }
@@ -10324,7 +10346,7 @@ function AdminClosuresTab({ jobs, showToast, reloadJobs }) {
                           {c.admin_review_status !== 'reopened' && (
                             <button className="admin-action-btn" onClick={async()=>{
                               try {
-                                await sb.from('fed_jobs').update({status:'active'}).eq('id',c.job_id);
+                                await adminAction({action:'job_admin_update', id:c.job_id, patch:{status:'active'}});
                                 await adminAction({action:'closure_review', id:c.id, status:'reopened'});
                                 setClosures(p=>p.map(x=>x.id===c.id?{...x,admin_review_status:'reopened'}:x));
                                 showToast('Job reopened.');
@@ -15163,7 +15185,7 @@ function App() {
                   {filtered.map(j => (
                     <JobCard key={j.id} job={j} onClick={async (job) => {
                       setSelectedJob(job);
-                      sb.from('fed_jobs').update({ view_count: (job.view_count || 0) + 1 }).eq('id', job.id).then(() => {
+                      sb.rpc('fed_increment_job_view', { p_job_id: job.id }).then(() => {
                         setJobs(prev => prev.map(x => x.id === job.id ? {...x, view_count: (x.view_count||0)+1} : x));
                       });
                     }} />
