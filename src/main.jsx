@@ -37,16 +37,16 @@ const PLACEMENT_FEE_FLOW_ENABLED  = false;
 // when the API is unavailable.
 const PRICING_CONFIG_DEFAULTS = {
   recruiter_subscription_monthly:    199,
-  // Phase 1 pivot: flat curated introduction fee for every leadership class.
-  // Removes title-classification disputes and simplifies the brokered
-  // market-access economics. The legacy tiered keys are kept below so any
-  // analytics or fed_pricing_config row that still references them continues
-  // to read cleanly, but they all resolve to the same flat amount.
-  introduction_flat:                 249,
-  introduction_csuite:               249,
-  introduction_vp_svp:               249,
-  introduction_director:             249,
-  introduction_consultant:           249,
+  // The curated introduction fee is COMPENSATION-TIERED ($99–$2,500); the
+  // authoritative amounts live in api/lib/introduction-fees.js and the exact
+  // fee per match is computed server-side at checkout. These per-class keys are
+  // legacy display fallbacks only (the pricing page renders the tier table
+  // directly) and are mapped to the compensation tiers below.
+  introduction_flat:                  99,  // entry tier (< $100K comp)
+  introduction_csuite:              2500,  // > $500K comp
+  introduction_vp_svp:               995,  // $250K–$500K
+  introduction_director:             495,  // $100K–$250K
+  introduction_consultant:            99,
   introduction_early_career:           0,
   candidate_executive_tier:          299,
   intern_featured_tier:               49,
