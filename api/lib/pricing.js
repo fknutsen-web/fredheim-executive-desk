@@ -22,7 +22,10 @@ function priceIds() {
       featured: process.env.PRICE_INTERN_FEATURED, // $49/yr
     },
     introduction: {
-      flat: process.env.PRICE_INTRO_FLAT, // $249 one-time, every executive scope
+      // Legacy flat price ID. The live fed_matches flow charges a
+      // compensation-tiered fee ($99–$2,500) via inline price_data, so this is
+      // only a fallback for any older flat-fee checkout.
+      flat: process.env.PRICE_INTRO_FLAT,
     },
     // Legacy IDs — retained ONLY so in-flight checkouts created before the
     // flat-fee migration still complete. Do not use for new checkouts.
@@ -82,7 +85,10 @@ function isIntroductionPrice(priceId) {
 // numbers customers see; the authoritative live values may be overridden in
 // fed_pricing_config, but these guarantee sane defaults if the DB is empty.
 const PUBLIC_FEES = {
-  intro_flat:              249, // one-time curated introduction
+  intro_flat:               99, // curated introduction ENTRY tier; fee is
+                                // compensation-tiered $99–$2,500 (see introduction-fees.js)
+  intro_min:                99,
+  intro_max:              2500,
   candidate_confidential:  299, // /yr
   recruiter_standard:      199, // /mo
   recruiter_pro:           499, // /mo
@@ -90,8 +96,8 @@ const PUBLIC_FEES = {
   intern_featured:          49, // /yr
 };
 
-// Human-readable label for the flat introduction fee.
-const INTRODUCTION_FEE_LABEL  = '$249';
+// Human-readable label for the compensation-tiered introduction fee.
+const INTRODUCTION_FEE_LABEL  = '$99–$2,500';
 
 // ── COMMERCIAL CONFIG (founding window, placement credit) ─────────
 const FOUNDING = {

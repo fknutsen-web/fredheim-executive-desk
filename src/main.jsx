@@ -37,14 +37,16 @@ const PLACEMENT_FEE_FLOW_ENABLED  = false;
 // when the API is unavailable.
 const PRICING_CONFIG_DEFAULTS = {
   recruiter_subscription_monthly:    199,
-  // Compensation-band curated introduction fee, matching the published website
-  // pricing and api/lib/introduction-fees.js (the fee actually charged at
-  // checkout is derived from real compensation). Charged when the introduction
-  // is unlocked; early-career / individual-contributor introductions are free.
-  introduction_comp_under_100k:       99,
-  introduction_comp_100k_250k:       495,
-  introduction_comp_250k_500k:       995,
-  introduction_comp_over_500k:      2500,
+  // The curated introduction fee is COMPENSATION-TIERED ($99–$2,500); the
+  // authoritative amounts live in api/lib/introduction-fees.js and the exact
+  // fee per match is computed server-side at checkout. These per-class keys are
+  // legacy display fallbacks only (the pricing page renders the tier table
+  // directly) and are mapped to the compensation tiers below.
+  introduction_flat:                  99,  // entry tier (< $100K comp)
+  introduction_csuite:              2500,  // > $500K comp
+  introduction_vp_svp:               995,  // $250K–$500K
+  introduction_director:             495,  // $100K–$250K
+  introduction_consultant:            99,
   introduction_early_career:           0,
   candidate_executive_tier:          299,
   intern_featured_tier:               49,
@@ -52,19 +54,18 @@ const PRICING_CONFIG_DEFAULTS = {
   founding_partner_monthly_postings:  1,
 };
 
-// Mapping leadership_class -> introduction fee config key. Pricing is charged
-// from real compensation (introduction-fees.js); this map is display-only, so
-// each class points at its representative compensation band. Mirrors
+// Mapping leadership_class -> introduction fee config key. Every class now
+// maps to the same flat key. Early-career remains complimentary. Mirrors
 // fed_introduction_fee_by_class in the database.
 const INTRODUCTION_FEE_BY_CLASS_DEFAULTS = {
-  c_suite:         'introduction_comp_over_500k',
-  evp:             'introduction_comp_over_500k',
-  svp:             'introduction_comp_250k_500k',
-  vp:              'introduction_comp_250k_500k',
-  senior_director: 'introduction_comp_100k_250k',
-  director:        'introduction_comp_100k_250k',
-  senior_manager:  'introduction_comp_under_100k',
-  manager:         'introduction_comp_under_100k',
+  c_suite:         'introduction_flat',
+  evp:             'introduction_flat',
+  svp:             'introduction_flat',
+  vp:              'introduction_flat',
+  senior_director: 'introduction_flat',
+  director:        'introduction_flat',
+  senior_manager:  'introduction_flat',
+  manager:         'introduction_flat',
 };
 
 // Returns true if today's date is on or before the Founding Partner window
