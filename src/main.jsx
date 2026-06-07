@@ -18,6 +18,28 @@ const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// ── SAMPLE FALLBACKS ──────────────────────────────────────────────────────────
+// Hardcoded per-vertical examples used when the live sample query returns no
+// rows (e.g. transient Supabase read failure), so the Executive Search and
+// Early Careers boards are never blank — the same resilience the Consulting and
+// Industrial Technology boards already have. Mirrors the DB seed content.
+const SAMPLE_EXEC_JOBS = [
+  { id:'sample-ms', demo_post:true, status:'active', type:'Permanent', title:'Chief Commercial Officer', firm_name:'Retained Search', company_display:'Global Dry Bulk Operator', industry:'Maritime & Shipping', function:'Commercial', location:'Singapore', salary_min:400000, salary_max:600000, salary_display:'$400K – $600K', badge:'featured', tags:['Chartering','Freight Trading','P&L Ownership','Dry Bulk'] },
+  { id:'sample-ct', demo_post:true, status:'active', type:'Permanent', title:'Head of Crude Oil Trading', firm_name:'Retained Search', company_display:'International Commodity Trading House', industry:'Commodity Trading', function:'Commercial', location:'Geneva', salary_min:500000, salary_max:800000, salary_display:'$500K – $800K', badge:'featured', tags:['Crude Oil','Physical Trading','Risk Management','Derivatives'] },
+  { id:'sample-en', demo_post:true, status:'active', type:'Permanent', title:'VP, Power & Renewables Development', firm_name:'Retained Search', company_display:'Diversified Energy Developer', industry:'Energy', function:'General Management', location:'Houston, TX', salary_min:350000, salary_max:500000, salary_display:'$350K – $500K', tags:['Renewables','Project Development','PPA','Utility-Scale'] },
+  { id:'sample-ls', demo_post:true, status:'active', type:'Permanent', title:'Managing Director, Global Freight Forwarding', firm_name:'Retained Search', company_display:'Global Logistics Provider', industry:'Logistics & Supply Chain', function:'General Management', location:'Rotterdam', salary_min:300000, salary_max:450000, salary_display:'$300K – $450K', tags:['Freight Forwarding','3PL','Supply Chain','P&L Ownership'] },
+  { id:'sample-pt', demo_post:true, status:'active', type:'Permanent', title:'Chief Operating Officer, Container Terminals', firm_name:'Retained Search', company_display:'International Terminal Operator', industry:'Ports & Terminals', function:'Operations', location:'Dubai', salary_min:350000, salary_max:500000, salary_display:'$350K – $500K', tags:['Terminal Operations','Productivity','Automation','Safety'] },
+  { id:'sample-of', demo_post:true, status:'active', type:'Permanent', title:'Project Director, Offshore Wind', firm_name:'Retained Search', company_display:'Offshore Wind Developer', industry:'Offshore', function:'Operations', location:'Aberdeen', salary_min:300000, salary_max:450000, salary_display:'$300K – $450K', tags:['Offshore Wind','Project Delivery','EPCI','Marine Operations'] },
+];
+const SAMPLE_INTERN_JOBS = [
+  { id:'sample-i-ms', demo_post:true, status:'active', title:'Vessel Operations Intern', employer_display:'Global Dry Bulk Operator', industry:'Maritime & Shipping', location:'Singapore', work_arrangement:'onsite', hours_per_week:'full_time', season:'summer', is_paid:true, compensation_display:'$24–28/hr', required_majors:['Maritime Studies','Logistics'], sponsorship_available:true },
+  { id:'sample-i-ct', demo_post:true, status:'active', title:'Trading Analyst Intern', employer_display:'International Commodity Trading House', industry:'Commodity Trading', location:'Geneva', work_arrangement:'hybrid', hours_per_week:'full_time', season:'summer', is_paid:true, compensation_display:'$5,500/mo', required_majors:['Finance','Economics'], sponsorship_available:true },
+  { id:'sample-i-en', demo_post:true, status:'active', title:'Energy Markets Analyst Intern', employer_display:'Diversified Energy Developer', industry:'Energy', location:'Houston, TX', work_arrangement:'hybrid', hours_per_week:'full_time', season:'summer', is_paid:true, compensation_display:'$28–32/hr', required_majors:['Economics','Engineering'], sponsorship_available:false },
+  { id:'sample-i-ls', demo_post:true, status:'active', title:'Supply Chain Analyst Intern', employer_display:'Global Logistics Provider', industry:'Logistics & Supply Chain', location:'Rotterdam', work_arrangement:'onsite', hours_per_week:'full_time', season:'fall', is_paid:true, compensation_display:'€2,200/mo', required_majors:['Supply Chain Management','Industrial Engineering'], sponsorship_available:true },
+  { id:'sample-i-pt', demo_post:true, status:'active', title:'Terminal Operations Intern', employer_display:'International Terminal Operator', industry:'Ports & Terminals', location:'Dubai', work_arrangement:'onsite', hours_per_week:'full_time', season:'summer', is_paid:true, compensation_display:'$22–26/hr', required_majors:['Operations Management','Logistics'], sponsorship_available:true },
+  { id:'sample-i-of', demo_post:true, status:'active', title:'Offshore Project Management Intern', employer_display:'Offshore Wind Developer', industry:'Offshore', location:'Aberdeen', work_arrangement:'hybrid', hours_per_week:'full_time', season:'summer', is_paid:true, compensation_display:'£22–26/hr', required_majors:['Mechanical Engineering','Project Management'], sponsorship_available:true },
+];
+
 // ── PLATFORM PHASE ──────────────────────────────────────────────────────────
 // Phase 1: the economic event is the CURATED INTRODUCTION, not the final hire.
 // Placement-fee workflows (certification, tail-period monitoring, hire-close
@@ -1326,7 +1348,10 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
         .eq('status','active').eq('demo_post', true)
         .order('created_at',{ascending:false});
       if (cancelled) return;
-      setJobs(samples || []); setShowingSamples(true); setLoading(false);
+      // Resilience: fall back to hardcoded examples if the sample read returns
+      // nothing, so the board is never blank.
+      setJobs(samples && samples.length ? samples : SAMPLE_INTERN_JOBS);
+      setShowingSamples(true); setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [authUser?.email]);
@@ -14557,8 +14582,10 @@ function App() {
       const { data: samples } = await sb.from('fed_jobs').select('*')
         .eq('status','active').eq('demo_post', true)
         .order('created_at',{ascending:false});
-      setJobs(samples || []);
-    } catch(e) { setJobs([]); }
+      // Resilience: if the sample read returns nothing (transient read failure),
+      // show the hardcoded examples so the board is never blank.
+      setJobs(samples && samples.length ? samples : SAMPLE_EXEC_JOBS);
+    } catch(e) { setJobs(SAMPLE_EXEC_JOBS); }
     setLoading(false);
   }
 
