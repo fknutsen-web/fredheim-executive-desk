@@ -14506,13 +14506,19 @@ function App() {
   async function loadJobs() {
     setLoading(true);
     try {
-      // Live postings require an account: signed-in users see real postings,
-      // everyone else sees only the per-vertical sample postings. (RLS enforces
-      // the same rule server-side; this keeps the UI consistent.)
-      let q = sb.from('fed_jobs').select('*').eq('status','active');
-      q = authUser ? q.eq('demo_post', false) : q.eq('demo_post', true);
-      const { data } = await q.order('created_at',{ascending:false});
-      setJobs(data || []);
+      // Signed-in users see live postings; fall back to the per-vertical sample
+      // postings (demo_post=true) when none are published yet, so the board is
+      // never empty. Logged-out visitors always see the samples.
+      if (authUser) {
+        const { data: live } = await sb.from('fed_jobs').select('*')
+          .eq('status','active').eq('demo_post', false)
+          .order('created_at',{ascending:false});
+        if (live && live.length) { setJobs(live); setLoading(false); return; }
+      }
+      const { data: samples } = await sb.from('fed_jobs').select('*')
+        .eq('status','active').eq('demo_post', true)
+        .order('created_at',{ascending:false});
+      setJobs(samples || []);
     } catch(e) { setJobs([]); }
     setLoading(false);
   }
@@ -14862,7 +14868,7 @@ function App() {
             authUser={authUser}
             onGoToProfile={() => goToView('myprofile')}
             onGoToConsulting={() => goToView('consulting')}
-            minSalary={jobs.filter(j=>j.salary_min > 50000).reduce((min,j)=>Math.min(min,j.salary_min), Infinity) || 0}
+            minSalary={(() => { const v = jobs.map(j=>j.salary_min).filter(n=>Number.isFinite(n) && n>50000); return v.length ? Math.min(...v) : 0; })()}
           />
           <div className="manifesto">
             <p className="manifesto-text">
