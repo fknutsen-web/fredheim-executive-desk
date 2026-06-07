@@ -14859,7 +14859,7 @@ function App() {
         />
 
       {/* Hero and manifesto only on public views */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','industrial-tech'].includes(activeView) && (
         <>
           <Hero
             jobCount={jobs.length}
@@ -14883,7 +14883,7 @@ function App() {
 
 
       {/* ── CONSULTING STRIP ── */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','profile','pricing'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','profile','pricing','industrial-tech'].includes(activeView) && (
         <div style={{
           background: 'var(--white)',
           borderTop: '1px solid var(--rule)',
@@ -15152,6 +15152,12 @@ function App() {
         {activeView === 'terms' && <TermsPage setActiveView={goToView} />}
         {activeView === 'privacy' && <PrivacyPage setActiveView={goToView} />}
         {activeView === 'about' && <AboutPage setActiveView={goToView} />}
+
+        {activeView === 'industrial-tech' && (
+          <div className="main">
+            <IndustrialTechLanding goToView={goToView} jobs={jobs} />
+          </div>
+        )}
 
         {activeView === 'consulting' && (
           <div className="main">
