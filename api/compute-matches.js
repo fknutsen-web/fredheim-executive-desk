@@ -122,7 +122,7 @@ module.exports = async function handler(req, res) {
         const key = `${job.id}::${candidate.email.toLowerCase()}`;
         if (existingSet.has(key)) continue;
 
-        const { score, reasons } = computeMatchScore(candidate, job);
+        const { score, reasons, dimensions } = computeMatchScore(candidate, job);
         if (score < MIN_SCORE) continue;
 
         toInsert.push({
@@ -130,7 +130,11 @@ module.exports = async function handler(req, res) {
           candidate_email: candidate.email.toLowerCase(),
           recruiter_email: recruiterEmail,
           match_score:     score,
-          match_reasons:   reasons,
+          // Per-dimension breakdown is carried inside match_reasons under a
+          // reserved __dimensions key so the front end can render score bars
+          // without a schema migration. getMatchConfidence and the reason-tag
+          // UI read named keys only, so the extra array is inert to them.
+          match_reasons:   { ...reasons, __dimensions: dimensions },
           status:          'matched',
           // Denormalized candidate classification — surfaced on recruiter card
           // without requiring a join. This is the platform's signature output:
@@ -247,15 +251,18 @@ function computeMatchScore(candidate, job) {
   reasons.complexity = complexityCredit.status;
 
   // ── 3. FUNCTIONAL DISCIPLINE (15 pts) ──────────────────────────────────
+  let functionPts = 0;
   if (candidate?.function && job?.function) {
     if (candidate.function.toLowerCase() === job.function.toLowerCase()) {
-      score += 15; reasons.function = true;
+      functionPts = 15; reasons.function = true;
     } else {
       reasons.function = false;
     }
-  } else { score += 7; reasons.function = null; }
+  } else { functionPts = 7; reasons.function = null; }
+  score += functionPts;
 
   // ── 4. INDUSTRY ADJACENCY (15 pts) — adjacency-tolerant ────────────────
+  let industryPts = 0;
   if (candidate?.industry && job?.industry) {
     const cI = candidate.industry.toLowerCase();
     const jI = job.industry.toLowerCase();
@@ -263,17 +270,18 @@ function computeMatchScore(candidate, job) {
     const jW = jI.split(/[\s&,]+/);
     const overlap = cW.some(w => w.length > 3 && jW.some(jw => jw.length > 3 && (jw.includes(w) || w.includes(jw))));
     if (overlap || cI === jI) {
-      score += 15; reasons.industry = true;
+      industryPts = 15; reasons.industry = true;
     } else {
       // Industrial cross-sector adjacency: maritime ↔ logistics ↔ industrial
       // are adjacent. Award partial credit.
       const industrialKeywords = ['maritime','shipping','port','terminal','logistics','industrial','energy','offshore','commodity','trading','supply','chain'];
       const cInd = industrialKeywords.some(k => cI.includes(k));
       const jInd = industrialKeywords.some(k => jI.includes(k));
-      if (cInd && jInd) { score += 8; reasons.industry = 'adjacent'; }
-      else              {              reasons.industry = false;       }
+      if (cInd && jInd) { industryPts = 8; reasons.industry = 'adjacent'; }
+      else              {                  reasons.industry = false;       }
     }
-  } else { score += 7; reasons.industry = null; }
+  } else { industryPts = 7; reasons.industry = null; }
+  score += industryPts;
 
   // -- 5. COMPENSATION (10 pts) with structured Min/Target/Ceiling framework -
   // Reads the schema-aligned comp_floor / comp_target_low / comp_target_high /
@@ -311,6 +319,7 @@ function computeMatchScore(candidate, job) {
   const jobNeg         = _intake.comp_negotiability || '';
   const recOpen        = jobNeg === 'highly_flexible' || jobNeg === 'open_exceptional' || jobNeg === 'equity_ltip_adjust';
 
+  const _scoreBeforeComp = score;
   if (Number.isFinite(candFloorMin) && Number.isFinite(jobTargetHigh)) {
     if (candFloorMin <= jobTargetHigh) {
       score += 10; reasons.salary = true; reasons.comp_alignment = 'clear_alignment';
@@ -333,17 +342,20 @@ function computeMatchScore(candidate, job) {
   } else {
     score += 10; reasons.salary = null; reasons.comp_alignment = 'insufficient_data';
   }
+  const compPts = score - _scoreBeforeComp;
 
   // ── 6. LOCATION (5 pts) ────────────────────────────────────────────────
+  let locationPts = 0;
   if (job?.location && candidate?.location) {
     const jL = job.location.toLowerCase();
     const cL = candidate.location.toLowerCase();
     if (jL.includes('remote') || jL.includes('global') ||
         cL.includes(jL.split(',')[0].trim().substring(0,5)) ||
         jL.includes(cL.split(',')[0].trim().substring(0,5))) {
-      score += 5; reasons.location = true;
+      locationPts = 5; reasons.location = true;
     } else { reasons.location = false; }
-  } else { score += 5; reasons.location = null; }
+  } else { locationPts = 5; reasons.location = null; }
+  score += locationPts;
 
   // ── 7. STRATEGIC RESPONSIBILITY BONUS (up to 5 pts) ────────────────────
   // Candidates with strong strategic depth get a credibility lift even when
@@ -626,10 +638,22 @@ function computeMatchScore(candidate, job) {
     const cIdx = classIndex(LEADERSHIP_ORDER, candidate.leadership_class);
     const rIdx = classIndex(LEADERSHIP_ORDER, job.required_leadership_class);
     if (cIdx >= 0 && rIdx >= 0 && cIdx < rIdx - 2) {
-      return { score: 0, reasons: { ...reasons, scope: false } };
+      return { score: 0, reasons: { ...reasons, scope: false }, dimensions: [] };
     }
   }
 
-  return { score: Math.min(100, Math.max(0, Math.round(score))), reasons };
+  // Per-dimension breakdown for the recruiter score ring + bars. Covers the
+  // six fixed-weight dimensions (95 of the 100 base pts); the remaining
+  // additive overlays/bonuses live only in the composite match_score.
+  const dimensions = [
+    { key: 'scope',      label: 'Scope',      earned: Math.round(scopeCredit.pts),      max: 30 },
+    { key: 'complexity', label: 'Complexity', earned: Math.round(complexityCredit.pts), max: 20 },
+    { key: 'function',   label: 'Function',   earned: Math.round(functionPts),          max: 15 },
+    { key: 'industry',   label: 'Industry',   earned: Math.round(industryPts),          max: 15 },
+    { key: 'comp',       label: 'Comp',       earned: Math.round(compPts),              max: 10 },
+    { key: 'location',   label: 'Location',   earned: Math.round(locationPts),          max: 5  },
+  ];
+
+  return { score: Math.min(100, Math.max(0, Math.round(score))), reasons, dimensions };
 }
 // (scoring helpers above; notifications centralized via ./lib/notifications)

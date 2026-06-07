@@ -3485,6 +3485,19 @@
   .match-interest-btn.low      { background:var(--paper-2); color:var(--ink-4); border:1px solid var(--rule); }
   .match-interest-btn:disabled { opacity:0.5; cursor:not-allowed; }
   .match-candidate-equivalent { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.08em; color:var(--ink-2); background:var(--paper-2); border-left:2px solid var(--gold); padding:0.25rem 0.5rem; margin-top:0.25rem; display:inline-block; }
+  /* Match score ring + per-dimension bars on the recruiter card */
+  .match-card-head { display:flex; align-items:center; gap:0.875rem; }
+  .score-ring { position:relative; width:60px; height:60px; flex-shrink:0; }
+  .score-ring svg { display:block; }
+  .score-ring-label { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; }
+  .score-ring-num { font-family:'DM Mono',monospace; font-size:1.05rem; font-weight:500; }
+  .score-ring-pct { font-family:'DM Mono',monospace; font-size:0.42rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-4); margin-top:2px; }
+  .dim-bars { display:flex; flex-direction:column; gap:0.3rem; }
+  .dim-bar-row { display:flex; align-items:center; gap:0.5rem; }
+  .dim-bar-label { font-family:'DM Mono',monospace; font-size:0.55rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-3); width:64px; flex-shrink:0; }
+  .dim-bar-track { flex:1; height:4px; background:var(--rule-lt); overflow:hidden; }
+  .dim-bar-fill { height:100%; background:var(--gold); }
+  .dim-bar-val { font-family:'DM Mono',monospace; font-size:0.55rem; color:var(--ink-4); width:34px; text-align:right; flex-shrink:0; }
 
   /* === SCOPE & COMPLEXITY STEP === */
   /* Three-section structured intake. Tier chips for ordered selections,
