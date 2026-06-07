@@ -46,6 +46,30 @@ module.exports = async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
+      // ── Jobs (admin publish + moderation) ───────────────────────────────
+      case 'job_insert': {
+        const { job } = body;
+        if (!job || !job.title) return res.status(400).json({ error: 'job.title required.' });
+        const { data, error } = await db.from('fed_jobs').insert(job).select().single();
+        if (error) throw error;
+        return res.status(200).json({ ok: true, job: data });
+      }
+      case 'job_admin_update': {
+        const { id, patch, history } = body;
+        if (!id || !patch) return res.status(400).json({ error: 'id and patch required.' });
+        // Whitelist the columns an admin may change here (moderation only).
+        const allowed = ['status', 'admin_flagged', 'admin_flag_reason', 'archived_at'];
+        const safe = {};
+        for (const k of allowed) if (k in patch) safe[k] = patch[k];
+        if (Object.keys(safe).length === 0) return res.status(400).json({ error: 'no permitted fields in patch.' });
+        const { error } = await db.from('fed_jobs').update(safe).eq('id', id);
+        if (error) throw error;
+        if (history && typeof history === 'object') {
+          await db.from('fed_job_status_history').insert(history);
+        }
+        return res.status(200).json({ ok: true });
+      }
+
       // ── Job closures / placements (admin review) ────────────────────────
       case 'closure_review': {
         const { id, status } = body;
