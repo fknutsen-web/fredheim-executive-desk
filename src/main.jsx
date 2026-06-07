@@ -1303,18 +1303,32 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
   const [studentProfile, setStudentProfile] = useState(null);
   const [interestedJobIds, setInterestedJobIds] = useState(new Set());
   const [indicating, setIndicating] = useState(false);
+  const [showingSamples, setShowingSamples] = useState(false);
 
   useEffect(() => {
-    // Live postings require an account: signed-in students see real postings,
-    // logged-out visitors see only the per-vertical sample postings
-    // (demo_post=true). Mirrors the main board; RLS enforces the same rule.
+    // Signed-in students see live postings. Logged-out visitors — and signed-in
+    // users while no internships are published yet — see the per-vertical sample
+    // postings (demo_post=true) so the board is never empty. RLS permits both.
     setLoading(true);
-    let q = sb.from('fed_intern_jobs').select('*').eq('status','active');
-    q = authUser ? q.eq('demo_post', false) : q.eq('demo_post', true);
-    q.order('created_at',{ascending:false}).then(({data})=>{
-      setJobs(data||[]);
-      setLoading(false);
-    });
+    let cancelled = false;
+    (async () => {
+      if (authUser) {
+        const { data: live } = await sb.from('fed_intern_jobs').select('*')
+          .eq('status','active').eq('demo_post', false)
+          .order('created_at',{ascending:false});
+        if (cancelled) return;
+        if (live && live.length) {
+          setJobs(live); setShowingSamples(false); setLoading(false); return;
+        }
+        // No live postings yet — fall through to samples.
+      }
+      const { data: samples } = await sb.from('fed_intern_jobs').select('*')
+        .eq('status','active').eq('demo_post', true)
+        .order('created_at',{ascending:false});
+      if (cancelled) return;
+      setJobs(samples || []); setShowingSamples(true); setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, [authUser?.email]);
 
   useEffect(() => {
@@ -1330,6 +1344,10 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
   }, [authUser?.email]);
 
   async function indicateInterest(job) {
+    if (job?.demo_post) {
+      showToast('This is a sample posting — live internships will appear here as employers post them.');
+      return;
+    }
     if (!authUser?.email) {
       if (requestSignIn) requestSignIn('early-careers');
       else goToView('intern-profile');
@@ -1456,12 +1474,16 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
 
         {/* Listings */}
         <div>
-          {!authUser && !loading && (
+          {showingSamples && !loading && (
             <div className="intern-preview-banner">
-              <strong>Preview Mode</strong> — sample postings shown for illustration.{' '}
-              <button className="intern-preview-link" onClick={() => (requestSignIn ? requestSignIn('early-careers') : goToView('intern-profile'))}>
-                Sign in
-              </button>{' '}to see live internships and indicate interest.
+              {authUser ? (
+                <><strong>Sample postings</strong> — illustrative examples. Live internships will appear here as employers post them.</>
+              ) : (
+                <><strong>Preview Mode</strong> — sample postings shown for illustration.{' '}
+                <button className="intern-preview-link" onClick={() => (requestSignIn ? requestSignIn('early-careers') : goToView('intern-profile'))}>
+                  Sign in
+                </button>{' '}to see live internships and indicate interest.</>
+              )}
             </div>
           )}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'0.5rem'}}>
