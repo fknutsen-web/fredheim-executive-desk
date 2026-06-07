@@ -13527,14 +13527,13 @@ function QuestionnairePage({ token }) {
   useEffect(() => {
     async function loadRef() {
       try {
-        const { data, error } = await sb
-          .from('fed_references')
-          .select('*')
-          .eq('token', token)
-          .single();
-        if (error || !data) { setError('This link is invalid or has expired.'); }
-        else if (data.status === 'completed') { setSubmitted(true); }
-        else { setRef(data); }
+        // Token-gated read via the service-role endpoint (fed_references is no
+        // longer readable in bulk through the publishable key).
+        const resp = await fetch('/api/reference-questionnaire?token=' + encodeURIComponent(token));
+        const d = await resp.json().catch(() => ({}));
+        if (!resp.ok || !d.reference) { setError('This link is invalid or has expired.'); }
+        else if (d.reference.status === 'completed') { setSubmitted(true); }
+        else { setRef(d.reference); }
       } catch(e) { setError('Unable to load questionnaire. Please try again.'); }
       setLoading(false);
     }
@@ -13548,15 +13547,12 @@ function QuestionnairePage({ token }) {
     }
     setSubmitting(true);
     try {
-      const { error } = await sb
-        .from('fed_references')
-        .update({
-          ...answers,
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-        })
-        .eq('token', token);
-      if (error) throw error;
+      const resp = await fetch('/api/reference-questionnaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, answers }),
+      });
+      if (!resp.ok) throw new Error('submit failed');
       setSubmitted(true);
     } catch(e) {
       alert('Submission failed. Please try again or email desk@fredheimtech.com.');
