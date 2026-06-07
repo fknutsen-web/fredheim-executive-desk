@@ -14287,6 +14287,17 @@ function IndustrialTechLanding({ goToView, jobs }) {
     const ind = (j.industry || '').toLowerCase();
     return ['technology','saas','intelligence','automation','ai','digital','platform','software'].some(k => ind.includes(k));
   });
+  // Example industrial-technology searches, shown for illustration when no live
+  // tech searches are posted. Kept local (not DB rows) so they don't surface on
+  // the Executive Search board.
+  const demoTechBriefs = [
+    { id:'it-1', title:'Chief Revenue Officer — Maritime SaaS', company_display:'Confidential — Maritime SaaS Platform', industry:'Maritime Technology', location:'Singapore / Remote', salary_display:'$300K – $450K', tags:['Recurring Revenue','Maritime Operations','Go-to-Market'] },
+    { id:'it-2', title:'VP Product — Port Operating System', company_display:'Confidential — Port Technology Company', industry:'Port Technology', location:'Rotterdam', salary_display:'$250K – $350K', tags:['Platform','Terminal Operations','Product'] },
+    { id:'it-3', title:'Head of Operational AI — Terminal Automation', company_display:'Confidential — Industrial AI Company', industry:'Operational AI & Automation', location:'Hamburg / Hybrid', salary_display:'$280K – $400K', tags:['Operational AI','Automation','Industrial'] },
+    { id:'it-4', title:'VP Engineering — Fleet Intelligence Platform', company_display:'Confidential — Fleet Intelligence Scale-up', industry:'Fleet & Vessel Intelligence', location:'Houston, TX', salary_display:'$260K – $380K', tags:['Data Platform','Fleet Intelligence','Engineering'] },
+  ];
+  const displayTech = techJobs.length > 0 ? techJobs : demoTechBriefs;
+  const isDemoTech  = techJobs.length === 0;
   return (
     <div className="industrial-tech-landing">
       <div className="legal-eyebrow">Industrial Technology</div>
@@ -14310,16 +14321,44 @@ function IndustrialTechLanding({ goToView, jobs }) {
         </p>
       </div>
       <div className="legal-section">
-        <h2 className="legal-section-title">Active searches</h2>
-        {techJobs.length === 0 ? (
-          <p style={{color:'var(--ink-4)',fontSize:'0.85rem'}}>
-            No active industrial-technology searches at the moment. New searches
-            appear here as recruiters post them.
+        <h2 className="legal-section-title">{isDemoTech ? 'Example searches' : 'Active searches'}</h2>
+        {isDemoTech && (
+          <p style={{color:'var(--ink-4)',fontSize:'0.8rem',marginBottom:'1rem',lineHeight:1.6}}>
+            ✦ Example briefs shown for illustration. Live industrial-technology searches appear here as recruiters post them.
           </p>
-        ) : (
-          <p style={{color:'var(--ink-2)',fontSize:'0.85rem'}}>
-            {techJobs.length} active search{techJobs.length === 1 ? '' : 'es'}.
-            {' '}<a onClick={() => goToView('jobs')} style={{color:'var(--gold)',cursor:'pointer',textDecoration:'underline'}}>Browse all opportunities &rarr;</a>
+        )}
+        <div style={{display:'flex',flexDirection:'column',gap:'1px',background:'var(--rule)',border:'1px solid var(--rule)'}}>
+          {displayTech.map(item => {
+            const company = item.company_display || item.firm_name || 'Confidential';
+            const tags = item.tags || [];
+            return (
+              <div key={item.id} style={{background:'var(--paper)',padding:'1.1rem 1.35rem',display:'flex',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap',alignItems:'flex-start'}}>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'0.5rem',flexWrap:'wrap'}}>
+                    <span style={{fontFamily:"'Playfair Display',serif",fontSize:'1rem',color:'var(--ink)'}}>{item.title}</span>
+                    {isDemoTech && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',border:'1px solid var(--rule)',padding:'0.1rem 0.4rem'}}>Example</span>}
+                  </div>
+                  <div style={{fontSize:'0.8rem',color:'var(--ink-3)',margin:'0.25rem 0'}}>
+                    {company}{item.industry ? ` · ${item.industry}` : ''}{item.location ? ` · ${item.location}` : ''}
+                  </div>
+                  {tags.length > 0 && (
+                    <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap',marginTop:'0.375rem'}}>
+                      {tags.slice(0,4).map(t => (
+                        <span key={t} style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',letterSpacing:'0.06em',padding:'0.15rem 0.5rem',border:'1px solid var(--rule)',color:'var(--ink-4)',background:'var(--paper-2)'}}>{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {item.salary_display && (
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:'0.95rem',color:'var(--ink)',flexShrink:0}}>{item.salary_display}</div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        {!isDemoTech && (
+          <p style={{color:'var(--ink-2)',fontSize:'0.85rem',marginTop:'1rem'}}>
+            <a onClick={() => goToView('jobs')} style={{color:'var(--gold)',cursor:'pointer',textDecoration:'underline'}}>Browse all opportunities &rarr;</a>
           </p>
         )}
       </div>
