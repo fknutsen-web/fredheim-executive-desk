@@ -14898,7 +14898,7 @@ function App() {
         />
 
       {/* Hero and manifesto only on public views */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','industrial-tech'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','industrial-tech','early-careers'].includes(activeView) && (
         <>
           <Hero
             jobCount={jobs.length}
@@ -14922,7 +14922,7 @@ function App() {
 
 
       {/* ── CONSULTING STRIP ── */}
-      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','profile','pricing','industrial-tech'].includes(activeView) && (
+      {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','profile','pricing','industrial-tech','early-careers'].includes(activeView) && (
         <div style={{
           background: 'var(--white)',
           borderTop: '1px solid var(--rule)',
