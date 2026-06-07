@@ -1270,6 +1270,7 @@ function InternJobCard({ job, onClick }) {
           {job.location} · {job.work_arrangement ? (job.work_arrangement.charAt(0).toUpperCase()+job.work_arrangement.slice(1)) : ''} · {INTERN_HOURS[job.hours_per_week] || job.hours_per_week || 'Full-time'}
         </div>
         <div className="intern-job-tags">
+          {job.demo_post && <span className="intern-tag sample">Sample</span>}
           {seasonLabel && <span className="intern-tag season">{seasonLabel}</span>}
           {job.is_paid && <span className="intern-tag paid">Paid</span>}
           {job.sponsorship_available && <span className="intern-tag">Sponsorship Available</span>}
@@ -1304,12 +1305,17 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
   const [indicating, setIndicating] = useState(false);
 
   useEffect(() => {
-    sb.from('fed_intern_jobs').select('*').eq('status','active').eq('demo_post',false)
-      .order('created_at',{ascending:false}).then(({data})=>{
-        setJobs(data||[]);
-        setLoading(false);
-      });
-  }, []);
+    // Live postings require an account: signed-in students see real postings,
+    // logged-out visitors see only the per-vertical sample postings
+    // (demo_post=true). Mirrors the main board; RLS enforces the same rule.
+    setLoading(true);
+    let q = sb.from('fed_intern_jobs').select('*').eq('status','active');
+    q = authUser ? q.eq('demo_post', false) : q.eq('demo_post', true);
+    q.order('created_at',{ascending:false}).then(({data})=>{
+      setJobs(data||[]);
+      setLoading(false);
+    });
+  }, [authUser?.email]);
 
   useEffect(() => {
     if (!authUser?.email) { setStudentProfile(null); setInterestedJobIds(new Set()); return; }
@@ -1450,6 +1456,14 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
 
         {/* Listings */}
         <div>
+          {!authUser && !loading && (
+            <div className="intern-preview-banner">
+              <strong>Preview Mode</strong> — sample postings shown for illustration.{' '}
+              <button className="intern-preview-link" onClick={() => (requestSignIn ? requestSignIn('early-careers') : goToView('intern-profile'))}>
+                Sign in
+              </button>{' '}to see live internships and indicate interest.
+            </div>
+          )}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'0.5rem'}}>
             <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
               {loading ? 'Loading…' : `${filtered.length} Internship${filtered.length!==1?'s':''}${filtered.length<jobs.length?` of ${jobs.length}`:''}`}
@@ -3728,16 +3742,26 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
   // their previous scroll position, which made e.g. clicking "Early Careers"
   // appear to do nothing if the user had scrolled past the Hero.
   const go = goToView || setActiveView;
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <nav className="nav">
-      <div className="nav-brand" onClick={() => go('jobs')}>
+      <div className="nav-brand" onClick={() => { setMenuOpen(false); go('jobs'); }}>
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
           <div className="nav-name">Fredheim Executive Desk</div>
           <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</span>
         </div>
       </div>
-      <div className="nav-links">
+      <button
+        className={`nav-burger ${menuOpen ? 'open' : ''}`}
+        aria-label="Toggle navigation menu"
+        aria-expanded={menuOpen}
+        onClick={() => setMenuOpen(o => !o)}
+      >
+        <span /><span /><span />
+      </button>
+      {/* Clicking any item inside closes the mobile dropdown (events bubble). */}
+      <div className={`nav-links ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(false)}>
         <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Executive Search</button>
         <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting &amp; Interim</button>
         <button className={`nav-link ${activeView==='industrial-tech'?'active':''}`} onClick={() => go('industrial-tech')}>Industrial Technology</button>
