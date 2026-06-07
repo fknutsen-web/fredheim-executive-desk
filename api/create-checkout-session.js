@@ -3,8 +3,8 @@
 //   Candidate tiers:   free (standard profile) | confidential ($299/yr - anonymous executive profile)
 //   Recruiter tiers:   standard ($199/mo - Phase 1 single subscription tier)
 //                       founding (status, no Stripe charge - waived through founding window)
-//   Curated introduction: flat $249 one-time fee at point of confirmed introduction.
-//                          Same price for every executive scope. Early Career = free.
+//   Curated introduction: compensation-tiered one-time fee ($99–$2,500) at point
+//                          of confirmed introduction. Early Career = free.
 //   Intern featured:   $49/yr - Featured Student Profile (Early Careers)
 
 const {
@@ -52,9 +52,10 @@ module.exports = async function handler(req, res) {
       return { eligible: true, remaining: cap - (count || 0) };
     }
 
-    // -- Flat curated introduction pricing -----------------------------------
-    // Every executive scope (Manager through C-Suite) pays the same flat fee.
-    // Early-career and individual-contributor candidates are complimentary.
+    // -- Compensation-tiered curated introduction pricing --------------------
+    // The fee is set by role/candidate compensation ($99–$2,500; see
+    // lib/introduction-fees.js). Early-career and individual-contributor
+    // candidates are complimentary.
     async function resolveIntroductionPrice(matchId) {
       // PRIMARY: the confidential-introduction marketplace flow (fed_matches).
       // Payment is gated on candidate approval (status = awaiting_payment) and
@@ -144,7 +145,7 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ url: session.url });
     }
 
-    // -- CURATED INTRODUCTION FEE (flat $249) -----------------------------
+    // -- CURATED INTRODUCTION FEE (compensation-tiered $99–$2,500) -----------------------------
     if (type === 'engagement' || type === 'introduction') {
       if (!match_id) return res.status(400).json({ error: 'match_id is required for curated introduction.' });
 

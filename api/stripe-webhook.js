@@ -196,7 +196,7 @@ module.exports = async function handler(req, res) {
           break;
         }
 
-        // -- CURATED INTRODUCTION FEE (Phase 1: flat $249) --------
+        // -- CURATED INTRODUCTION FEE (compensation-tiered $99–$2,500) --------
         // Fired when a recruiter pays for a curated introduction.
         // Accepts both the new meta.type='introduction' and the legacy
         // 'engagement' tag so older checkouts complete cleanly.
@@ -387,7 +387,7 @@ module.exports = async function handler(req, res) {
 
 // -- CURATED INTRODUCTION PAID HANDLER (fed_matches / Phase 1) --
 // Updates the executive-product match record after Stripe confirms the
-// $249 curated introduction payment. Flips status to recruiter_interested
+// compensation-tiered curated introduction payment. Flips status to recruiter_interested
 // (or mutual_interest if candidate had already signaled), records payment
 // completion, and fires the bilateral introduction email.
 //
@@ -420,6 +420,15 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     }
   }
 
+  // Resolve the amount paid (Stripe is the source of truth; fall back to label).
+  let amountNum = null;
+  if (session && typeof session.amount_total === 'number') amountNum = session.amount_total / 100;
+  else { const n = parseFloat(String(feeAmount || '').replace(/[^0-9.]/g, '')); amountNum = isNaN(n) ? null : n; }
+  // Customer-facing fee label: the compensation-tiered amount actually charged
+  // (from checkout metadata or the Stripe total) — never a hardcoded flat figure.
+  const feeDisplay = feeAmount
+    || (amountNum != null ? `$${amountNum.toLocaleString('en-US')}` : 'the introduction fee');
+
   // Payment confirmed -> the match is UNLOCKED. Contact may now be revealed.
   const wasMutual = match.status === 'candidate_interested' || match.status === 'mutual_interest';
   const update = {
@@ -428,16 +437,11 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     payment_completed_at:     now,
     recruiter_interested_at:  match.recruiter_interested_at || now,
     introduction_fee_paid:    true,
-    introduction_fee_amount:  feeAmount || '$249',
-    introduction_fee_bracket: bracket || 'flat',
+    introduction_fee_amount:  feeDisplay,
+    introduction_fee_bracket: bracket || 'comp_tiered',
   };
   if (wasMutual && !match.mutual_interest_at) update.mutual_interest_at = now;
   await supabase.from('fed_matches').update(update).eq('id', matchId);
-
-  // Resolve the amount paid (Stripe is the source of truth; fall back to label).
-  let amountNum = null;
-  if (session && typeof session.amount_total === 'number') amountNum = session.amount_total / 100;
-  else { const n = parseFloat(String(feeAmount || '').replace(/[^0-9.]/g, '')); amountNum = isNaN(n) ? null : n; }
 
   // Record the paid introduction — the durable source of truth for the unlock.
   await supabase.from('fed_paid_introductions').insert({
@@ -472,7 +476,7 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     recipientEmail: recruiterEmail, role: 'recruiter', type: 'paid_unlocked',
     matchId, jobId: match.job_id,
     title: `Contact unlocked — ${jobTitle}`,
-    body:  `Your curated introduction is confirmed (${feeAmount || '$249'}). Approved contact details are now available on your dashboard.`,
+    body:  `Your curated introduction is confirmed (${feeDisplay}). Approved contact details are now available on your dashboard.`,
   });
 
   // Branded emails — contact is now released (the paid introduction unlock).
@@ -484,15 +488,15 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
   await notify({
     to_email: recruiterEmail,
     subject:  `Contact unlocked — ${jobTitle}`,
-    body:     `Your curated introduction is confirmed (${feeAmount || '$249'}). Approved contact details for this candidate are now available on your dashboard. All further communication is directly between you and the candidate.`,
+    body:     `Your curated introduction is confirmed (${feeDisplay}). Approved contact details for this candidate are now available on your dashboard. All further communication is directly between you and the candidate.`,
   });
 
   await revenueAlert(
-    `Revenue — introduction fee paid / contact unlocked (${feeAmount || '$249'})`,
-    `Introduction fee paid and contact unlocked.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nAmount: ${feeAmount || '$249'}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}`
+    `Revenue — introduction fee paid / contact unlocked (${feeDisplay})`,
+    `Introduction fee paid and contact unlocked.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nAmount: ${feeDisplay}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}`
   );
 
-  console.log(`Fredheim curated introduction paid: match ${matchId} -> paid_unlocked (${feeAmount || '$249'})`);
+  console.log(`Fredheim curated introduction paid: match ${matchId} -> paid_unlocked (${feeDisplay})`);
 }
 
 // ── ENGAGEMENT UNLOCK PAID HANDLER (legacy talent_matches) ─────
