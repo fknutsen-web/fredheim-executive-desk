@@ -356,7 +356,7 @@ function App() {
           <div className="nav-mark">FD</div>
           <div>
             <div className="nav-name">Fredheim Executive Desk</div>
-            <span className="nav-sub">Talent Match · Recruiter View</span>
+            <span className="nav-sub">Talent Match · Hiring View</span>
           </div>
         </a>
         <div className="nav-right">

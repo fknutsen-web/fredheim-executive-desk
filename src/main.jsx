@@ -359,7 +359,7 @@ function LeaderboardSection() {
     <div className="leaderboard-section">
       <div className="leaderboard-header">
         <div>
-          <div className="leaderboard-title">Top Search Firms</div>
+          <div className="leaderboard-title">Top Firms &amp; Employers</div>
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
             Verified platform placements only
           </div>
@@ -1237,7 +1237,7 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
               lineHeight:'1.6',
             }}>
               Your name, school, email, and exact location are <strong>always
-              hidden</strong> from recruiters until an introduction is
+              hidden</strong> from employers until an introduction is
               confirmed. This is platform policy, not an opt-in setting.
             </div>
             <div style={{fontSize:'0.78rem',color:'var(--ink-4)',marginBottom:'0.4rem'}}>
@@ -4056,7 +4056,7 @@ function JobModal({ job, onClose, showToast }) {
 
         {expressed ? (
           <div className="interest-success">
-            <p>✦ Interest registered. The search firm will be notified. Your identity remains confidential until you approve contact.</p>
+            <p>✦ Interest registered. The search firm or employer will be notified. Your identity remains confidential until you approve contact.</p>
           </div>
         ) : (
           <>
@@ -4090,7 +4090,7 @@ function TosModal({ onAgree, onCancel }) {
   return (
     <div className="tos-overlay">
       <div className="tos-modal">
-        <div className="tos-eyebrow">Platform Terms — Search Firms</div>
+        <div className="tos-eyebrow">Platform Terms — Search Firms &amp; Employers</div>
         <h2 className="tos-title">Platform Terms &amp; Curated Introduction Agreement</h2>
         <div className="tos-body">
           <p>Before posting a search, please review and agree to the Fredheim Executive Desk
@@ -4098,7 +4098,7 @@ function TosModal({ onAgree, onCancel }) {
           executive community.</p>
 
           <div className="tos-clause">
-            <strong>Subscription.</strong> Active recruiter access requires a Standard subscription
+            <strong>Subscription.</strong> Active posting access for search firms and employers requires a Standard subscription
             of <strong>$199/month</strong>, billed monthly through Stripe. Founding Partner cohort
             members (admission by application) have subscription fees waived through 2026-12-31.
           </div>
@@ -5355,7 +5355,7 @@ function ParseReviewModal({ mode, fields, onApprove, onCancel }) {
         </div>
         <div className="parse-review-fineprint">
           {mode === 'candidate'
-            ? 'Hidden fields remain in the platform but are not displayed to recruiters before a curated introduction.'
+            ? 'Hidden fields remain in the platform but are not displayed to search firms and employers before a curated introduction.'
             : 'Approved fields populate the search brief - you can still edit any step before submitting.'}
         </div>
       </div>
@@ -5918,10 +5918,11 @@ function RecruiterModal({ onClose, showToast }) {
 
         {step === 'intake' && (
           <>
-            <div className="modal-eyebrow">For Search Firms</div>
+            <div className="modal-eyebrow">For Search Firms &amp; Employers</div>
             <h2 className="modal-title">Post a Search</h2>
             <p className="intake-modal-blurb">
-              Reach qualified senior leaders across maritime, commodity trading, energy,
+              Whether you're a retained search firm or a company hiring directly, reach qualified
+              senior leaders across maritime, commodity trading, energy,
               logistics, ports and terminals, and offshore. Salary
               transparency is a platform standard.
             </p>
@@ -6047,14 +6048,14 @@ const CONFIDENTIALITY_TOGGLES = [
   { k:'hide_linkedin',             l:'Hide LinkedIn profile',                   group:'identity' },
   { k:'hide_contact_until_intro',  l:'Hide phone/email until curated introduction', group:'identity' },
   { k:'region_only',               l:'Show approximate region only',            group:'identity' },
-  { k:'approved_recruiters_only',  l:'Restrict visibility to approved recruiters only', group:'visibility' },
+  { k:'approved_recruiters_only',  l:'Restrict visibility to approved search firms and employers only', group:'visibility' },
   { k:'exclude_current_employer',  l:'Exclude current employer',                group:'visibility' },
   { k:'exclude_companies_enabled', l:'Exclude specified companies',             group:'visibility' },
 ];
 
 const OPENNESS_TOGGLES = [
   { k:'open_direct_employer',    l:'Open to direct employer contact' },
-  { k:'open_recruiter_only',     l:'Recruiter-only contact' },
+  { k:'open_recruiter_only',     l:'Search firm / employer contact only' },
   { k:'open_consulting',         l:'Open to consulting opportunities' },
   { k:'open_permanent',          l:'Open to permanent roles' },
   { k:'open_board_advisory',     l:'Open to board / advisory roles' },
@@ -6135,7 +6136,7 @@ const CANDIDATE_PROFILE_STEPS = [
   { id:'compensation',    number:5,  title:'Compensation Preferences',      tagline:'Structured beyond base salary - acceptance probability depends on this.' },
   { id:'drivers',         number:6,  title:'Career Drivers',                tagline:'Rank what matters most. Top 3-5.' },
   { id:'avoidance',       number:7,  title:'Role Avoidance Signals',        tagline:'What you do not want. Reduces noise in your match list.' },
-  { id:'confidentiality', number:8,  title:'Confidentiality Controls',      tagline:'Decide exactly what recruiters see before any introduction.' },
+  { id:'confidentiality', number:8,  title:'Confidentiality Controls',      tagline:'Decide exactly what search firms and employers see before any introduction.' },
   { id:'industry_tech',   number:9,  title:'Industry & Technology',         tagline:'Industries you lead in - and the tech systems you operate.' },
   { id:'achievements',    number:10, title:'Structured Achievements',       tagline:'Situation, action, measurable result. The signal compatibility matching reads.' },
 ];
@@ -6429,8 +6430,8 @@ function CandidateOperatingProfile({ value, onChange }) {
         {currentStep.id === 'achievements' && (
           <div className="candprofile-body">
             <div className="candprofile-field-label">
-              Structured achievements drive compatibility matching and the recruiter-facing
-              summary. Add at least three.
+              Structured achievements drive compatibility matching and the summary
+              search firms and employers see. Add at least three.
             </div>
             {(v.achievements || []).map((a, i) => (
               <div key={i} className="candprofile-achievement">
@@ -6543,7 +6544,7 @@ function CandidateMatchTransparencyCard({ match, profile, onExpressInterest, onC
         <div className="intake-summary-title">Your confidentiality at this stage</div>
         <div className="match-transparency-confidentiality">
           {anonymous
-            ? 'Anonymous mode is on. The recruiter only sees scope, complexity, leadership profile, and industry. No name, employer, or contact until you confirm interest.'
+            ? 'Anonymous mode is on. The search firm or employer only sees scope, complexity, leadership profile, and industry. No name, employer, or contact until you confirm interest.'
             : 'Standard visibility. Recruiter sees your name and headline. Contact details remain hidden until you confirm interest.'}
         </div>
       </div>
@@ -6782,7 +6783,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
                   || o.pnl_owned === true || o.capex_authority || o.sites_managed
                   || o.geographic_scope;
       if (!hasAny) {
-        showToast('Scope inputs help recruiters find you — adding even a few improves match quality.');
+        showToast('Scope inputs help search firms and employers find you — adding even a few improves match quality.');
         // Allow proceeding (return true) — soft nudge only.
       }
     }
@@ -6898,7 +6899,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
         Welcome to Fredheim Executive Desk.
         {visibility === 'discreet'
           ? ' Your profile is confidential — you initiate all contact.'
-          : ' Your profile is visible to posting search firms.'
+          : ' Your profile is visible to posting search firms and employers.'
         }
         {' '}You'll receive alerts when matching searches are posted.
       </div>
@@ -7083,7 +7084,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           <div style={{marginTop:'1.5rem'}}>
             <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Key Achievements</div>
             <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1rem',lineHeight:'1.6'}}>
-              3 bullet points. Specific, quantified where possible. This is what recruiters read first.
+              3 bullet points. Specific, quantified where possible. This is what search firms and employers read first.
             </p>
             {achievements.map((a,i) => (
               <div key={i} className="form-group" style={{marginBottom:'0.625rem'}}>
@@ -7414,7 +7415,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           {/* Closing note */}
           <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1rem',marginTop:'1rem',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.55'}}>
             Your inputs here drive matching, ranking, and the Equivalent Leadership Mapping that
-            recruiters see. Recruiters never see the raw answers — only your derived classification
+            search firms and employers see. They never see the raw answers — only your derived classification
             ({scopeMetrics.equivalent_label || 'pending'}) and aligned attributes. You can revisit
             and update these any time.
           </div>
@@ -7443,16 +7444,16 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             </a>{' '}
             ($10), then enter your percentile scores exactly as shown. Note: Understand Myself
             reports <strong>Neuroticism</strong> (not Emotional Stability) — enter that score directly.
-            A low Neuroticism score means high emotional stability. You control whether recruiters see this.
+            A low Neuroticism score means high emotional stability. You control whether search firms and employers see this.
           </div>
 
           <div className="big-five-share-toggle" onClick={()=>setShareBigFive(!shareBigFive)}>
             <div className={`toggle-switch ${shareBigFive?'on':''}`} />
             <div className="toggle-label">
-              <strong>{shareBigFive ? 'Sharing with recruiters' : 'Not sharing with recruiters'}</strong>
+              <strong>{shareBigFive ? 'Sharing with search firms and employers' : 'Not sharing with search firms and employers'}</strong>
               {' '}— {shareBigFive
-                ? 'Your scores will be visible to recruiting firms when your profile is viewed.'
-                : 'Your scores are private. Toggle on to share them with posting search firms.'
+                ? 'Your scores will be visible to search firms and employers when your profile is viewed.'
+                : 'Your scores are private. Toggle on to share them with posting search firms and employers.'
               }
             </div>
           </div>
@@ -7517,7 +7518,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             </div>
             <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.375rem',lineHeight:'1.5'}}>
               Discreet: only visible when you express interest in a specific search.
-              Open: visible to all posting search firms (Confidential tier only).
+              Open: visible to all posting search firms and employers (Confidential tier only).
             </p>
           </div>
 
@@ -7762,7 +7763,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
             <div className="form-group">
               <label className="form-label">Companies or organizations where your work would be recognized</label>
               <input className="form-input" placeholder="e.g. Cargill, Trafigura, Port of Houston Authority, Stolt-Nielsen" value={vetting.market_presence} onChange={e=>setV('market_presence',e.target.value)} />
-              <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.375rem'}}>Helps recruiters understand your market standing and network depth.</p>
+              <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.375rem'}}>Helps search firms and employers understand your market standing and network depth.</p>
             </div>
           </div>
 
@@ -7877,7 +7878,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       // No "$0" display - it would unintentionally cheapen the positioning.
       priceDisplay: 'By Application',
       period: 'Limited founding cohort through ' + (cfg.founding_partner_window_end || '2026-12-31'),
-      desc: 'A small, vetted founding cohort of search firms shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
+      desc: 'A small, vetted founding cohort of search firms and direct-hiring employers shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
       features: [
         'Limited initial partner group - admission by review',
         'Subscription fees waived through ' + (cfg.founding_partner_window_end || '2026-12-31'),
@@ -7906,11 +7907,11 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Confidential interest signaling - email only, not your identity',
         'Email alerts for new matching searches',
         'Set compensation floor - hide searches below your range',
-        'Complete executive assessment - get matched by talent search firms',
+        'Complete executive assessment - get matched by search firms and employers',
       ],
       muted: [
         'Recruiters cannot find or contact you directly',
-        'Profile not visible to search firms',
+        'Profile not visible to search firms or employers',
       ],
       cta: 'Create Free Profile',
       ctaStyle: '',
@@ -7920,14 +7921,14 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       name: 'Confidential',
       price: String(cfg.candidate_executive_tier || 299),
       period: 'per year',
-      desc: 'Your name, employer, and location are hidden from all recruiters until you personally approve a curated introduction. You control every reveal.',
+      desc: 'Your name, employer, and location are hidden from all search firms and employers until you personally approve a curated introduction. You control every reveal.',
       features: [
         'Includes all Free access features',
         'Anonymous executive profile - identity hidden by default',
         'Employer, location, and age-identifying details hidden by default',
         'Recruiter approval workflow - you decide who sees you',
         'Priority placement in relevant search results',
-        'Visible to approved search firms running relevant searches',
+        'Visible to approved search firms and employers running relevant searches',
         'Executives are never charged any fee on a hire - ever',
       ],
       muted: [],
@@ -8045,7 +8046,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       {/* Audience toggle */}
       <div className="pricing-tabs">
         <button className={`pricing-tab ${audience==='recruiters'?'active':''}`} onClick={()=>setAudience('recruiters')}>
-          For Search Firms
+          For Search Firms &amp; Employers
         </button>
         <button className={`pricing-tab ${audience==='executives'?'active':''}`} onClick={()=>setAudience('executives')}>
           For Executives
@@ -8111,7 +8112,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           <div className="intro-fee-eyebrow">Curated Introduction Fee</div>
           <div className="intro-fee-title">Priced by compensation. One confirmed introduction.</div>
           <p className="intro-fee-desc">
-            The fee is triggered when a recruiter confirms a curated introduction to a
+            The fee is triggered when a search firm or employer confirms a curated introduction to a
             qualified, mutually interested candidate who has approved the introduction.
             No placement fees. No commission. No tail-period monitoring. Candidates are
             never charged any fee, ever. Founding Partners are exempt from introduction
@@ -8183,7 +8184,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </div>
             <div className="faq-item">
               <div className="faq-q">Who controls when my identity is revealed?</div>
-              <div className="faq-a">You do, always. When a search firm expresses interest, you receive a notification and decide whether to accept the curated introduction. Only after you accept is your identity and contact information shared. You can decline any introduction without explanation.</div>
+              <div className="faq-a">You do, always. When a search firm or employer expresses interest, you receive a notification and decide whether to accept the curated introduction. Only after you accept is your identity and contact information shared. You can decline any introduction without explanation.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Do I pay anything if I am hired through the platform?</div>
@@ -8223,7 +8224,8 @@ function TermsPage() {
         <p>
           Fredheim Executive Desk is an executive opportunity marketplace connecting senior
           professionals in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained executive
-          search firms. Fredheim Technologies LLC facilitates introductions — we are not a
+          search firms and with companies hiring directly for their own roles (each, and together,
+          a "Search Firm" for the purposes of these Terms). Fredheim Technologies LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
         </p>
@@ -8274,7 +8276,12 @@ function TermsPage() {
           of the Search Firm.
         </p>
 
-        <h2>3. Search Firm Terms</h2>
+        <h2>3. Search Firm &amp; Employer Terms</h2>
+        <p>
+          As defined in Section 1, "Search Firm" includes both retained executive search firms
+          and companies (employers) that post searches and hire directly through the Platform.
+          The terms in this Section 3 apply equally to both.
+        </p>
 
         <h3>3.0 Founding Partner Program — 2026</h3>
         <div className="legal-highlight">
@@ -8438,7 +8445,7 @@ function PrivacyPage() {
           <li>Visibility and alert preferences</li>
         </ul>
 
-        <h3>Search Firms</h3>
+        <h3>Search Firms &amp; Employers</h3>
         <ul>
           <li>Firm name, contact name, and email address</li>
           <li>Role postings including title, description, compensation range, industry, location</li>
@@ -8458,7 +8465,7 @@ function PrivacyPage() {
 
         <h2>2. How Your Information Is Shared</h2>
 
-        <h3>With Search Firms — Executive Members</h3>
+        <h3>With Search Firms &amp; Employers — Executive Members</h3>
         <table className="legal-table">
           <thead>
             <tr><th>Information</th><th>Shared When</th></tr>
@@ -10959,7 +10966,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
             Welcome back, {user.email}
           </div>
           <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
-            Your account is registered as a search firm. Go to your Firm Dashboard to manage postings and view candidate activity.
+            Your account is registered as a search firm or employer. Go to your Firm Dashboard to manage postings and view candidate activity.
           </p>
           <button className="btn-primary" onClick={() => onRecruiterRedirect && onRecruiterRedirect()}>
             Go to Firm Dashboard →
@@ -11145,7 +11152,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
               <div className="profile-visibility-label">Profile Visibility</div>
               <div className="profile-visibility-desc">
                 {profile.visibility === 'open'
-                  ? 'Open — posting search firms can view your profile'
+                  ? 'Open — posting search firms and employers can view your profile'
                   : 'Discreet — only visible when you express interest'
                 }
               </div>
@@ -11537,7 +11544,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
         });
 
         const msgs = {
-          candidate_interested: '✓ Interest sent. The search firm will be notified.',
+          candidate_interested: '✓ Interest sent. The search firm or employer will be notified.',
           mutual_interest: '✓ Mutual interest! You can now approve a confidential introduction.',
           awaiting_payment: '✓ Introduction approved. The firm can now unlock it — your identity is revealed only then.',
           candidate_withdrew: 'Introduction withdrawn. No contact details were shared.',
@@ -11623,7 +11630,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
         <div style={{textAlign:'center',padding:'2rem',color:'var(--ink-4)'}}><span className="spinner"/>Loading matches…</div>
       ) : matches.length === 0 ? (
         <div className="profile-field-empty">
-          No matching job posts yet. Matches are computed when search firms post new searches and will appear here automatically.
+          No matching job posts yet. Matches are computed when search firms and employers post new searches and will appear here automatically.
         </div>
       ) : tabMatches.length === 0 ? (
         <div className="profile-field-empty">No matches in this category yet.</div>
@@ -11655,7 +11662,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
                     <div>
                       <div className="job-match-title">{job.title}</div>
                       <div className="job-match-firm">
-                        {isUnlocked ? job.firm_name : 'Confidential Search Firm'} · {job.industry}
+                        {isUnlocked ? job.firm_name : 'Confidential Firm'} · {job.industry}
                       </div>
                     </div>
                   </div>
@@ -12485,8 +12492,8 @@ function RecruiterSignInPage({ onBack }) {
   return (
     <div className="auth-page">
       <div className="auth-box">
-        <div className="auth-eyebrow">Search Firm Access</div>
-        <h2 className="auth-title">Recruiter Sign In</h2>
+        <div className="auth-eyebrow">Search Firm &amp; Employer Access</div>
+        <h2 className="auth-title">Firm Sign In</h2>
         <p className="auth-desc">
           Access your posting dashboard, view candidate interest data, and manage your searches.
           Use the email address associated with your firm's account.
@@ -13136,7 +13143,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) { showToast(data.error || 'Could not close account. Please try again.'); return; }
-      showToast('Your recruiter account has been closed.');
+      showToast('Your account has been closed.');
       setTimeout(() => onSignOut(), 1600);
     } catch(e) {
       showToast('Could not close account. Please try again.');
@@ -13495,7 +13502,7 @@ function ReferenceStatus({ email, showToast }) {
 
       <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.55'}}>
         References receive a secure 5-minute questionnaire link by email. No login required.
-        Completed references are shown to verified search firms with your consent.
+        Completed references are shown to verified search firms and employers with your consent.
         The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>desk.fredheimtech.com?ref=[token]</code>
       </p>
     </div>
@@ -13632,7 +13639,7 @@ function QuestionnairePage({ token }) {
         </div>
         <div style={{background:'var(--green-bg)',border:'1px solid rgba(26,122,74,0.2)',borderLeft:'3px solid var(--green)',padding:'1.5rem',color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.75'}}>
           Your reference has been received and will be kept confidential.
-          It will be shared only with verified executive search firms, with the candidate's consent.
+          It will be shared only with verified executive search firms and employers, with the candidate's consent.
           You can close this window.
         </div>
       </div>
@@ -13653,7 +13660,7 @@ function QuestionnairePage({ token }) {
             You have been listed as a professional reference on Fredheim Executive Desk —
             a curated executive search platform for maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
             This takes approximately 5 minutes. Your responses are confidential and shared
-            only with verified search firms, with the candidate's consent.
+            only with verified search firms and employers, with the candidate's consent.
           </p>
         </div>
 
@@ -14493,7 +14500,7 @@ function AboutPage({ setActiveView }) {
         </p>
         <p>
           We built something different. Salary ranges are always published.
-          Search firms are named. Your identity is protected until you choose to engage.
+          Search firms and employers are named. Your identity is protected until you choose to engage.
           Introductions are facilitated personally — not algorithmically.
         </p>
 
@@ -14508,9 +14515,10 @@ function AboutPage({ setActiveView }) {
           Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
 
-        <h3>Executive Search Firms</h3>
+        <h3>Search Firms &amp; Employers</h3>
         <p>
-          Retained search firms running mandates in our verticals who want access to
+          Retained search firms running mandates in our verticals — and companies hiring
+          directly for their own senior roles — who want access to
           a curated, qualified pool of senior professionals across maritime & shipping, commodity
           trading, energy, logistics & supply chain, ports & terminals, and offshore. Salary transparency is
           non-negotiable — every posting must include a published compensation range.
@@ -14536,7 +14544,7 @@ function AboutPage({ setActiveView }) {
         <p>
           Reference-based vetting is built into the platform. Executives can submit
           professional references who complete a short confidential questionnaire.
-          Completed references are shared with verified search firms — with the
+          Completed references are shared with verified search firms and employers — with the
           executive's consent — and significantly improve matching quality.
         </p>
 
@@ -14562,7 +14570,7 @@ function AboutPage({ setActiveView }) {
 
         <h2>The Founding Partner Program</h2>
         <div className="legal-highlight">
-          Search firms and companies posting consulting briefs may participate in the
+          Search firms, direct-hiring employers, and companies posting consulting briefs may participate in the
           Fredheim Founding Partner Program through December 31, 2026.
           One posting per month, complimentary. No subscription required.
           Introduction fees apply on confirmed placements and engagements.
@@ -14574,8 +14582,8 @@ function AboutPage({ setActiveView }) {
           Executive profiles are free to create. The Confidential tier ($299/year) hides
           your identity from all recruiters until you personally approve each connection,
           and surfaces your profile in relevant searches.
-          Introduction fees are charged to search firms only — executives are never charged
-          placement fees of any kind.
+          Introduction fees are charged to the hiring side — search firms and employers — only;
+          executives are never charged placement fees of any kind.
         </p>
         <p style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}} onClick={() => setActiveView('pricing')}>
           View full pricing →
@@ -15009,7 +15017,7 @@ function App() {
             <p className="manifesto-text">
               Executive search has always been opaque by design.{' '}
               <strong>Fredheim Executive Desk is built differently</strong> —
-              salary ranges published, search firms named, your identity protected until you choose to move.{' '}
+              salary ranges published, search firms and employers named, your identity protected until you choose to move.{' '}
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
           </div>
@@ -15240,7 +15248,7 @@ function App() {
               <h2 className="profile-title">Your next role<br /><em>finds you.</em></h2>
               <p className="profile-desc">
                 Create a confidential profile and let the right searches come to you.
-                You control when — and if — your identity is shared with a search firm.
+                You control when — and if — your identity is shared with a search firm or employer.
                 Basic access is always free.
               </p>
               <p style={{fontSize:'0.82rem',color:'rgba(250,250,248,0.5)',marginBottom:'1.5rem'}}>
@@ -15344,10 +15352,10 @@ function App() {
 
         {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','profile'].includes(activeView) && <div className="recruiter-cta">
           <div>
-            <div className="recruiter-eyebrow">For Search Firms</div>
+            <div className="recruiter-eyebrow">For Search Firms &amp; Employers</div>
             <div className="recruiter-title">Reach the right executives.</div>
             <div className="recruiter-desc">
-              The only curated platform where retained search firms reach qualified senior leaders
+              The only curated platform where retained search firms and companies hiring directly reach qualified senior leaders.
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
