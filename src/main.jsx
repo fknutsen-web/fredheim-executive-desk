@@ -3851,12 +3851,12 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
           <button className={`nav-link ${activeView==='recruiter-dash'?'active':''}`} onClick={() => go('recruiter-dash')}>Firm Dashboard</button>
         )}
         {!authUser && (
-          <button className="nav-link" onClick={() => go('recruiter-signin')}>Recruiter Sign In</button>
+          <button className="nav-link" onClick={() => go('recruiter-signin')}>Firm / Recruiter Sign In</button>
         )}
         {authUser && userType !== 'recruiter' ? (
           <button className={`nav-link ${activeView==='myprofile'?'active':''}`} onClick={() => go('myprofile')}>My Profile</button>
         ) : !authUser ? (
-          <button className="nav-link" onClick={onSignIn}>Sign In</button>
+          <button className="nav-link" onClick={onSignIn}>Candidate Sign In</button>
         ) : null}
         {authUser && (
           <NotificationBell userEmail={authUser.email} userType={userType} />
@@ -12493,7 +12493,7 @@ function RecruiterSignInPage({ onBack }) {
     <div className="auth-page">
       <div className="auth-box">
         <div className="auth-eyebrow">Search Firm &amp; Employer Access</div>
-        <h2 className="auth-title">Firm Sign In</h2>
+        <h2 className="auth-title">Firm / Recruiter Sign In</h2>
         <p className="auth-desc">
           Access your posting dashboard, view candidate interest data, and manage your searches.
           Use the email address associated with your firm's account.
