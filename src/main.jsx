@@ -4090,7 +4090,7 @@ function TosModal({ onAgree, onCancel }) {
   return (
     <div className="tos-overlay">
       <div className="tos-modal">
-        <div className="tos-eyebrow">Platform Terms — Search Firms</div>
+        <div className="tos-eyebrow">Platform Terms — Search Firms &amp; Employers</div>
         <h2 className="tos-title">Platform Terms &amp; Curated Introduction Agreement</h2>
         <div className="tos-body">
           <p>Before posting a search, please review and agree to the Fredheim Executive Desk
@@ -4098,7 +4098,7 @@ function TosModal({ onAgree, onCancel }) {
           executive community.</p>
 
           <div className="tos-clause">
-            <strong>Subscription.</strong> Active recruiter access requires a Standard subscription
+            <strong>Subscription.</strong> Active posting access for search firms and employers requires a Standard subscription
             of <strong>$199/month</strong>, billed monthly through Stripe. Founding Partner cohort
             members (admission by application) have subscription fees waived through 2026-12-31.
           </div>
@@ -5918,10 +5918,11 @@ function RecruiterModal({ onClose, showToast }) {
 
         {step === 'intake' && (
           <>
-            <div className="modal-eyebrow">For Search Firms</div>
+            <div className="modal-eyebrow">For Search Firms &amp; Employers</div>
             <h2 className="modal-title">Post a Search</h2>
             <p className="intake-modal-blurb">
-              Reach qualified senior leaders across maritime, commodity trading, energy,
+              Whether you're a retained search firm or a company hiring directly, reach qualified
+              senior leaders across maritime, commodity trading, energy,
               logistics, ports and terminals, and offshore. Salary
               transparency is a platform standard.
             </p>
@@ -7877,7 +7878,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       // No "$0" display - it would unintentionally cheapen the positioning.
       priceDisplay: 'By Application',
       period: 'Limited founding cohort through ' + (cfg.founding_partner_window_end || '2026-12-31'),
-      desc: 'A small, vetted founding cohort of search firms shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
+      desc: 'A small, vetted founding cohort of search firms and direct-hiring employers shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
       features: [
         'Limited initial partner group - admission by review',
         'Subscription fees waived through ' + (cfg.founding_partner_window_end || '2026-12-31'),
@@ -8045,7 +8046,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       {/* Audience toggle */}
       <div className="pricing-tabs">
         <button className={`pricing-tab ${audience==='recruiters'?'active':''}`} onClick={()=>setAudience('recruiters')}>
-          For Search Firms
+          For Search Firms &amp; Employers
         </button>
         <button className={`pricing-tab ${audience==='executives'?'active':''}`} onClick={()=>setAudience('executives')}>
           For Executives
@@ -8223,7 +8224,8 @@ function TermsPage() {
         <p>
           Fredheim Executive Desk is an executive opportunity marketplace connecting senior
           professionals in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained executive
-          search firms. Fredheim Technologies LLC facilitates introductions — we are not a
+          search firms and with companies hiring directly for their own roles (each, and together,
+          a "Search Firm" for the purposes of these Terms). Fredheim Technologies LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
         </p>
@@ -8274,7 +8276,12 @@ function TermsPage() {
           of the Search Firm.
         </p>
 
-        <h2>3. Search Firm Terms</h2>
+        <h2>3. Search Firm &amp; Employer Terms</h2>
+        <p>
+          As defined in Section 1, "Search Firm" includes both retained executive search firms
+          and companies (employers) that post searches and hire directly through the Platform.
+          The terms in this Section 3 apply equally to both.
+        </p>
 
         <h3>3.0 Founding Partner Program — 2026</h3>
         <div className="legal-highlight">
@@ -14493,7 +14500,7 @@ function AboutPage({ setActiveView }) {
         </p>
         <p>
           We built something different. Salary ranges are always published.
-          Search firms are named. Your identity is protected until you choose to engage.
+          Search firms and employers are named. Your identity is protected until you choose to engage.
           Introductions are facilitated personally — not algorithmically.
         </p>
 
@@ -14508,9 +14515,10 @@ function AboutPage({ setActiveView }) {
           Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
 
-        <h3>Executive Search Firms</h3>
+        <h3>Search Firms &amp; Employers</h3>
         <p>
-          Retained search firms running mandates in our verticals who want access to
+          Retained search firms running mandates in our verticals — and companies hiring
+          directly for their own senior roles — who want access to
           a curated, qualified pool of senior professionals across maritime & shipping, commodity
           trading, energy, logistics & supply chain, ports & terminals, and offshore. Salary transparency is
           non-negotiable — every posting must include a published compensation range.
@@ -14536,7 +14544,7 @@ function AboutPage({ setActiveView }) {
         <p>
           Reference-based vetting is built into the platform. Executives can submit
           professional references who complete a short confidential questionnaire.
-          Completed references are shared with verified search firms — with the
+          Completed references are shared with verified search firms and employers — with the
           executive's consent — and significantly improve matching quality.
         </p>
 
@@ -14562,7 +14570,7 @@ function AboutPage({ setActiveView }) {
 
         <h2>The Founding Partner Program</h2>
         <div className="legal-highlight">
-          Search firms and companies posting consulting briefs may participate in the
+          Search firms, direct-hiring employers, and companies posting consulting briefs may participate in the
           Fredheim Founding Partner Program through December 31, 2026.
           One posting per month, complimentary. No subscription required.
           Introduction fees apply on confirmed placements and engagements.
@@ -14574,8 +14582,8 @@ function AboutPage({ setActiveView }) {
           Executive profiles are free to create. The Confidential tier ($299/year) hides
           your identity from all recruiters until you personally approve each connection,
           and surfaces your profile in relevant searches.
-          Introduction fees are charged to search firms only — executives are never charged
-          placement fees of any kind.
+          Introduction fees are charged to the hiring side — search firms and employers — only;
+          executives are never charged placement fees of any kind.
         </p>
         <p style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}} onClick={() => setActiveView('pricing')}>
           View full pricing →
@@ -15009,7 +15017,7 @@ function App() {
             <p className="manifesto-text">
               Executive search has always been opaque by design.{' '}
               <strong>Fredheim Executive Desk is built differently</strong> —
-              salary ranges published, search firms named, your identity protected until you choose to move.{' '}
+              salary ranges published, search firms and employers named, your identity protected until you choose to move.{' '}
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
           </div>
@@ -15344,10 +15352,10 @@ function App() {
 
         {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','profile'].includes(activeView) && <div className="recruiter-cta">
           <div>
-            <div className="recruiter-eyebrow">For Search Firms</div>
+            <div className="recruiter-eyebrow">For Search Firms &amp; Employers</div>
             <div className="recruiter-title">Reach the right executives.</div>
             <div className="recruiter-desc">
-              The only curated platform where retained search firms reach qualified senior leaders
+              The only curated platform where retained search firms and companies hiring directly reach qualified senior leaders.
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
