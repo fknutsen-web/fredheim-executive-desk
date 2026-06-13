@@ -28,9 +28,9 @@ checkout), so they're returned. GET only; no writes.
 Run it from the Vercel dashboard URL or a CI step via the wrapper:
 
 ```bash
-BASE_URL=https://desk.fredheimtech.com ADMIN_PASSWORD=… ./scripts/prod-env-check.sh
+BASE_URL=https://www.fredheimdesk.com ADMIN_PASSWORD=… ./scripts/prod-env-check.sh
 # or with a pre-minted token:
-BASE_URL=https://desk.fredheimtech.com ADMIN_TOKEN=… LIVE=1 ./scripts/prod-env-check.sh
+BASE_URL=https://www.fredheimdesk.com ADMIN_TOKEN=… LIVE=1 ./scripts/prod-env-check.sh
 ```
 
 The wrapper exchanges `ADMIN_PASSWORD` for a short-lived token (or uses

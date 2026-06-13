@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
     return res.status(422).json({ error: guard.message, field_violations: guard.fieldViolations });
   }
 
-  const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimtech.com';
+  const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimdesk.com';
 
   // -- ACTIVE SEARCH LIMIT GUARD --
   // Cap concurrent active searches per firm. Default 5 for standard tier.
@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
 
       if ((count || 0) >= effectiveLimit) {
         return res.status(429).json({
-          error: `Active search limit reached - ${count} of ${effectiveLimit} concurrent searches in use. Close or archive an existing search, or contact desk@fredheimtech.com about enterprise tier.`,
+          error: `Active search limit reached - ${count} of ${effectiveLimit} concurrent searches in use. Close or archive an existing search, or contact desk@fredheimdesk.com about enterprise tier.`,
           active_count: count,
           limit: effectiveLimit,
           tier,
@@ -115,7 +115,7 @@ Firm: ${firm_name || 'Unknown'}
 Contact: ${contact_name || 'n/a'} <${email || 'no email'}>
 Role: ${role_title || 'Untitled'}${role_level ? `\nLevel: ${role_level}` : ''}${industry ? `\nIndustry: ${industry}` : ''}${location ? `\nLocation: ${location}` : ''}${salary_range ? `\nCompensation: ${salary_range}` : ''}${notes ? `\nNotes: ${notes}` : ''}
 
-Review: https://desk.fredheimtech.com?admin=true`,
+Review: https://www.fredheimdesk.com?admin=true`,
   });
 
   // ── 2. Submitter confirmation ─────────────────────────────────
@@ -127,8 +127,8 @@ Review: https://desk.fredheimtech.com?admin=true`,
         ? 'Fredheim Early Careers — Internship submission received'
         : 'Fredheim Desk — Submission received',
       body: isIntern
-        ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Early Careers\ndesk@fredheimtech.com`
-        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Desk\ndesk@fredheimtech.com`,
+        ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimdesk.com.\n\nFredheim Early Careers\ndesk@fredheimdesk.com`
+        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimdesk.com.\n\nFredheim Desk\ndesk@fredheimdesk.com`,
     });
   }
 

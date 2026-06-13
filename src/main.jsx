@@ -194,14 +194,14 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
 
     if (!resp.ok || !data.url) {
       console.error('Checkout session failed:', data);
-      if (showToast) showToast(data.error || 'Payment redirect failed. Email desk@fredheimtech.com to upgrade.');
+      if (showToast) showToast(data.error || 'Payment redirect failed. Email desk@fredheimdesk.com to upgrade.');
       return;
     }
 
     window.location.href = data.url;
   } catch(e) {
     console.error('Checkout redirect error:', e);
-    if (showToast) showToast('Payment redirect failed. Email desk@fredheimtech.com to upgrade.');
+    if (showToast) showToast('Payment redirect failed. Email desk@fredheimdesk.com to upgrade.');
   }
 }
 
@@ -2749,7 +2749,7 @@ function PaymentGateModal({ reason, onClose, onRequestInvoice }) {
           ))}
         </div>
         <div style={{fontSize:'0.78rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.5'}}>
-          Questions? <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+          Questions? <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
         </div>
         <div className="workflow-actions">
           <button className="workflow-close-btn" onClick={onClose}>Close</button>
@@ -5961,7 +5961,7 @@ function RecruiterModal({ onClose, showToast }) {
             {submitted && (
               <div className="intake-submit-footer">
                 Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.<br/>
-                Questions? <a href='mailto:desk@fredheimtech.com' style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+                Questions? <a href='mailto:desk@fredheimdesk.com' style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
               </div>
             )}
           </>
@@ -8421,8 +8421,8 @@ function TermsPage() {
           <h3>Contact</h3>
           <p>Fredheim Technologies LLC</p>
           <p>Houston, Texas</p>
-          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
-          <p><a href="https://desk.fredheimtech.com">desk.fredheimtech.com</a></p>
+          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
+          <p><a href="https://www.fredheimdesk.com">www.fredheimdesk.com</a></p>
         </div>
 
         <p className="attorney-note">
@@ -8540,13 +8540,13 @@ function PrivacyPage() {
             <tr><th>Right</th><th>How to Exercise</th></tr>
           </thead>
           <tbody>
-            <tr><td>Access your data</td><td>Email desk@fredheimtech.com</td></tr>
+            <tr><td>Access your data</td><td>Email desk@fredheimdesk.com</td></tr>
             <tr><td>Correct inaccurate data</td><td>Update in your profile settings or email us</td></tr>
-            <tr><td>Delete your account</td><td>Email desk@fredheimtech.com — honored within 30 days</td></tr>
+            <tr><td>Delete your account</td><td>Email desk@fredheimdesk.com — honored within 30 days</td></tr>
             <tr><td>Change visibility</td><td>Toggle in your profile settings anytime</td></tr>
             <tr><td>Stop sharing Big Five data</td><td>Toggle off in your profile settings anytime</td></tr>
             <tr><td>Unsubscribe from alerts</td><td>Reply to any alert email</td></tr>
-            <tr><td>Data portability</td><td>Request export via desk@fredheimtech.com</td></tr>
+            <tr><td>Data portability</td><td>Request export via desk@fredheimdesk.com</td></tr>
           </tbody>
         </table>
 
@@ -8559,12 +8559,12 @@ function PrivacyPage() {
         <h2>7. California & GDPR Rights</h2>
         <p>
           <strong>California (CCPA):</strong> We do not sell personal information. To exercise
-          California privacy rights, email desk@fredheimtech.com.
+          California privacy rights, email desk@fredheimdesk.com.
         </p>
         <p>
           <strong>EEA/UK (GDPR):</strong> Our lawful basis for processing is contract performance
           and legitimate interests. You have rights to access, rectify, erase, and port your data.
-          Contact desk@fredheimtech.com to exercise GDPR rights.
+          Contact desk@fredheimdesk.com to exercise GDPR rights.
         </p>
 
         <h2>8. Data Retention</h2>
@@ -8584,7 +8584,7 @@ function PrivacyPage() {
           <h3>Privacy Questions & Requests</h3>
           <p>Fredheim Technologies LLC</p>
           <p>Houston, Texas</p>
-          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
+          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
           <p>We aim to respond to all privacy requests within 10 business days.</p>
         </div>
       </div>
@@ -9445,7 +9445,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                         <td>{latest ? new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
                         <td>
                           <div style={{display:'flex',gap:'0.375rem'}}>
-                            <a href={`mailto:${latest?.email}?subject=Fredheim Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Desk%0Adesk@fredheimtech.com`} style={{textDecoration:'none'}}>
+                            <a href={`mailto:${latest?.email}?subject=Fredheim Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Desk%0Adesk@fredheimdesk.com`} style={{textDecoration:'none'}}>
                               <button className="admin-action-btn">Email</button>
                             </a>
                           </div>
@@ -10741,7 +10741,7 @@ function SignInPage({ onBack, returnView }) {
     setError('');
     const err = await sendMagicLink(email, returnView);
     if (err) {
-      setError('Could not send link. Please try again or email desk@fredheimtech.com.');
+      setError('Could not send link. Please try again or email desk@fredheimdesk.com.');
     } else {
       setSent(true);
     }
@@ -12505,7 +12505,7 @@ function RecruiterSignInPage({ onBack }) {
       options: { emailRedirectTo: redirectUrl }
     });
     if (err) {
-      setError('Could not send link. Please try again or email desk@fredheimtech.com.');
+      setError('Could not send link. Please try again or email desk@fredheimdesk.com.');
     } else {
       setSent(true);
     }
@@ -13365,7 +13365,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                       ))}
                       <div style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.625rem',lineHeight:'1.5'}}>
                         To request an introduction to any of these candidates, contact{' '}
-                        <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>.
+                        <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>.
                         Fredheim facilitates all introductions — candidate identities are only shared after platform review.
                       </div>
                     </div>
@@ -13409,7 +13409,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
 
       <div style={{marginTop:'2rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
         Questions about your account or a posting?{' '}
-        <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>
+        <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
       </div>
 
       {/* Close account */}
@@ -13526,7 +13526,7 @@ function ReferenceStatus({ email, showToast }) {
       <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.55'}}>
         References receive a secure 5-minute questionnaire link by email. No login required.
         Completed references are shown to verified search firms and employers with your consent.
-        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>desk.fredheimtech.com?ref=[token]</code>
+        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>www.fredheimdesk.com?ref=[token]</code>
       </p>
     </div>
   );
@@ -13585,7 +13585,7 @@ function QuestionnairePage({ token }) {
       if (!resp.ok) throw new Error('submit failed');
       setSubmitted(true);
     } catch(e) {
-      alert('Submission failed. Please try again or email desk@fredheimtech.com.');
+      alert('Submission failed. Please try again or email desk@fredheimdesk.com.');
     }
     setSubmitting(false);
   }
@@ -13645,7 +13645,7 @@ function QuestionnairePage({ token }) {
           <div className="questionnaire-title">Link Unavailable</div>
         </div>
         <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',borderLeft:'3px solid var(--red)',padding:'1.25rem',color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.65'}}>
-          {error} If you believe this is an error, please email <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold)'}}>desk@fredheimtech.com</a>.
+          {error} If you believe this is an error, please email <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>.
         </div>
       </div>
     </div>
@@ -13804,7 +13804,7 @@ function QuestionnairePage({ token }) {
         </button>
 
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'center',marginTop:'1rem',lineHeight:'1.6'}}>
-          Your responses are confidential. Fredheim Desk · desk@fredheimtech.com
+          Your responses are confidential. Fredheim Desk · desk@fredheimdesk.com
         </p>
       </div>
     </div>
@@ -14507,7 +14507,7 @@ function AboutPage({ setActiveView }) {
       <div className="legal-eyebrow">About</div>
       <h1 className="legal-title">Fredheim Desk</h1>
       <div className="legal-meta">
-        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; desk.fredheimtech.com
+        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; www.fredheimdesk.com
       </div>
 
       <div className="legal-body">
@@ -14640,7 +14640,7 @@ function AboutPage({ setActiveView }) {
         <div className="legal-contact-box">
           <h3>Get in Touch</h3>
           <p>For questions about the platform, partnerships, or founding partner onboarding:</p>
-          <p><a href="mailto:desk@fredheimtech.com">desk@fredheimtech.com</a></p>
+          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
           <p>Houston, Texas</p>
         </div>
       </div>
@@ -14834,12 +14834,12 @@ function App() {
       if (tier === 'intern_featured') {
         showToast(confirmed
           ? '✓ Featured Student Profile activated!'
-          : 'Payment received — your Featured Student Profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimtech.com.');
+          : 'Payment received — your Featured Student Profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimdesk.com.');
         setActiveView('intern-myprofile');
       } else {
         showToast(confirmed
           ? '✓ Confidential profile activated.'
-          : 'Payment received — your confidential profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimtech.com.');
+          : 'Payment received — your confidential profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimdesk.com.');
         setActiveView('myprofile');
       }
 
@@ -15417,8 +15417,8 @@ function App() {
               Connecting commercial, operational, and technical professionals across global trade, maritime, energy, logistics, commodity trading, and port infrastructure. Built with and for the professionals who move global trade.
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
-              <a href="mailto:desk@fredheimtech.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
-                desk@fredheimtech.com
+              <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
+                desk@fredheimdesk.com
               </a>
             </p>
           </div>
@@ -15445,12 +15445,12 @@ function App() {
           <div>
             <div className="footer-col-title">Company</div>
             <ul className="footer-links">
-              <li onClick={()=>goToView('about')} style={{cursor:'pointer'}}>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimtech.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
+              <li onClick={()=>goToView('about')} style={{cursor:'pointer'}}>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimdesk.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> desk.fredheimtech.com</div>
+          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> www.fredheimdesk.com</div>
           <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>

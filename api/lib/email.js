@@ -17,11 +17,11 @@
 const { Resend } = require('resend');
 
 // All platform email originates from the Fredheim Desk domain. Default sender
-// is notifications@fredheimtech.com (override via FROM_EMAIL). Brand is always
+// is notifications@fredheimdesk.com (override via FROM_EMAIL). Brand is always
 // "Fredheim Desk — Confidential Talent Marketplace".
-const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimtech.com>';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimtech.com';
-const APP_URL     = process.env.APP_URL     || 'https://desk.fredheimtech.com';
+const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimdesk.com>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimdesk.com';
+const APP_URL     = process.env.APP_URL     || 'https://www.fredheimdesk.com';
 const BRAND_NAME    = 'Fredheim Desk';
 const BRAND_TAGLINE = 'Confidential Talent Marketplace';
 
