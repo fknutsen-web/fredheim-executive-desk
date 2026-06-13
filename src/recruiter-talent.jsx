@@ -352,7 +352,7 @@ function App() {
     <>
       {/* NAV */}
       <nav className="nav">
-        <a href="https://www.fredheimdesk.com" className="nav-brand">
+        <a href="https://fredheimdesk.com" className="nav-brand">
           <div className="nav-mark"><BrandMark /></div>
           <div>
             <div className="nav-name">Fredheim Desk</div>
@@ -362,7 +362,7 @@ function App() {
         <div className="nav-right">
           <button className={`nav-pill ${activeTab === 'candidates' ? 'active' : ''}`} onClick={() => setActiveTab('candidates')}>Candidates</button>
           <button className={`nav-pill ${activeTab === 'notifications' ? 'active' : ''}`} onClick={() => setActiveTab('notifications')}>Notifications</button>
-          <button className="nav-pill" onClick={() => window.location.href = 'https://www.fredheimdesk.com'}>← Main Desk</button>
+          <button className="nav-pill" onClick={() => window.location.href = 'https://fredheimdesk.com'}>← Main Desk</button>
         </div>
       </nav>
 

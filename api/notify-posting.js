@@ -115,7 +115,7 @@ Firm: ${firm_name || 'Unknown'}
 Contact: ${contact_name || 'n/a'} <${email || 'no email'}>
 Role: ${role_title || 'Untitled'}${role_level ? `\nLevel: ${role_level}` : ''}${industry ? `\nIndustry: ${industry}` : ''}${location ? `\nLocation: ${location}` : ''}${salary_range ? `\nCompensation: ${salary_range}` : ''}${notes ? `\nNotes: ${notes}` : ''}
 
-Review: https://www.fredheimdesk.com?admin=true`,
+Review: https://fredheimdesk.com?admin=true`,
   });
 
   // ── 2. Submitter confirmation ─────────────────────────────────
