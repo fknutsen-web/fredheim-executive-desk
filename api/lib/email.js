@@ -21,7 +21,7 @@ const { Resend } = require('resend');
 // "Fredheim Desk — Confidential Talent Marketplace".
 const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimdesk.com>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimdesk.com';
-const APP_URL     = process.env.APP_URL     || 'https://www.fredheimdesk.com';
+const APP_URL     = process.env.APP_URL     || 'https://fredheimdesk.com';
 const BRAND_NAME    = 'Fredheim Desk';
 const BRAND_TAGLINE = 'Confidential Talent Marketplace';
 

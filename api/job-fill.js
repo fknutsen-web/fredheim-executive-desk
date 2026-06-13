@@ -217,6 +217,6 @@ module.exports = async function handler(req, res) {
 async function notifyAdmin({ type, subject, job, recruiterEmail, flagged, introCount, fee, candidate_email }) {
   await sendAdminAlert({
     subject,
-    text: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}${fee ? `\nFee: ${fee}` : ''}${candidate_email ? `\nCandidate: ${candidate_email}` : ''}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://www.fredheimdesk.com?admin=true`,
+    text: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}${fee ? `\nFee: ${fee}` : ''}${candidate_email ? `\nCandidate: ${candidate_email}` : ''}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://fredheimdesk.com?admin=true`,
   });
 }

@@ -21,7 +21,7 @@ module.exports = async function handler(req, res) {
   // Admin alert
   await sendAdminAlert({
     subject: `New consulting brief — ${company_name || 'Unknown'}: ${title || 'Untitled'}`,
-    text: `New consulting brief submitted.\n\nCompany: ${company_name}\nContact: ${contact_name}\nEmail: ${email}\n\nBrief: ${title}\nType: ${engagement_type}\nRate: ${rateStr}\nLocation: ${location}\n\nReview: https://www.fredheimdesk.com?admin=true`,
+    text: `New consulting brief submitted.\n\nCompany: ${company_name}\nContact: ${contact_name}\nEmail: ${email}\n\nBrief: ${title}\nType: ${engagement_type}\nRate: ${rateStr}\nLocation: ${location}\n\nReview: https://fredheimdesk.com?admin=true`,
   });
 
   // Submitter confirmation

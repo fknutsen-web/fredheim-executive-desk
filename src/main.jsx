@@ -8422,7 +8422,7 @@ function TermsPage() {
           <p>Fredheim Technologies LLC</p>
           <p>Houston, Texas</p>
           <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
-          <p><a href="https://www.fredheimdesk.com">www.fredheimdesk.com</a></p>
+          <p><a href="https://fredheimdesk.com">fredheimdesk.com</a></p>
         </div>
 
         <p className="attorney-note">
@@ -13526,7 +13526,7 @@ function ReferenceStatus({ email, showToast }) {
       <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.55'}}>
         References receive a secure 5-minute questionnaire link by email. No login required.
         Completed references are shown to verified search firms and employers with your consent.
-        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>www.fredheimdesk.com?ref=[token]</code>
+        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>fredheimdesk.com?ref=[token]</code>
       </p>
     </div>
   );
@@ -14507,7 +14507,7 @@ function AboutPage({ setActiveView }) {
       <div className="legal-eyebrow">About</div>
       <h1 className="legal-title">Fredheim Desk</h1>
       <div className="legal-meta">
-        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; www.fredheimdesk.com
+        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; fredheimdesk.com
       </div>
 
       <div className="legal-body">
@@ -15450,7 +15450,7 @@ function App() {
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> www.fredheimdesk.com</div>
+          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> fredheimdesk.com</div>
           <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>

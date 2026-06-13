@@ -109,7 +109,7 @@ module.exports = async function handler(req, res) {
     if (misrepresented_role) issues.push('Role misrepresentation reported');
     await sendAdminAlert({
       subject: `⚠ Recruiter complaint — ${issues.join(', ')}`,
-      text: `Recruiter complaint received.\n\nRecruiter: ${recruiter_email}\nCandidate: ${candidateEmail}\nIssues: ${issues.join(', ')}\nComments: ${comments || 'None'}\n\nReview: https://www.fredheimdesk.com?admin=true`,
+      text: `Recruiter complaint received.\n\nRecruiter: ${recruiter_email}\nCandidate: ${candidateEmail}\nIssues: ${issues.join(', ')}\nComments: ${comments || 'None'}\n\nReview: https://fredheimdesk.com?admin=true`,
     });
   }
 

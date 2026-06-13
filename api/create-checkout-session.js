@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
     );
 
     const { type, email, recruiter_id, match_id } = req.body || {};
-    const baseUrl = req.headers.origin || 'https://www.fredheimdesk.com';
+    const baseUrl = req.headers.origin || 'https://fredheimdesk.com';
 
     const isFoundingWindowActive = () => FOUNDING.isWindowActive();
     async function foundingCohortAvailable() {

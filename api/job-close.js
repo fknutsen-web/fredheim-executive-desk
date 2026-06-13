@@ -122,7 +122,7 @@ module.exports = async function handler(req, res) {
   // 5. Notify admin via native email
   await sendAdminAlert({
     subject: `Job closed — ${job.title} (${CLOSE_REASONS[close_reason]})${shouldFlag ? ' ⚠ FLAGGED' : ''}`,
-    text: `Job closed: ${job.title}\nRecruiter: ${recruiterEmail}\nReason: ${CLOSE_REASONS[close_reason]}\nIntroductions on file: ${introCount || 0}\n${shouldFlag ? '\n⚠ FLAGGED FOR REVIEW — filled_outside_platform with introductions on record.\n' : ''}\nReview: https://www.fredheimdesk.com?admin=true`,
+    text: `Job closed: ${job.title}\nRecruiter: ${recruiterEmail}\nReason: ${CLOSE_REASONS[close_reason]}\nIntroductions on file: ${introCount || 0}\n${shouldFlag ? '\n⚠ FLAGGED FOR REVIEW — filled_outside_platform with introductions on record.\n' : ''}\nReview: https://fredheimdesk.com?admin=true`,
   });
 
   return res.status(200).json({

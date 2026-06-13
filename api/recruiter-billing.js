@@ -165,7 +165,7 @@ module.exports = async function handler(req, res) {
       // Notify admin
       await sendAdminAlert({
         subject: `Invoice billing request — ${invoice_company_name}`,
-        text: `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://www.fredheimdesk.com?admin=true`,
+        text: `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://fredheimdesk.com?admin=true`,
       });
 
       return res.status(200).json({ ok: true, status: 'invoice_billing_pending' });

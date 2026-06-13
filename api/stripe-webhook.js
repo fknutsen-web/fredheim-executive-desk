@@ -187,7 +187,7 @@ module.exports = async function handler(req, res) {
             body:          (recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
               : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
-              + `\n\nYour dashboard: https://www.fredheimdesk.com?view=recruiter-dash`,
+              + `\n\nYour dashboard: https://fredheimdesk.com?view=recruiter-dash`,
           });
           await revenueAlert(
             `Revenue — recruiter subscription activated (${recruiterTier}, ${feeLabel})`,

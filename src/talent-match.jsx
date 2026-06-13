@@ -337,7 +337,7 @@ function ConfirmPage() {
       <div className="confirm-icon">✅</div>
       <div className="confirm-title">You're confirmed.</div>
       <div className="confirm-desc">Your profile is active and you'll continue to be matched against open searches.</div>
-      <button className="confirm-btn" onClick={() => window.location.href = 'https://www.fredheimdesk.com'}>Return to Fredheim Desk</button>
+      <button className="confirm-btn" onClick={() => window.location.href = 'https://fredheimdesk.com'}>Return to Fredheim Desk</button>
     </div>
   );
 
@@ -438,7 +438,7 @@ function App() {
   if (view === 'talent-confirm') return (
     <>
       <nav className="nav">
-        <a href="https://www.fredheimdesk.com" className="nav-brand">
+        <a href="https://fredheimdesk.com" className="nav-brand">
           <div className="nav-mark"><BrandMark /></div>
           <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
@@ -450,7 +450,7 @@ function App() {
   if (submitted && scores) return (
     <>
       <nav className="nav">
-        <a href="https://www.fredheimdesk.com" className="nav-brand">
+        <a href="https://fredheimdesk.com" className="nav-brand">
           <div className="nav-mark"><BrandMark /></div>
           <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
@@ -503,14 +503,14 @@ function App() {
     <>
       {/* NAV */}
       <nav className="nav">
-        <a href="https://www.fredheimdesk.com" className="nav-brand">
+        <a href="https://fredheimdesk.com" className="nav-brand">
           <div className="nav-mark"><BrandMark /></div>
           <div>
             <div className="nav-name">Fredheim Desk</div>
             <span className="nav-sub">Executive Match</span>
           </div>
         </a>
-        <button className="nav-back" onClick={() => window.location.href = 'https://www.fredheimdesk.com'}>← Back to Desk</button>
+        <button className="nav-back" onClick={() => window.location.href = 'https://fredheimdesk.com'}>← Back to Desk</button>
       </nav>
 
       {/* PROGRESS */}
@@ -699,7 +699,7 @@ function App() {
 
       <footer style={{borderTop:'1px solid var(--rule)',padding:'2rem 3rem',textAlign:'center'}}>
         <p style={{fontFamily:'DM Mono, monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
-          Fredheim Desk · www.fredheimdesk.com · Confidential by default
+          Fredheim Desk · fredheimdesk.com · Confidential by default
         </p>
       </footer>
     </>

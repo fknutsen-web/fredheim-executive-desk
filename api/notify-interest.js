@@ -35,8 +35,8 @@ module.exports = async function handler(req, res) {
   if (jobErr || !job) return res.status(404).json({ error: 'Job not found.' });
 
   const firmEmail  = job.firm_email;
-  const dashUrl    = 'https://www.fredheimdesk.com?view=recruiter-dash';
-  const adminUrl   = 'https://www.fredheimdesk.com?admin=true';
+  const dashUrl    = 'https://fredheimdesk.com?view=recruiter-dash';
+  const adminUrl   = 'https://fredheimdesk.com?admin=true';
 
   let firmResult = null;
 
