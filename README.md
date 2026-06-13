@@ -1,2 +1,2 @@
 # fredheim-executive-desk
-Fredheim Executive Desk — Executive opportunity platform for maritime, energy, and industrial logistics
+Fredheim Desk — confidential talent marketplace for maritime, logistics, commodities, industrial, and global trade professionals

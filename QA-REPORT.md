@@ -1,4 +1,4 @@
-# Fredheim Executive Desk — Pre-Launch QA Audit
+# Fredheim Desk — Pre-Launch QA Audit
 
 **Date:** 2026-06-02
 **Branch:** `claude/pre-launch-qa-audit-Jhlq2`

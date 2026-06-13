@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Fredheim Desk">
+  <rect width="1200" height="630" fill="#0f1c2e"/>
+  <rect x="24" y="24" width="1152" height="582" fill="none" stroke="#b8922a" stroke-width="1" stroke-opacity="0.45"/>
+
+  <!-- Brand mark -->
+  <g transform="translate(120 219) scale(3.95)">
+    <circle cx="24" cy="24" r="20.5" fill="none" stroke="#f4f3f0" stroke-width="1.4" stroke-opacity="0.85"/>
+    <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill="#f4f3f0"/>
+    <circle cx="9.5" cy="9.5" r="2.4" fill="#f4f3f0" fill-opacity="0.85"/>
+    <circle cx="38.5" cy="38.5" r="2.4" fill="#f4f3f0" fill-opacity="0.85"/>
+    <circle cx="9.5" cy="38.5" r="2.4" fill="#f4f3f0" fill-opacity="0.85"/>
+    <circle cx="38.5" cy="9.5" r="2.4" fill="#d4a93c"/>
+  </g>
+
+  <!-- Wordmark -->
+  <text x="430" y="290" font-family="Georgia, 'Times New Roman', serif" font-size="104" font-weight="600" letter-spacing="6" fill="#fafaf8">FREDHEIM</text>
+  <text x="434" y="392" font-family="'DejaVu Sans Mono', 'Courier New', monospace" font-size="58" letter-spacing="44" fill="#d4a93c">DESK</text>
+
+  <rect x="434" y="430" width="120" height="3" fill="#b8922a"/>
+  <text x="434" y="486" font-family="Arial, 'Helvetica Neue', sans-serif" font-size="26" letter-spacing="0.5" fill="#8fa0b4">Talent marketplace &#183; maritime &#183; logistics &#183; global trade</text>
+
+  <text x="600" y="582" text-anchor="middle" font-family="'DejaVu Sans Mono', 'Courier New', monospace" font-size="22" letter-spacing="4" fill="#b8922a">WWW.FREDHEIMDESK.COM</text>
+</svg>

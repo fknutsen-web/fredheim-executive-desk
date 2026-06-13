@@ -1,5 +1,5 @@
 // api/lib/email.js
-// Centralized native email delivery for Fredheim Executive Desk.
+// Centralized native email delivery for Fredheim Desk.
 // Replaces the retired Zapier webhook integration.
 //
 // Exports:
@@ -17,13 +17,13 @@
 const { Resend } = require('resend');
 
 // All platform email originates from the Fredheim Desk domain. Default sender
-// is notifications@fredheimtech.com (override via FROM_EMAIL). Brand is always
-// "Fredheim Desk — Executive Recruiting Marketplace".
-const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimtech.com>';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimtech.com';
-const APP_URL     = process.env.APP_URL     || 'https://desk.fredheimtech.com';
+// is notifications@fredheimdesk.com (override via FROM_EMAIL). Brand is always
+// "Fredheim Desk — Confidential Talent Marketplace".
+const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimdesk.com>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimdesk.com';
+const APP_URL     = process.env.APP_URL     || 'https://www.fredheimdesk.com';
 const BRAND_NAME    = 'Fredheim Desk';
-const BRAND_TAGLINE = 'Executive Recruiting Marketplace';
+const BRAND_TAGLINE = 'Confidential Talent Marketplace';
 
 // Lazy singleton so a missing key never crashes module load.
 let _resend = null;

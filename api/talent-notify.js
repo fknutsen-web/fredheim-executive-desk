@@ -58,7 +58,7 @@ async function dispatchRealtimeAlerts() {
     const recruiter = n.talent_recruiters;
     const toEmail = role?.notify_email || recruiter?.email;
     const toPhone = role?.notify_phone || recruiter?.phone;
-    const matchUrl = `https://desk.fredheimtech.com?view=recruiter-talent&candidate=${n.candidate_id}&role=${n.role_id}`;
+    const matchUrl = `https://www.fredheimdesk.com?view=recruiter-talent&candidate=${n.candidate_id}&role=${n.role_id}`;
 
     const badges = [
       c?.badge_seasoned_exec ? 'Seasoned Executive' : null,
@@ -142,7 +142,7 @@ You have ${matches.length} new match${matches.length !== 1 ? 'es' : ''} as of ${
 
 ${digestLines}
 
-Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
+Review your matches: https://www.fredheimdesk.com?view=recruiter-talent`,
     };
 
     try {
@@ -218,7 +218,7 @@ Awaiting your review: ${unreviewed}
 
 Active searches: ${(roles?.map(r => r.title) || []).join(', ') || 'none'}
 
-Review your matches: https://desk.fredheimtech.com?view=recruiter-talent`,
+Review your matches: https://www.fredheimdesk.com?view=recruiter-talent`,
     };
 
     try {
@@ -261,13 +261,13 @@ async function dispatchCandidateNotifications() {
 
   let sent = 0;
   for (const n of pending || []) {
-    const confirmUrl = `https://desk.fredheimtech.com?view=talent-confirm&cid=${n.candidate_id}`;
+    const confirmUrl = `https://www.fredheimdesk.com?view=talent-confirm&cid=${n.candidate_id}`;
 
     const payload = {
       type: n.type,
       to_email: n.recipient_email,
       subject: n.subject,
-      body: `${n.body_preview || ''}\n\nConfirm: ${confirmUrl}\nReactivate: https://desk.fredheimtech.com?view=talent-reactivate&cid=${n.candidate_id}`,
+      body: `${n.body_preview || ''}\n\nConfirm: ${confirmUrl}\nReactivate: https://www.fredheimdesk.com?view=talent-reactivate&cid=${n.candidate_id}`,
     };
 
     try {

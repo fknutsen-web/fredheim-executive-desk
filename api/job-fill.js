@@ -12,7 +12,7 @@ const db       = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SER
 
 const EXTERNAL_CERT_TEXT =
   'I certify that the selected candidate was not introduced, matched, viewed, unlocked, ' +
-  'contacted, shortlisted, messaged, or engaged through Fredheim Executive Desk for this ' +
+  'contacted, shortlisted, messaged, or engaged through Fredheim Desk for this ' +
   'role or a substantially similar role.';
 
 const PLACEMENT_FEE_RATE = parseFloat(process.env.PLACEMENT_FEE_RATE || '0.25');   // 25% default
@@ -217,6 +217,6 @@ module.exports = async function handler(req, res) {
 async function notifyAdmin({ type, subject, job, recruiterEmail, flagged, introCount, fee, candidate_email }) {
   await sendAdminAlert({
     subject,
-    text: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}${fee ? `\nFee: ${fee}` : ''}${candidate_email ? `\nCandidate: ${candidate_email}` : ''}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://desk.fredheimtech.com?admin=true`,
+    text: `${subject}\n\nJob: ${job.title}\nRecruiter: ${recruiterEmail}${fee ? `\nFee: ${fee}` : ''}${candidate_email ? `\nCandidate: ${candidate_email}` : ''}\n${flagged ? `\n⚠ FLAGGED — ${introCount} introductions on record.\n` : ''}\nAdmin: https://www.fredheimdesk.com?admin=true`,
   });
 }

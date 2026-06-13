@@ -35,8 +35,8 @@ module.exports = async function handler(req, res) {
   if (jobErr || !job) return res.status(404).json({ error: 'Job not found.' });
 
   const firmEmail  = job.firm_email;
-  const dashUrl    = 'https://desk.fredheimtech.com?view=recruiter-dash';
-  const adminUrl   = 'https://desk.fredheimtech.com?admin=true';
+  const dashUrl    = 'https://www.fredheimdesk.com?view=recruiter-dash';
+  const adminUrl   = 'https://www.fredheimdesk.com?admin=true';
 
   let firmResult = null;
 
@@ -54,7 +54,7 @@ This candidate expressed interest in your posting and Fredheim has reviewed and 
 
 As a reminder, the platform introduction fee applies upon placement confirmation.
 
-Questions? desk@fredheimtech.com`;
+Questions? desk@fredheimdesk.com`;
       firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
     await sendAdminAlert({
@@ -73,7 +73,7 @@ Their identity is confidential at this stage — Fredheim will review and facili
 
 View your dashboard: ${dashUrl}
 
-Questions? desk@fredheimtech.com`;
+Questions? desk@fredheimdesk.com`;
       firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
     // Admin alert carries full detail (admin is internal).

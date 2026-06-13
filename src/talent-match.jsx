@@ -12,6 +12,21 @@ window.supabase = supabase
 
 const { useState, useEffect, useCallback } = React;
 
+// Fredheim Desk brand mark — global ring, navigation compass, network
+// waypoints (one gold). Matches /public/favicon.svg.
+function BrandMark() {
+  return (
+    <svg viewBox="0 0 48 48" role="img" aria-label="Fredheim Desk" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="20.5" fill="none" stroke="#0f1c2e" strokeWidth="1.5" />
+      <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill="#0f1c2e" />
+      <circle cx="9.5" cy="9.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="38.5" cy="38.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="9.5" cy="38.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="38.5" cy="9.5" r="2.4" fill="#b8922a" />
+    </svg>
+  );
+}
+
 // ── QUESTION DATA ───────────────────────────────────────────────
 
 const EXECUTIVE_QUESTIONS = [
@@ -322,7 +337,7 @@ function ConfirmPage() {
       <div className="confirm-icon">✅</div>
       <div className="confirm-title">You're confirmed.</div>
       <div className="confirm-desc">Your profile is active and you'll continue to be matched against open searches.</div>
-      <button className="confirm-btn" onClick={() => window.location.href = 'https://desk.fredheimtech.com'}>Return to Fredheim Executive Desk</button>
+      <button className="confirm-btn" onClick={() => window.location.href = 'https://www.fredheimdesk.com'}>Return to Fredheim Desk</button>
     </div>
   );
 
@@ -423,9 +438,9 @@ function App() {
   if (view === 'talent-confirm') return (
     <>
       <nav className="nav">
-        <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
-          <div><div className="nav-name">Fredheim Executive Desk</div><span className="nav-sub">Executive Match</span></div>
+        <a href="https://www.fredheimdesk.com" className="nav-brand">
+          <div className="nav-mark"><BrandMark /></div>
+          <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
       <div className="main"><ConfirmPage /></div>
@@ -435,9 +450,9 @@ function App() {
   if (submitted && scores) return (
     <>
       <nav className="nav">
-        <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
-          <div><div className="nav-name">Fredheim Executive Desk</div><span className="nav-sub">Executive Match</span></div>
+        <a href="https://www.fredheimdesk.com" className="nav-brand">
+          <div className="nav-mark"><BrandMark /></div>
+          <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
       <div className="main">
@@ -488,14 +503,14 @@ function App() {
     <>
       {/* NAV */}
       <nav className="nav">
-        <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
+        <a href="https://www.fredheimdesk.com" className="nav-brand">
+          <div className="nav-mark"><BrandMark /></div>
           <div>
-            <div className="nav-name">Fredheim Executive Desk</div>
+            <div className="nav-name">Fredheim Desk</div>
             <span className="nav-sub">Executive Match</span>
           </div>
         </a>
-        <button className="nav-back" onClick={() => window.location.href = 'https://desk.fredheimtech.com'}>← Back to Desk</button>
+        <button className="nav-back" onClick={() => window.location.href = 'https://www.fredheimdesk.com'}>← Back to Desk</button>
       </nav>
 
       {/* PROGRESS */}
@@ -684,7 +699,7 @@ function App() {
 
       <footer style={{borderTop:'1px solid var(--rule)',padding:'2rem 3rem',textAlign:'center'}}>
         <p style={{fontFamily:'DM Mono, monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
-          Fredheim Executive Desk · desk.fredheimtech.com · Confidential by default
+          Fredheim Desk · www.fredheimdesk.com · Confidential by default
         </p>
       </footer>
     </>

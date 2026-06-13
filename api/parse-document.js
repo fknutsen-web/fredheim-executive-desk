@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
 
   const fieldList = mode === 'recruiter' ? RECRUITER_FIELDS : CANDIDATE_FIELDS;
 
-  const systemPrompt = `You extract structured data from executive ${mode === 'recruiter' ? 'search briefs / job descriptions / role scorecards' : 'resumes / CVs / biographies / deal sheets'} for a maritime, ports, energy, and industrial-technology recruiting platform.
+  const systemPrompt = `You extract structured data from ${mode === 'recruiter' ? 'search briefs / job descriptions / role scorecards' : 'resumes / CVs / biographies / deal sheets'} for a maritime, ports, energy, logistics, and industrial-technology talent marketplace serving professionals at every career level.
 
 Return ONLY a single valid JSON object - no prose, no markdown code fences. The JSON keys are the requested field names. Each value MUST be an object: {"value": <string|array|null>, "confidence": "high"|"medium"|"low"|"missing"}.
 

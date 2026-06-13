@@ -1,5 +1,5 @@
 // api/stripe-webhook.js
-// Handles all Stripe payment events for Fredheim Executive Desk:
+// Handles all Stripe payment events for Fredheim Desk:
 //   - Candidate confidential subscriptions ($299/yr)
 //   - Recruiter subscriptions: Pro ($499/mo) | Founding ($7,500/yr annual)
 //   - Engagement unlock fees (match-age-tiered: fresh/warm/aging — one-time)
@@ -58,7 +58,7 @@ const isEngagementPrice = isIntroductionPrice;
 // event whose database side effects have already been applied.
 async function notify(payload) {
   if (!payload || !payload.to_email) return { ok: false, skipped: true };
-  const subject = payload.subject || 'Fredheim Executive Desk';
+  const subject = payload.subject || 'Fredheim Desk';
   return sendEmail({
     to:      payload.to_email,
     subject,
@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
           : candidateTierFromPrice(priceId);
 
         if (candidateTier === 'confidential') {
-          // Update fed_profiles (Executive Desk) — this is the table index.html reads
+          // Update fed_profiles (Fredheim Desk) — this is the table index.html reads
           const expiry = new Date();
           expiry.setFullYear(expiry.getFullYear() + 1);
           const { error } = await supabase
@@ -187,7 +187,7 @@ module.exports = async function handler(req, res) {
             body:          (recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
               : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
-              + `\n\nYour dashboard: https://desk.fredheimtech.com?view=recruiter-dash`,
+              + `\n\nYour dashboard: https://www.fredheimdesk.com?view=recruiter-dash`,
           });
           await revenueAlert(
             `Revenue — recruiter subscription activated (${recruiterTier}, ${feeLabel})`,
