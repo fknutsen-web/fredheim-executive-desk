@@ -20,7 +20,7 @@ const CLOSE_REASONS = {
 
 const CERTIFICATION_TEXT =
   'I certify that this position has not been filled through any candidate introduced, ' +
-  'matched, viewed, unlocked, contacted, or engaged through Fredheim Executive Desk.';
+  'matched, viewed, unlocked, contacted, or engaged through Fredheim Desk.';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

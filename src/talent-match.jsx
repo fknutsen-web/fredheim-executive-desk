@@ -322,7 +322,7 @@ function ConfirmPage() {
       <div className="confirm-icon">✅</div>
       <div className="confirm-title">You're confirmed.</div>
       <div className="confirm-desc">Your profile is active and you'll continue to be matched against open searches.</div>
-      <button className="confirm-btn" onClick={() => window.location.href = 'https://desk.fredheimtech.com'}>Return to Fredheim Executive Desk</button>
+      <button className="confirm-btn" onClick={() => window.location.href = 'https://desk.fredheimtech.com'}>Return to Fredheim Desk</button>
     </div>
   );
 
@@ -425,7 +425,7 @@ function App() {
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
           <div className="nav-mark">FD</div>
-          <div><div className="nav-name">Fredheim Executive Desk</div><span className="nav-sub">Executive Match</span></div>
+          <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
       <div className="main"><ConfirmPage /></div>
@@ -437,7 +437,7 @@ function App() {
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
           <div className="nav-mark">FD</div>
-          <div><div className="nav-name">Fredheim Executive Desk</div><span className="nav-sub">Executive Match</span></div>
+          <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
       <div className="main">
@@ -491,7 +491,7 @@ function App() {
         <a href="https://desk.fredheimtech.com" className="nav-brand">
           <div className="nav-mark">FD</div>
           <div>
-            <div className="nav-name">Fredheim Executive Desk</div>
+            <div className="nav-name">Fredheim Desk</div>
             <span className="nav-sub">Executive Match</span>
           </div>
         </a>
@@ -684,7 +684,7 @@ function App() {
 
       <footer style={{borderTop:'1px solid var(--rule)',padding:'2rem 3rem',textAlign:'center'}}>
         <p style={{fontFamily:'DM Mono, monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
-          Fredheim Executive Desk · desk.fredheimtech.com · Confidential by default
+          Fredheim Desk · desk.fredheimtech.com · Confidential by default
         </p>
       </footer>
     </>

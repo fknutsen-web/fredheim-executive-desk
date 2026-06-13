@@ -2812,7 +2812,7 @@ function RecruiterBillingSetup({ onClose, showToast, onSuccess }) {
           <div>
             <div className="workflow-modal-title">Set Up Billing</div>
             <div className="workflow-modal-sub">
-              Select how you'd like to handle billing for Fredheim Executive Desk.
+              Select how you'd like to handle billing for Fredheim Desk.
               Subscriptions and prepaid packages open January 2027.
             </div>
             <div style={{display:'grid',gap:'0.75rem',marginBottom:'1.5rem'}}>
@@ -3826,7 +3826,7 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
       <div className="nav-brand" onClick={() => { setMenuOpen(false); go('jobs'); }}>
         <div className="nav-mark">FE</div>
         <div className="nav-name-wrap">
-          <div className="nav-name">Fredheim Executive Desk</div>
+          <div className="nav-name">Fredheim Desk</div>
           <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</span>
         </div>
       </div>
@@ -3840,7 +3840,7 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
       </button>
       {/* Clicking any item inside closes the mobile dropdown (events bubble). */}
       <div className={`nav-links ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(false)}>
-        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Executive Search</button>
+        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Opportunities</button>
         <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting &amp; Interim</button>
         <button className={`nav-link ${activeView==='industrial-tech'?'active':''}`} onClick={() => go('industrial-tech')}>Industrial Technology</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => go('pricing')}>Pricing</button>
@@ -3878,16 +3878,16 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
         <div>
           <div className="hero-eyebrow">
             <div className="eyebrow-line" />
-            <span className="eyebrow-text">Fredheim Executive Desk</span>
+            <span className="eyebrow-text">Fredheim Desk</span>
           </div>
           <h1 className="hero-title">
-            One destination.<br />
-            Every <em>executive</em><br />
-            opportunity.
+            Where maritime talent<br />
+            meets <em>opportunity</em>.
           </h1>
           <p className="hero-desc">
-            The curated marketplace for senior leaders across maritime, commodity trading,
-            energy, logistics, ports, and offshore. Salary ranges always published.
+            The confidential talent marketplace connecting maritime, logistics, commodities,
+            and industrial professionals &mdash; from emerging talent to executive leadership &mdash;
+            with the companies looking for them. Salary ranges always published.
             Your identity protected until you choose to engage.
           </p>
           <div className="hero-positioning">
@@ -3899,7 +3899,7 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             {authUser ? (
               <button className="btn-outline" onClick={onGoToProfile}>Go to My Profile</button>
             ) : (
-              <button className="btn-outline" onClick={scrollToProfile}>Create Executive Profile</button>
+              <button className="btn-outline" onClick={scrollToProfile}>Create Your Profile</button>
             )}
           </div>
         </div>
@@ -4073,7 +4073,7 @@ function JobModal({ job, onClose, showToast }) {
         )}
         <div className="interest-note">
           Your identity is not shared until you approve contact.<br />
-          Create an executive profile for one-click interest on all searches.
+          Create a profile for one-click interest on all searches.
         </div>
       </div>
     </div>
@@ -4093,9 +4093,9 @@ function TosModal({ onAgree, onCancel }) {
         <div className="tos-eyebrow">Platform Terms — Search Firms &amp; Employers</div>
         <h2 className="tos-title">Platform Terms &amp; Curated Introduction Agreement</h2>
         <div className="tos-body">
-          <p>Before posting a search, please review and agree to the Fredheim Executive Desk
+          <p>Before posting a search, please review and agree to the Fredheim Desk
           platform terms. These terms protect both the platform and the integrity of the
-          executive community.</p>
+          talent community.</p>
 
           <div className="tos-clause">
             <strong>Subscription.</strong> Active posting access for search firms and employers requires a Standard subscription
@@ -5922,7 +5922,7 @@ function RecruiterModal({ onClose, showToast }) {
             <h2 className="modal-title">Post a Search</h2>
             <p className="intake-modal-blurb">
               Whether you're a retained search firm or a company hiring directly, reach qualified
-              senior leaders across maritime, commodity trading, energy,
+              professionals at every level across maritime, commodity trading, energy,
               logistics, ports and terminals, and offshore. Salary
               transparency is a platform standard.
             </p>
@@ -6896,7 +6896,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
     <div className="success-box">
       <div className="success-title">Profile Created</div>
       <div className="success-desc" style={{marginTop:'0.5rem'}}>
-        Welcome to Fredheim Executive Desk.
+        Welcome to Fredheim Desk.
         {visibility === 'discreet'
           ? ' Your profile is confidential — you initiate all contact.'
           : ' Your profile is visible to posting search firms and employers.'
@@ -7490,7 +7490,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           ))}
 
           <p style={{fontSize:'0.72rem',color:'var(--ink-4)',lineHeight:'1.6',marginTop:'0.5rem'}}>
-            Scores are self-reported. Fredheim Executive Desk prohibits use of personality data
+            Scores are self-reported. Fredheim Desk prohibits use of personality data
             as a screening or disqualification criterion. See our Terms of Service.
           </p>
 
@@ -7858,10 +7858,10 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       name: 'Standard',
       price: String(cfg.recruiter_subscription_monthly || 199),
       period: 'per month',
-      desc: 'Access the curated executive talent infrastructure for industrial, maritime, logistics, and operational-technology hiring. Built for precision and discretion, not volume.',
+      desc: 'Access the curated talent infrastructure for maritime, logistics, commodities, industrial, and operational-technology hiring — across every career level. Built for precision and discretion, not volume.',
       features: [
-        'Reduce executive hiring risk through scope-based compatibility matching',
-        'Access operationally aligned executive talent beyond titles and keywords',
+        'Reduce hiring risk through scope-based compatibility matching',
+        'Access operationally aligned talent beyond titles and keywords',
         'Controlled introductions built around confidentiality and mutual alignment',
         'Focused, high-quality active searches - up to five concurrent mandates',
         'Compensation transparency encouraged for priority visibility and match quality',
@@ -7996,7 +7996,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           Pay per curated introduction.<br />No placement fees. No surprises.
         </h1>
         <p className="pricing-hero-desc">
-          Fredheim Executive Desk charges a fee when a curated introduction is confirmed -
+          Fredheim Desk charges a fee when a curated introduction is confirmed -
           not on speculative outreach, and never on the eventual hire. Subscription gives
           you access to the marketplace; introductions are billed individually so the
           economics stay aligned with match quality.
@@ -8049,7 +8049,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           For Search Firms &amp; Employers
         </button>
         <button className={`pricing-tab ${audience==='executives'?'active':''}`} onClick={()=>setAudience('executives')}>
-          For Executives
+          For Candidates
         </button>
       </div>
 
@@ -8157,11 +8157,11 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </div>
             <div className="faq-item">
               <div className="faq-q">Is salary transparency really required?</div>
-              <div className="faq-a">Yes, without exception. Every posting must include a published compensation range. This is the reason executives trust the platform - and why your searches attract higher-quality candidates than generalist job boards.</div>
+              <div className="faq-a">Yes, without exception. Every posting must include a published compensation range. This is the reason candidates trust the platform - and why your searches attract higher-quality candidates than generalist job boards.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">Can I post roles that are already live on other job boards?</div>
-              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Executive Desk is not exclusive - it is a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
+              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Desk is not exclusive - it is a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">What is the Founding Partner Program?</div>
@@ -8215,22 +8215,23 @@ function TermsPage() {
 
       <div className="legal-body">
         <p>
-          These Terms of Service govern your access to and use of the Fredheim Executive Desk
+          These Terms of Service govern your access to and use of the Fredheim Desk
           platform, operated by Fredheim Technologies LLC. By accessing or using the platform,
           you agree to be bound by these Terms.
         </p>
 
         <h2>1. The Platform</h2>
         <p>
-          Fredheim Executive Desk is an executive opportunity marketplace connecting senior
-          professionals in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained executive
+          Fredheim Desk is a confidential talent marketplace connecting
+          professionals at every career level &mdash; from emerging talent to executive leadership &mdash;
+          in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained
           search firms and with companies hiring directly for their own roles (each, and together,
           a "Search Firm" for the purposes of these Terms). Fredheim Technologies LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
         </p>
 
-        <h2>2. Executive Member Terms</h2>
+        <h2>2. Candidate Member Terms</h2>
 
         <h3>2.1 Profile & Confidentiality</h3>
         <p>
@@ -8271,7 +8272,7 @@ function TermsPage() {
 
         <h3>2.5 No Fees to Candidates</h3>
         <p>
-          Executive Members are never charged placement fees, introduction fees, success fees,
+          Candidate Members are never charged placement fees, introduction fees, success fees,
           or commissions of any kind. The Introduction Fee described below is the sole obligation
           of the Search Firm.
         </p>
@@ -8285,7 +8286,7 @@ function TermsPage() {
 
         <h3>3.0 Founding Partner Program — 2026</h3>
         <div className="legal-highlight">
-          Search firms participating in the Fredheim Executive Desk Founding Partner Program
+          Search firms participating in the Fredheim Desk Founding Partner Program
           may post <strong>one (1) search per calendar month</strong> at no charge through
           <strong> December 31, 2026</strong>. No subscription is required during this period.
           The Introduction Fee described in Section 3.3 applies to all confirmed placements
@@ -8318,8 +8319,8 @@ function TermsPage() {
         <div className="legal-clause">
           <strong>Curated Introduction Fee.</strong> A one-time platform fee is due from the Search
           Firm to Fredheim Technologies LLC at the moment the Search Firm confirms a curated
-          introduction with an Executive Member through the Platform. The fee is tiered by the
-          Executive Member's leadership scope as determined by the Platform's scope classification
+          introduction with a Candidate Member through the Platform. The fee is tiered by the
+          Candidate Member's scope and seniority as determined by the Platform's scope classification
           model, and is charged at the point of introduction confirmation — <strong>not</strong> on
           eventual hire. There is no separate placement fee, success fee, or fee on hire.
         </div>
@@ -8345,7 +8346,7 @@ function TermsPage() {
 
         <h3>3.4 Candidate Confidentiality</h3>
         <p>
-          Executive Member information accessed through the Platform may not be shared outside
+          Candidate Member information accessed through the Platform may not be shared outside
           the search engagement for which it was accessed, used to solicit candidates for other
           roles without their consent, or stored in proprietary databases without the candidate's
           knowledge and consent. Violation is grounds for immediate account termination.
@@ -8433,7 +8434,7 @@ function PrivacyPage() {
 
         <h2>1. Information We Collect</h2>
 
-        <h3>Executive Members</h3>
+        <h3>Candidate Members</h3>
         <ul>
           <li>Name, email address, and location</li>
           <li>Current job title (your employer is stored but never displayed publicly)</li>
@@ -8465,7 +8466,7 @@ function PrivacyPage() {
 
         <h2>2. How Your Information Is Shared</h2>
 
-        <h3>With Search Firms &amp; Employers — Executive Members</h3>
+        <h3>With Search Firms &amp; Employers — Candidate Members</h3>
         <table className="legal-table">
           <thead>
             <tr><th>Information</th><th>Shared When</th></tr>
@@ -8584,7 +8585,7 @@ const CLOSE_REASONS = [
 ];
 
 const CLOSE_CERT_TEXT =
-  'I certify that this position has not been filled through any candidate introduced, matched, viewed, unlocked, contacted, or engaged through Fredheim Executive Desk.';
+  'I certify that this position has not been filled through any candidate introduced, matched, viewed, unlocked, contacted, or engaged through Fredheim Desk.';
 
 function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
   const [reason, setReason]   = useState('');
@@ -8674,7 +8675,7 @@ function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
 
 // ── MARK AS FILLED MODAL ─────────────────────────────────────────────────────
 const EXTERNAL_CERT_TEXT =
-  'I certify that the selected candidate was not introduced, matched, viewed, unlocked, contacted, shortlisted, messaged, or engaged through Fredheim Executive Desk for this role or a substantially similar role.';
+  'I certify that the selected candidate was not introduced, matched, viewed, unlocked, contacted, shortlisted, messaged, or engaged through Fredheim Desk for this role or a substantially similar role.';
 
 function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
   const [step, setStep]         = useState('source');  // 'source' | 'platform' | 'external' | 'done'
@@ -8768,7 +8769,7 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
         {step === 'source' && (
           <div>
             <div className="workflow-modal-sub">
-              Was the candidate who filled this role sourced through Fredheim Executive Desk?
+              Was the candidate who filled this role sourced through Fredheim Desk?
             </div>
             <div className="workflow-radio-group" style={{gap:'0.75rem'}}>
               {[
@@ -9225,7 +9226,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
             Admin Control Room
           </div>
-          <div className="admin-title">Fredheim Executive Desk</div>
+          <div className="admin-title">Fredheim Desk</div>
         </div>
         <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
           <button className="admin-refresh" onClick={loadAll} disabled={refreshing}>
@@ -9422,7 +9423,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                         <td>{latest ? new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
                         <td>
                           <div style={{display:'flex',gap:'0.375rem'}}>
-                            <a href={`mailto:${latest?.email}?subject=Fredheim Executive Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Executive Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Executive Desk%0Adesk@fredheimtech.com`} style={{textDecoration:'none'}}>
+                            <a href={`mailto:${latest?.email}?subject=Fredheim Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Desk%0Adesk@fredheimtech.com`} style={{textDecoration:'none'}}>
                               <button className="admin-action-btn">Email</button>
                             </a>
                           </div>
@@ -9658,7 +9659,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                           <span style={{fontSize:'0.72rem',color:'var(--green)'}}>✓ Introduced</span>
                         )}
                         <a
-                          href={`mailto:${i.anon_email}?subject=Fredheim Executive Desk — Your interest in ${job?.title || 'a search'}`}
+                          href={`mailto:${i.anon_email}?subject=Fredheim Desk — Your interest in ${job?.title || 'a search'}`}
                           style={{textDecoration:'none'}}
                         >
                           <button className="admin-action-btn">Email Candidate</button>
@@ -10728,7 +10729,7 @@ function SignInPage({ onBack, returnView }) {
   return (
     <div className="auth-page">
       <div className="auth-box">
-        <div className="auth-eyebrow">Executive Access</div>
+        <div className="auth-eyebrow">Candidate Access</div>
         <h2 className="auth-title">Access Your Profile</h2>
         <p className="auth-desc">
           Enter your email address and we'll send you a secure sign-in link.
@@ -13617,7 +13618,7 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Executive Desk
+            Fredheim Desk
           </div>
           <div className="questionnaire-title">Link Unavailable</div>
         </div>
@@ -13633,7 +13634,7 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Executive Desk
+            Fredheim Desk
           </div>
           <div className="questionnaire-title">Thank You</div>
         </div>
@@ -13653,12 +13654,12 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Executive Desk — Confidential Reference
+            Fredheim Desk — Confidential Reference
           </div>
           <div className="questionnaire-title">Professional Reference</div>
           <p className="questionnaire-desc">
-            You have been listed as a professional reference on Fredheim Executive Desk —
-            a curated executive search platform for maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
+            You have been listed as a professional reference on Fredheim Desk —
+            a confidential talent marketplace for maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
             This takes approximately 5 minutes. Your responses are confidential and shared
             only with verified search firms and employers, with the candidate's consent.
           </p>
@@ -13781,7 +13782,7 @@ function QuestionnairePage({ token }) {
         </button>
 
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'center',marginTop:'1rem',lineHeight:'1.6'}}>
-          Your responses are confidential. Fredheim Executive Desk · desk@fredheimtech.com
+          Your responses are confidential. Fredheim Desk · desk@fredheimtech.com
         </p>
       </div>
     </div>
@@ -14482,7 +14483,7 @@ function AboutPage({ setActiveView }) {
   return (
     <div className="legal-page">
       <div className="legal-eyebrow">About</div>
-      <h1 className="legal-title">Fredheim Executive Desk</h1>
+      <h1 className="legal-title">Fredheim Desk</h1>
       <div className="legal-meta">
         A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; desk.fredheimtech.com
       </div>
@@ -14491,11 +14492,12 @@ function AboutPage({ setActiveView }) {
 
         <h2>What We Built</h2>
         <p>
-          Fredheim Executive Desk is a curated executive search and consulting marketplace
+          Fredheim Desk is a confidential talent marketplace
           for commercial, operational, and technical professionals across global trade,
           maritime & shipping, commodity trading, energy, logistics & supply chain, ports
-          & terminals, and offshore.
-          We exist because executive search in this industry has always been opaque by design —
+          & terminals, and offshore — at every career level, from emerging talent to
+          executive leadership.
+          We exist because hiring in this industry has always been opaque by design —
           salary ranges hidden, firms unnamed, candidates kept in the dark until the last moment.
         </p>
         <p>
@@ -14506,21 +14508,32 @@ function AboutPage({ setActiveView }) {
 
         <h2>Who We Serve</h2>
 
-        <h3>Senior Executives</h3>
+        <h3>Professionals at Every Level</h3>
         <p>
-          C-suite, VP, and Director-level professionals across maritime & shipping, commodity trading,
-          energy, logistics & supply chain, ports & terminals, and offshore who want access to the
-          best opportunities without sacrificing
-          confidentiality or wasting time on roles that don't fit. Free to join.
+          Whether you are just starting out or running a business unit, there is a place for you
+          across maritime & shipping, commodity trading, energy, logistics & supply chain, ports
+          & terminals, and offshore. Members join at one of four career levels:
+        </p>
+        <ul>
+          <li><strong>Emerging Talent</strong> — students, recent graduates, and early-career professionals.</li>
+          <li><strong>Professional</strong> — analysts, coordinators, specialists, and operators.</li>
+          <li><strong>Senior Professional</strong> — managers, senior managers, and experienced specialists.</li>
+          <li><strong>Executive Leadership</strong> — directors, VPs, C-suite, and presidents.</li>
+        </ul>
+        <p>
+          Access the best opportunities without sacrificing confidentiality or wasting time on
+          roles that don't fit. Free to join.
           Upgrade to Confidential ($299/yr) for full identity control and priority visibility.
         </p>
 
         <h3>Search Firms &amp; Employers</h3>
         <p>
           Retained search firms running mandates in our verticals — and companies hiring
-          directly for their own senior roles — who want access to
-          a curated, qualified pool of senior professionals across maritime & shipping, commodity
-          trading, energy, logistics & supply chain, ports & terminals, and offshore. Salary transparency is
+          directly for their own roles — who want access to
+          a curated, qualified pool of talent across maritime & shipping, commodity
+          trading, energy, logistics & supply chain, ports & terminals, and offshore. Search for
+          commercial leaders, chartering professionals, operations and terminal managers,
+          logistics specialists, technical experts, and senior executives alike. Salary transparency is
           non-negotiable — every posting must include a published compensation range.
           Founding Partner Program 2026 — one search per month, complimentary through
           December 31. Subscriptions open January 2027.
@@ -14542,10 +14555,10 @@ function AboutPage({ setActiveView }) {
           of every interaction high and protects both parties from wasted time.
         </p>
         <p>
-          Reference-based vetting is built into the platform. Executives can submit
+          Reference-based vetting is built into the platform. Members can submit
           professional references who complete a short confidential questionnaire.
           Completed references are shared with verified search firms and employers — with the
-          executive's consent — and significantly improve matching quality.
+          member's consent — and significantly improve matching quality.
         </p>
 
         <h2>Our Verticals</h2>
@@ -14579,11 +14592,11 @@ function AboutPage({ setActiveView }) {
 
         <h2>Pricing</h2>
         <p>
-          Executive profiles are free to create. The Confidential tier ($299/year) hides
+          Profiles are free to create. The Confidential tier ($299/year) hides
           your identity from all recruiters until you personally approve each connection,
           and surfaces your profile in relevant searches.
           Introduction fees are charged to the hiring side — search firms and employers — only;
-          executives are never charged placement fees of any kind.
+          candidates are never charged placement fees of any kind.
         </p>
         <p style={{cursor:'pointer',color:'var(--gold)',textDecoration:'underline'}} onClick={() => setActiveView('pricing')}>
           View full pricing →
@@ -14591,14 +14604,14 @@ function AboutPage({ setActiveView }) {
 
         <h2>Built By</h2>
         <p>
-          Fredheim Executive Desk is a product of Fredheim Technologies LLC —
+          Fredheim Desk is a product of Fredheim Technologies LLC —
           a team with 25+ years of combined experience in maritime, energy, and logistics,
           spanning terminal operations, vessel chartering, bulk commodity trade, and
           commercial strategy across the Gulf Coast, Gulf Region, and international markets.
         </p>
         <p>
           The platform is purpose-built for an industry we know from the inside.
-          Every design decision reflects how executive search and consulting actually works
+          Every design decision reflects how recruiting and consulting actually works
           in maritime and energy — not how generic job boards assume it works.
         </p>
 
@@ -14962,7 +14975,7 @@ function App() {
       return (
         <div style={{minHeight:'100vh',background:'var(--paper)'}}>
           <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Executive Desk — Admin</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Desk — Admin</div>
             <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
           </div>
           <AdminLogin onLogin={() => setAdminAuthed(true)} />
@@ -14972,7 +14985,7 @@ function App() {
     return (
       <div style={{minHeight:'100vh',background:'var(--paper)'}}>
         <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Executive Desk — Admin</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Desk — Admin</div>
           <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
         </div>
         <div style={{maxWidth:'1280px',margin:'0 auto',padding:'2rem'}}>
@@ -15015,8 +15028,8 @@ function App() {
           />
           <div className="manifesto">
             <p className="manifesto-text">
-              Executive search has always been opaque by design.{' '}
-              <strong>Fredheim Executive Desk is built differently</strong> —
+              Hiring in this industry has always been opaque by design.{' '}
+              <strong>Fredheim Desk is built differently</strong> —
               salary ranges published, search firms and employers named, your identity protected until you choose to move.{' '}
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
@@ -15166,7 +15179,7 @@ function App() {
             ) : (
               <p style={{fontSize:'0.9rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:680,margin:'0 0 1.5rem'}}>
                 A sample of the kinds of mandates placed across our verticals. Live searches are private —
-                sign in or create a free executive profile to browse current openings and signal interest confidentially.
+                sign in or create a free profile to browse current openings and signal interest confidentially.
               </p>
             )}
 
@@ -15222,11 +15235,11 @@ function App() {
                     </div>
                     <p style={{fontSize:'0.85rem',color:'var(--ink-3)',lineHeight:1.6,maxWidth:560,margin:'0 auto 1rem'}}>
                       The postings above are illustrative examples. Sign in or create a
-                      free executive profile to browse live searches and signal interest
+                      free profile to browse live searches and signal interest
                       confidentially.
                     </p>
                     <div style={{display:'flex',gap:'0.625rem',justifyContent:'center',flexWrap:'wrap'}}>
-                      <button className="btn-primary" onClick={() => goToView('profile')}>Create Executive Profile</button>
+                      <button className="btn-primary" onClick={() => goToView('profile')}>Create Your Profile</button>
                       <button className="btn-outline" onClick={() => setActiveView('signin')}>Sign In</button>
                     </div>
                   </div>
@@ -15244,7 +15257,7 @@ function App() {
         {activeView === 'profile' && (
           <div className="profile-section">
             <div className="profile-left">
-              <div className="profile-eyebrow">Executive Profile</div>
+              <div className="profile-eyebrow">Confidential Profile</div>
               <h2 className="profile-title">Your next role<br /><em>finds you.</em></h2>
               <p className="profile-desc">
                 Create a confidential profile and let the right searches come to you.
@@ -15353,9 +15366,11 @@ function App() {
         {!['signin','myprofile','recruiter-signin','recruiter-dash','terms','privacy','consulting','about','pricing','profile'].includes(activeView) && <div className="recruiter-cta">
           <div>
             <div className="recruiter-eyebrow">For Search Firms &amp; Employers</div>
-            <div className="recruiter-title">Reach the right executives.</div>
+            <div className="recruiter-title">Reach the right talent.</div>
             <div className="recruiter-desc">
-              The only curated platform where retained search firms and companies hiring directly reach qualified senior leaders.
+              The only curated platform where retained search firms and companies hiring directly reach qualified
+              professionals at every level — commercial leaders, chartering and operations specialists,
+              technical experts, and senior executives.
               Founding Partner Program 2026 — one search per month, complimentary through December 31.
             </div>
           </div>
@@ -15369,7 +15384,7 @@ function App() {
       <footer className="footer">
         <div className="footer-inner">
           <div>
-            <div className="footer-brand-name">Fredheim Executive Desk</div>
+            <div className="footer-brand-name">Fredheim Desk</div>
             <div className="footer-brand-sub">A Fredheim Technologies Product</div>
             <p className="footer-desc">
               Connecting commercial, operational, and technical professionals across global trade, maritime, energy, logistics, commodity trading, and port infrastructure. Built with and for the professionals who move global trade.
@@ -15383,8 +15398,8 @@ function App() {
           <div>
             <div className="footer-col-title">Platform</div>
             <ul className="footer-links">
-              <li onClick={()=>goToView('jobs')}>Browse Searches</li>
-              <li onClick={()=>goToView('profile')}>Executive Profile</li>
+              <li onClick={()=>goToView('jobs')}>Browse Opportunities</li>
+              <li onClick={()=>goToView('profile')}>Your Profile</li>
               <li onClick={()=>{setRecruiterModal(true);window.scrollTo({top:0,behavior:'smooth'});}}>Post a Search</li>
               <li onClick={()=>goToView('pricing')}>Pricing</li>
             </ul>

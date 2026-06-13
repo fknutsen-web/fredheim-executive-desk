@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
   // Submitter confirmation
   if (email) {
     const subject = 'Fredheim — Consulting brief received';
-    const body = `Hi ${contact_name || 'there'},\n\nYour consulting brief for "${title}" has been received. We'll review it and be in touch within 24 hours.\n\nAs a Founding Partner, this is your complimentary posting for the month.\n\nQuestions? desk@fredheimtech.com\n\nFredheim Executive Desk`;
+    const body = `Hi ${contact_name || 'there'},\n\nYour consulting brief for "${title}" has been received. We'll review it and be in touch within 24 hours.\n\nAs a Founding Partner, this is your complimentary posting for the month.\n\nQuestions? desk@fredheimtech.com\n\nFredheim Desk`;
     await sendEmail({ to: email, subject, text: body, html: brandedHtml(body, { heading: subject }) });
   }
 

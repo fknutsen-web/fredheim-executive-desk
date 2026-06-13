@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const isIntern = body.type === 'intern_posting';
 
-  // Field-name normalization. The Executive Desk recruiter modal sends
+  // Field-name normalization. The Fredheim Desk recruiter modal sends
   // {firm_name, contact_name, email, role_title, ...}. The Early Careers
   // InternEmployerModal spreads its own form object which uses
   // {employer_name, employer_email, title, compensation_display, ...} and
@@ -125,10 +125,10 @@ Review: https://desk.fredheimtech.com?admin=true`,
       to:      email,
       subject: isIntern
         ? 'Fredheim Early Careers — Internship submission received'
-        : 'Fredheim Executive Desk — Submission received',
+        : 'Fredheim Desk — Submission received',
       body: isIntern
         ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Early Careers\ndesk@fredheimtech.com`
-        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`,
+        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimtech.com.\n\nFredheim Desk\ndesk@fredheimtech.com`,
     });
   }
 

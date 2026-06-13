@@ -20,7 +20,7 @@ module.exports = async function handler(req, res) {
 
   const questionnaireUrl = `https://desk.fredheimtech.com?ref=${encodeURIComponent(token)}`;
   const subject = `${candidate_name || 'A colleague'} listed you as a reference — 5-minute questionnaire`;
-  const body = `Hi ${ref_name || 'there'},\n\n${candidate_name || 'A colleague'} has listed you as a professional reference on Fredheim Executive Desk, a curated executive opportunity platform.\n\nThey've asked if you'd complete a brief 5-minute questionnaire about your professional experience with them. No login is required.\n\nComplete the questionnaire here:\n${questionnaireUrl}\n\nThis link is unique to you. If you have any questions, contact desk@fredheimtech.com.\n\nFredheim Executive Desk\ndesk@fredheimtech.com`;
+  const body = `Hi ${ref_name || 'there'},\n\n${candidate_name || 'A colleague'} has listed you as a professional reference on Fredheim Desk, a confidential talent marketplace.\n\nThey've asked if you'd complete a brief 5-minute questionnaire about your professional experience with them. No login is required.\n\nComplete the questionnaire here:\n${questionnaireUrl}\n\nThis link is unique to you. If you have any questions, contact desk@fredheimtech.com.\n\nFredheim Desk\ndesk@fredheimtech.com`;
 
   const result = await sendEmail({ to: ref_email, subject, text: body, html: brandedHtml(body, { heading: subject }) });
 
