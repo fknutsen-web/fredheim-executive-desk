@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Fredheim Desk">
+  <!-- Global ring -->
+  <circle cx="24" cy="24" r="20.5" fill="none" stroke="#0f1c2e" stroke-width="1.5"/>
+  <!-- Navigation / precision compass -->
+  <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill="#0f1c2e"/>
+  <!-- Network waypoints -->
+  <circle cx="9.5" cy="9.5" r="2.4" fill="#0f1c2e"/>
+  <circle cx="38.5" cy="38.5" r="2.4" fill="#0f1c2e"/>
+  <circle cx="9.5" cy="38.5" r="2.4" fill="#0f1c2e"/>
+  <circle cx="38.5" cy="9.5" r="2.4" fill="#b8922a"/>
+</svg>

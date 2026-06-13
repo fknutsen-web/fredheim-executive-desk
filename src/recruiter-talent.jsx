@@ -353,7 +353,7 @@ function App() {
       {/* NAV */}
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
+          <div className="nav-mark"><BrandMark /></div>
           <div>
             <div className="nav-name">Fredheim Desk</div>
             <span className="nav-sub">Talent Match · Hiring View</span>

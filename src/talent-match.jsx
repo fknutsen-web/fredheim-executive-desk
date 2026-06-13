@@ -12,6 +12,21 @@ window.supabase = supabase
 
 const { useState, useEffect, useCallback } = React;
 
+// Fredheim Desk brand mark — global ring, navigation compass, network
+// waypoints (one gold). Matches /public/favicon.svg.
+function BrandMark() {
+  return (
+    <svg viewBox="0 0 48 48" role="img" aria-label="Fredheim Desk" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="20.5" fill="none" stroke="#0f1c2e" strokeWidth="1.5" />
+      <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill="#0f1c2e" />
+      <circle cx="9.5" cy="9.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="38.5" cy="38.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="9.5" cy="38.5" r="2.4" fill="#0f1c2e" />
+      <circle cx="38.5" cy="9.5" r="2.4" fill="#b8922a" />
+    </svg>
+  );
+}
+
 // ── QUESTION DATA ───────────────────────────────────────────────
 
 const EXECUTIVE_QUESTIONS = [
@@ -424,7 +439,7 @@ function App() {
     <>
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
+          <div className="nav-mark"><BrandMark /></div>
           <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
@@ -436,7 +451,7 @@ function App() {
     <>
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
+          <div className="nav-mark"><BrandMark /></div>
           <div><div className="nav-name">Fredheim Desk</div><span className="nav-sub">Executive Match</span></div>
         </a>
       </nav>
@@ -489,7 +504,7 @@ function App() {
       {/* NAV */}
       <nav className="nav">
         <a href="https://desk.fredheimtech.com" className="nav-brand">
-          <div className="nav-mark">FD</div>
+          <div className="nav-mark"><BrandMark /></div>
           <div>
             <div className="nav-name">Fredheim Desk</div>
             <span className="nav-sub">Executive Match</span>

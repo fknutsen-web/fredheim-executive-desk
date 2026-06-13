@@ -3813,6 +3813,28 @@ function DemoBanner({ onDismiss }) {
   );
 }
 
+// ── BRAND MARK ───────────────────────────────────────────────────────────────
+// Abstract identity for Fredheim Desk: a navigation compass inside a global
+// ring with network waypoints (one gold) — global connections, trade routes,
+// and precision. `light` renders for dark surfaces (footer). Mirrors the
+// artwork in /public/favicon.svg and /public/icon.svg.
+function BrandMark({ light = false }) {
+  const stroke = light ? '#f4f3f0' : '#0f1c2e';
+  const node   = light ? '#f4f3f0' : '#0f1c2e';
+  const accent = light ? '#d4a93c' : '#b8922a';
+  const op     = light ? 0.85 : 1;
+  return (
+    <svg viewBox="0 0 48 48" role="img" aria-label="Fredheim Desk" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="20.5" fill="none" stroke={stroke} strokeWidth="1.5" strokeOpacity={op} />
+      <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill={stroke} />
+      <circle cx="9.5" cy="9.5" r="2.4" fill={node} fillOpacity={op} />
+      <circle cx="38.5" cy="38.5" r="2.4" fill={node} fillOpacity={op} />
+      <circle cx="9.5" cy="38.5" r="2.4" fill={node} fillOpacity={op} />
+      <circle cx="38.5" cy="9.5" r="2.4" fill={accent} />
+    </svg>
+  );
+}
+
 // ── NAV ──────────────────────────────────────────────────────────────────────
 function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authUser, userType, onSignIn, onSignOut }) {
   // Prefer goToView (scrolls to top after view change) so users actually see
@@ -3824,10 +3846,10 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
   return (
     <nav className="nav">
       <div className="nav-brand" onClick={() => { setMenuOpen(false); go('jobs'); }}>
-        <div className="nav-mark">FE</div>
+        <div className="nav-mark"><BrandMark /></div>
         <div className="nav-name-wrap">
-          <div className="nav-name">Fredheim Desk</div>
-          <span className="nav-sub">Maritime · Ports · Energy · Industrial Logistics · Industrial Technology</span>
+          <div className="brand-word">Fredheim</div>
+          <div className="brand-word-2">Desk</div>
         </div>
       </div>
       <button
@@ -15384,8 +15406,13 @@ function App() {
       <footer className="footer">
         <div className="footer-inner">
           <div>
-            <div className="footer-brand-name">Fredheim Desk</div>
-            <div className="footer-brand-sub">A Fredheim Technologies Product</div>
+            <div className="footer-brand">
+              <span className="footer-mark"><BrandMark light /></span>
+              <div>
+                <div className="footer-brand-name">Fredheim Desk</div>
+                <div className="footer-brand-sub">A Fredheim Technologies Product</div>
+              </div>
+            </div>
             <p className="footer-desc">
               Connecting commercial, operational, and technical professionals across global trade, maritime, energy, logistics, commodity trading, and port infrastructure. Built with and for the professionals who move global trade.
             </p>
