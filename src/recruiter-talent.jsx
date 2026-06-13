@@ -1,9 +1,13 @@
 import React from "react"
 import * as ReactDOM from "react-dom/client"
 import * as supabase from "@supabase/supabase-js"
+import { inject as injectVercelAnalytics } from "@vercel/analytics"
 
 // Compat: existing inline code references `supabase.createClient` and `window.supabase.createClient`
 window.supabase = supabase
+
+// Vercel Web Analytics — aggregated, privacy-respecting traffic (no cookies/PII).
+injectVercelAnalytics()
 
 // ──────────────────────────────────────────────────────────────────────
 // Original inline <script type="text/babel"> body follows unchanged

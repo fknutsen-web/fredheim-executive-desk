@@ -1,9 +1,14 @@
 import React from "react"
 import * as ReactDOM from "react-dom/client"
 import * as supabase from "@supabase/supabase-js"
+import { inject as injectVercelAnalytics } from "@vercel/analytics"
 
 // Compat: existing inline code references `supabase.createClient` and `window.supabase.createClient`
 window.supabase = supabase
+
+// Vercel Web Analytics — aggregated, privacy-respecting traffic (no cookies/PII).
+// Requires Web Analytics enabled for the project in the Vercel dashboard.
+injectVercelAnalytics()
 
 // ──────────────────────────────────────────────────────────────────────
 // Original inline <script type="text/babel"> body follows unchanged
@@ -17,6 +22,23 @@ const SUPABASE_URL  = 'https://bizbneqlzacvhekrbrgd.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_LiDWOkL4YYQfp7b9GWzFHA_ND5Lxgry';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// First-party pageview tracking for the admin dashboard. Anonymous: `fd_vid` is
+// a random token kept in localStorage (no account/email/IP link). Fires once per
+// page load via a SECURITY DEFINER RPC; failures are silently ignored so a
+// tracking hiccup never affects the page.
+(function trackVisit() {
+  try {
+    let vid = localStorage.getItem('fd_vid');
+    if (!vid) {
+      vid = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+      localStorage.setItem('fd_vid', vid);
+    }
+    sb.rpc('fed_record_visit', { p_visitor_id: vid, p_path: location.pathname }).then(() => {}, () => {});
+  } catch (_) { /* no-op */ }
+})();
 
 // Admin write helper — posts to the service-role /api/admin-actions endpoint
 // with the admin bearer token. Used wherever the browser used to write
@@ -9065,6 +9087,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
   const [profiles, setProfiles]       = useState([]);
   const [jobs, setJobs]               = useState([]);
   const [interests, setInterests]     = useState([]);
+  const [traffic, setTraffic]         = useState(null);
 
   async function loadAll() {
     setRefreshing(true);
@@ -9072,7 +9095,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
       // Confidential profiles are no longer client-readable in bulk (RLS); the
       // admin roster is loaded through the service-role admin-oversight route.
       const adminTok = sessionStorage.getItem('fed_admin_token') || '';
-      const [s, p, j, i] = await Promise.all([
+      const [s, p, j, i, t] = await Promise.all([
         // Submissions are no longer client-readable in bulk (RLS); load the
         // full roster through the service-role admin-oversight route.
         fetch('/api/admin-oversight?resource=submissions', { headers: { 'Authorization': 'Bearer ' + adminTok } })
@@ -9084,11 +9107,15 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         fetch('/api/admin-oversight?resource=jobs', { headers: { 'Authorization': 'Bearer ' + adminTok } })
           .then(r => r.json()).then(d => ({ data: d.jobs || [] })).catch(() => ({ data: [] })),
         sb.from('fed_interests').select('*').order('created_at', {ascending:false}),
+        // First-party traffic summary (pageviews + unique visitors by window).
+        fetch('/api/admin-oversight?resource=traffic', { headers: { 'Authorization': 'Bearer ' + adminTok } })
+          .then(r => r.json()).then(d => d.traffic || null).catch(() => null),
       ]);
       setSubmissions(s.data || []);
       setProfiles(p.data || []);
       setJobs(j.data || []);
       setInterests(i.data || []);
+      setTraffic(t || null);
     } catch(e) {
       showToast('Error loading data — check Supabase connection.');
     }
@@ -9280,7 +9307,22 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
           <div className="admin-stat-num">{totalInterests}</div>
           <div className="admin-stat-label">Interest Signals</div>
         </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{traffic ? Number(traffic.visitors_30d || 0).toLocaleString() : '—'}</div>
+          <div className="admin-stat-label">Visitors (30d)</div>
+        </div>
+        <div className="admin-stat">
+          <div className="admin-stat-num">{traffic ? Number(traffic.pageviews_30d || 0).toLocaleString() : '—'}</div>
+          <div className="admin-stat-label">Pageviews (30d)</div>
+        </div>
       </div>
+      {traffic && (
+        <div style={{margin:'-0.5rem 0 1.5rem',fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.06em',color:'var(--ink-4)',textTransform:'uppercase'}}>
+          Today: {Number(traffic.visitors_today||0).toLocaleString()} visitors · {Number(traffic.pageviews_today||0).toLocaleString()} views &nbsp;·&nbsp;
+          7d: {Number(traffic.visitors_7d||0).toLocaleString()} visitors · {Number(traffic.pageviews_7d||0).toLocaleString()} views &nbsp;·&nbsp;
+          All-time: {Number(traffic.visitors_total||0).toLocaleString()} visitors · {Number(traffic.pageviews_total||0).toLocaleString()} views
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="admin-tabs">

@@ -113,6 +113,20 @@ module.exports = async function handler(req, res) {
     }
   }
 
+  // First-party traffic summary — aggregated pageviews + unique visitors over
+  // rolling windows. The heavy count(DISTINCT) runs in the DB via a service-role
+  // SECURITY DEFINER function (fed_traffic_summary); no raw visit rows are pulled.
+  if (req.query.resource === 'traffic') {
+    try {
+      const { data, error } = await db.rpc('fed_traffic_summary');
+      if (error) throw error;
+      return res.status(200).json({ ok: true, traffic: data || {} });
+    } catch (e) {
+      console.error('admin-oversight traffic error:', e);
+      return res.status(500).json({ error: e.message || 'Internal error.' });
+    }
+  }
+
   // Leaderboard overrides — service-role only; read here for the admin tab.
   if (req.query.resource === 'overrides') {
     try {
