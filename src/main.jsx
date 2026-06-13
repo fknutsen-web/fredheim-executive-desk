@@ -9588,6 +9588,19 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                             } catch(e){ showToast(e.message||'Update failed.'); }
                           }}>Archive</button>
                         )}
+                        <button className="admin-action-btn danger" style={{fontSize:'0.6rem'}} onClick={async()=>{
+                          if (!window.confirm(`Delete "${j.title}" from the job board? This removes the posting and its matches/interest signals. Postings with paid introductions or placements are kept (soft-deleted) for financial records. This cannot be undone.`)) return;
+                          try {
+                            const res = await adminPost({ action:'job_delete', id:j.id });
+                            if (res.soft_deleted) {
+                              setJobs(prev=>prev.map(x=>x.id===j.id?{...x,status:'deleted'}:x));
+                              showToast('Removed from board (soft-deleted to preserve financial records).');
+                            } else {
+                              setJobs(prev=>prev.filter(x=>x.id!==j.id));
+                              showToast('Posting deleted.');
+                            }
+                          } catch(e){ showToast(e.message||'Delete failed.'); }
+                        }}>Delete</button>
                       </div>
                     </td>
                   </tr>

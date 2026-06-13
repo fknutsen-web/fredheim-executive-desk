@@ -69,6 +69,39 @@ module.exports = async function handler(req, res) {
         }
         return res.status(200).json({ ok: true });
       }
+      case 'job_delete': {
+        // Remove a posting from the board. To protect financial + audit records,
+        // a job that has paid introductions or recorded placements is SOFT
+        // deleted (status='deleted'); everything else is hard deleted.
+        const { id } = body;
+        if (!id) return res.status(400).json({ error: 'id required.' });
+
+        const [introRes, placementRes] = await Promise.all([
+          db.from('fed_candidate_introductions').select('id', { count: 'exact', head: true }).eq('job_id', id),
+          db.from('fed_placements').select('id', { count: 'exact', head: true }).eq('job_id', id),
+        ]);
+        const hasFinancial = (introRes.count || 0) > 0 || (placementRes.count || 0) > 0;
+
+        if (hasFinancial) {
+          const { error } = await db.from('fed_jobs')
+            .update({ status: 'deleted', archived_at: new Date().toISOString() })
+            .eq('id', id);
+          if (error) throw error;
+          return res.status(200).json({
+            ok: true, soft_deleted: true,
+            reason: 'Job has paid introductions or placements — soft-deleted (removed from the board) to preserve financial records.',
+          });
+        }
+
+        // No financial records: hard delete. Clear the RESTRICT-blocking audit
+        // dependents first; CASCADE removes matches + interests, and SET NULL
+        // detaches notifications, recruiter feedback, and marketplace activity.
+        await db.from('fed_job_status_history').delete().eq('job_id', id);
+        await db.from('fed_job_closures').delete().eq('job_id', id);
+        const { error } = await db.from('fed_jobs').delete().eq('id', id);
+        if (error) throw error;
+        return res.status(200).json({ ok: true, deleted: true });
+      }
 
       // ── Job closures / placements (admin review) ────────────────────────
       case 'closure_review': {
