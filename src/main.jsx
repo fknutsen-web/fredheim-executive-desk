@@ -3840,7 +3840,7 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
       </button>
       {/* Clicking any item inside closes the mobile dropdown (events bubble). */}
       <div className={`nav-links ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(false)}>
-        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Opportunities</button>
+        <button className={`nav-link ${activeView==='jobs'?'active':''}`} onClick={() => go('jobs')}>Executive Search</button>
         <button className={`nav-link ${activeView==='consulting'?'active':''}`} onClick={() => go('consulting')}>Consulting &amp; Interim</button>
         <button className={`nav-link ${activeView==='industrial-tech'?'active':''}`} onClick={() => go('industrial-tech')}>Industrial Technology</button>
         <button className={`nav-link ${activeView==='pricing'?'active':''}`} onClick={() => go('pricing')}>Pricing</button>
@@ -15398,7 +15398,7 @@ function App() {
           <div>
             <div className="footer-col-title">Platform</div>
             <ul className="footer-links">
-              <li onClick={()=>goToView('jobs')}>Browse Opportunities</li>
+              <li onClick={()=>goToView('jobs')}>Browse Searches</li>
               <li onClick={()=>goToView('profile')}>Your Profile</li>
               <li onClick={()=>{setRecruiterModal(true);window.scrollTo({top:0,behavior:'smooth'});}}>Post a Search</li>
               <li onClick={()=>goToView('pricing')}>Pricing</li>
