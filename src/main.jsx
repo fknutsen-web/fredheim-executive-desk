@@ -4663,7 +4663,7 @@ const INTAKE_SCHEMA = {
             { key:'company_name',        label:'Company name',          type:'text',   tier:'required',            weight:'context' },
             { key:'company_website',     label:'Website',               type:'text',   tier:'strongly_encouraged', weight:'context' },
             { key:'company_linkedin',    label:'LinkedIn',              type:'text',   tier:'optional',            weight:'context' },
-            { key:'primary_contact',     label:'Primary recruiter / contact', type:'text', tier:'required',         weight:'context' },
+            { key:'primary_contact',     label:'Primary contact', type:'text', tier:'required',         weight:'context' },
             { key:'industry',            label:'Industry',              type:'select', tier:'required',            weight:'industry', options: VERTICAL_NAMES },
             { key:'subcategory',         label:'Specialization (optional)', type:'subcategory', tier:'optional', weight:'industry', dependsOn:'industry' },
             { key:'business_model',      label:'Business model',        type:'text',   tier:'strongly_encouraged', weight:'context' },
@@ -6589,7 +6589,7 @@ function CandidateMatchTransparencyCard({ match, profile, onExpressInterest, onC
         <div className="match-transparency-confidentiality">
           {anonymous
             ? 'Anonymous mode is on. The search firm or employer only sees scope, complexity, leadership profile, and industry. No name, employer, or contact until you confirm interest.'
-            : 'Standard visibility. Recruiter sees your name and headline. Contact details remain hidden until you confirm interest.'}
+            : 'Standard visibility. The search firm or employer sees your name and headline. Contact details remain hidden until you confirm interest.'}
         </div>
       </div>
 
@@ -7954,7 +7954,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Complete executive assessment - get matched by search firms and employers',
       ],
       muted: [
-        'Recruiters cannot find or contact you directly',
+        'Search firms and employers cannot find or contact you directly',
         'Profile not visible to search firms or employers',
       ],
       cta: 'Create Free Profile',
@@ -7970,7 +7970,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
         'Includes all Free access features',
         'Anonymous executive profile - identity hidden by default',
         'Employer, location, and age-identifying details hidden by default',
-        'Recruiter approval workflow - you decide who sees you',
+        'Approval workflow - you decide which search firms and employers see you',
         'Priority placement in relevant search results',
         'Visible to approved search firms and employers running relevant searches',
         'Executives are never charged any fee on a hire - ever',
@@ -7987,7 +7987,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       desc: 'For senior executives who want a controlled, discreet market process with personal oversight at every step. Selectively offered.',
       features: [
         'Private consultation before profile activation',
-        'Manual review of all recruiter access requests',
+        'Manual review of all search firm and employer access requests',
         'Controlled introduction workflow with personal oversight',
         'Compensation positioning support',
         'Quarterly market feedback and search activity report',
@@ -8520,7 +8520,7 @@ function PrivacyPage() {
             <tr><td>Email address</td><td>When you express interest — that posting's firm only</td></tr>
             <tr><td>Full profile</td><td>Only if visibility is Open (paid tiers) OR you explicitly approve</td></tr>
             <tr><td><strong>Current employer name</strong></td><td><strong>Never — under any circumstances</strong></td></tr>
-            <tr><td>Big Five personality data</td><td>Only if you toggle "Share with recruiters" to ON</td></tr>
+            <tr><td>Big Five personality data</td><td>Only if you toggle "Share with search firms and employers" to ON</td></tr>
           </tbody>
         </table>
 
@@ -9028,8 +9028,8 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
             Additional Questions
           </div>
           {[
-            { k:'would_engage_again', label:'Would you engage with this recruiter again?' },
-            { k:'respected_privacy',  label:'Did the recruiter respect your privacy and confidentiality?' },
+            { k:'would_engage_again', label:'Would you engage with this search firm or employer again?' },
+            { k:'respected_privacy',  label:'Did the search firm or employer respect your privacy and confidentiality?' },
           ].map(q => (
             <div key={q.k} style={{marginBottom:'0.75rem'}}>
               <div style={{fontSize:'0.82rem',color:'var(--ink)',marginBottom:'0.375rem'}}>{q.label}</div>
@@ -9050,8 +9050,8 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
             Report Issues (admin review only)
           </div>
           {[
-            { k:'attempted_bypass',     label:'Did the recruiter attempt to bypass Fredheim for this engagement?' },
-            { k:'misrepresented_role',  label:'Did the recruiter misrepresent the role, compensation, company, or process?' },
+            { k:'attempted_bypass',     label:'Did the search firm or employer attempt to bypass Fredheim for this engagement?' },
+            { k:'misrepresented_role',  label:'Did the search firm or employer misrepresent the role, compensation, company, or process?' },
           ].map(q => (
             <label key={q.k} style={{display:'flex',alignItems:'flex-start',gap:'0.5rem',marginBottom:'0.625rem',cursor:'pointer'}}>
               <input type="checkbox" checked={!!flags[q.k]} onChange={e=>setFlag(q.k,e.target.checked)} style={{marginTop:'0.15rem'}} />
@@ -10922,7 +10922,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
   // user's own session token (server scrubs fed_profiles, matches, talent
   // record, and notifications), then signs out.
   async function deleteAccount() {
-    if (!window.confirm('Delete your account? This removes your profile, hides you from all recruiters, and erases your personal data. This cannot be undone.')) return;
+    if (!window.confirm('Delete your account? This removes your profile, hides you from all search firms and employers, and erases your personal data. This cannot be undone.')) return;
     try {
       const { data: { session } } = await sb.auth.getSession();
       const token = session?.access_token || '';
@@ -11090,7 +11090,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
             <div className="tier-display-name">
               {(profile.tier === 'free' || !profile.tier)
                 ? 'Free Access — browse all searches, signal interest confidentially'
-                : 'Confidential Profile — $299/yr — your name, employer, and location are hidden from recruiters until you approve a connection'
+                : 'Confidential Profile — $299/yr — your name, employer, and location are hidden from search firms and employers until you approve a connection'
               }
             </div>
             {profile.tier_expires && (
@@ -11245,8 +11245,8 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
               <div className="profile-visibility-label">Big Five Personality</div>
               <div className="profile-visibility-desc">
                 {profile.big_five_shared
-                  ? 'Sharing with recruiters'
-                  : 'Private — not shared with recruiters'
+                  ? 'Sharing with search firms and employers'
+                  : 'Private — not shared with search firms and employers'
                 }
               </div>
             </div>
@@ -11322,7 +11322,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
               <label className="big-five-share-toggle" style={{marginTop:'1rem'}}>
                 <div className={`toggle-switch ${editData.big_five_shared ? 'on' : ''}`} />
                 <div className="toggle-label">
-                  <strong>Share Big Five with recruiters</strong><br />
+                  <strong>Share Big Five with search firms and employers</strong><br />
                   Turn this off to keep the scores private while still saving them to your profile.
                 </div>
                 <input
@@ -12294,7 +12294,7 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
               }}>Platform confidentiality rule</div>
               <div style={{fontSize:'0.85rem',color:'var(--ink-1)',lineHeight:'1.65'}}>
                 Your name, current employer, email, phone, LinkedIn, and exact
-                location are <strong>always hidden</strong> from recruiters
+                location are <strong>always hidden</strong> from search firms and employers
                 until a curated introduction is confirmed and paid. This is
                 enforced by the platform - it is not a setting you can opt
                 out of. Recruiters see only your operational scope, leadership
@@ -13210,7 +13210,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
   // Self-serve recruiter account closure — server scrubs firm/contact/billing
   // PII, archives postings, and closes matches, then we sign out.
   async function deleteAccount() {
-    if (!window.confirm('Close your recruiter account? This archives your searches, removes your firm and billing details, and signs you out. This cannot be undone.')) return;
+    if (!window.confirm('Close your firm account? This archives your searches, removes your firm and billing details, and signs you out. This cannot be undone.')) return;
     try {
       const { data: { session } } = await sb.auth.getSession();
       const token = session?.access_token || '';
@@ -15356,7 +15356,7 @@ function App() {
                 <li>One-click interest without revealing your identity</li>
                 <li>Email alerts when a matching search is posted</li>
                 <li>Confidential Profile ($299/yr) — your name and employer stay hidden until you approve</li>
-                <li>Priority matching — surface in recruiter searches ahead of free profiles</li>
+                <li>Priority matching — surface in search results ahead of free profiles</li>
                 <li>Maritime · Ports · Energy · Industrial Logistics only</li>
               </ul>
             </div>
@@ -15453,7 +15453,7 @@ function App() {
           </div>
           <div style={{display:'flex',flexDirection:'column',gap:'0.625rem',flexShrink:0}}>
             <button className="btn-primary" style={{whiteSpace:'nowrap'}} onClick={() => setRecruiterModal(true)}>Post a Search</button>
-            <button className="btn-outline" style={{whiteSpace:'nowrap',fontSize:'0.75rem',padding:'0.5rem 1.25rem'}} onClick={() => setActiveView('recruiter-signin')}>Firm Sign In</button>
+            <button className="btn-outline" style={{whiteSpace:'nowrap',fontSize:'0.75rem',padding:'0.5rem 1.25rem'}} onClick={() => setActiveView('recruiter-signin')}>Firm / Recruiter Sign In</button>
           </div>
         </div>}
       </div>
