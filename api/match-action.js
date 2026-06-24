@@ -106,10 +106,10 @@ module.exports = async function handler(req, res) {
       if (newStatus === 'mutual_interest') {
         await notify(match.candidate_email, 'candidate', 'mutual_interest', match_id, match.job_id,
           `Mutual interest — ${jobTitle}`,
-          `${firmName} has matched your interest in ${jobTitle}. Both parties have expressed interest. Fredheim will be in touch to facilitate next steps.`);
+          `${firmName} has matched your interest in ${jobTitle}. Both parties have expressed interest. Trovant will be in touch to facilitate next steps.`);
         await notify(callerEmail, 'recruiter', 'mutual_interest', match_id, match.job_id,
           `Mutual interest — ${jobTitle}`,
-          `A candidate who had already expressed interest in ${jobTitle} is now a mutual match. Fredheim will facilitate the introduction.`);
+          `A candidate who had already expressed interest in ${jobTitle} is now a mutual match. Trovant will facilitate the introduction.`);
       } else {
         await notify(match.candidate_email, 'candidate', 'recruiter_interested', match_id, match.job_id,
           `A search firm is interested in you`,
@@ -201,7 +201,7 @@ module.exports = async function handler(req, res) {
         recipientEmail: match.candidate_email, role: 'candidate', type: 'paid_unlocked',
         matchId: match_id, jobId: match.job_id,
         title: `Curated introduction confirmed — ${jobTitle}`,
-        body:  `${firmName} has completed a complimentary curated introduction for ${jobTitle}. Fredheim has shared your approved contact details with the firm and they will reach out directly.`,
+        body:  `${firmName} has completed a complimentary curated introduction for ${jobTitle}. Trovant has shared your approved contact details with the firm and they will reach out directly.`,
       });
       await createPaymentNotification(db, {
         recipientEmail: callerEmail, role: 'recruiter', type: 'paid_unlocked',
@@ -299,11 +299,11 @@ module.exports = async function handler(req, res) {
         if (recruiterEmail) {
           await notify(recruiterEmail, 'recruiter', 'mutual_interest', matchRecord.id, job_id,
             `Mutual interest — ${jobTitle}`,
-            `A candidate you expressed interest in has reciprocated for ${jobTitle}. This is now a mutual match. Fredheim will facilitate the introduction.`);
+            `A candidate you expressed interest in has reciprocated for ${jobTitle}. This is now a mutual match. Trovant will facilitate the introduction.`);
         }
         await notify(callerEmail, 'candidate', 'mutual_interest', matchRecord.id, job_id,
           `Mutual interest — ${jobTitle}`,
-          `You and ${matchRecord.fed_jobs?.firm_name || 'a search firm'} have both expressed interest in ${jobTitle}. Fredheim will be in touch.`);
+          `You and ${matchRecord.fed_jobs?.firm_name || 'a search firm'} have both expressed interest in ${jobTitle}. Trovant will be in touch.`);
       } else {
         if (recruiterEmail) {
           await notify(recruiterEmail, 'recruiter', 'candidate_interested', matchRecord.id, job_id,

@@ -6,7 +6,7 @@
 //
 // Scoring philosophy (post-scope migration):
 //
-//   Fredheim's primary matching signal is operational scope and complexity —
+//   Trovant's primary matching signal is operational scope and complexity —
 //   not title, not industry. Titles in maritime, logistics, terminals,
 //   manufacturing, and industrial environments are inconsistent. Operational
 //   scope is not. This matcher reflects that ordering of evidence:

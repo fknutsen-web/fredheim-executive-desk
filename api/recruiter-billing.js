@@ -165,7 +165,7 @@ module.exports = async function handler(req, res) {
       // Notify admin
       await sendAdminAlert({
         subject: `Invoice billing request — ${invoice_company_name}`,
-        text: `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://fredheimdesk.com?admin=true`,
+        text: `Invoice billing requested.\n\nCompany: ${invoice_company_name}\nRecruiter: ${email}\nContact: ${invoice_contact_name} <${invoice_contact_email}>\n\nAdmin: https://trovanttalent.com?admin=true`,
       });
 
       return res.status(200).json({ ok: true, status: 'invoice_billing_pending' });
@@ -203,7 +203,7 @@ function billingBlockReason(billing) {
     case 'payment_failed':
       return 'Your last payment failed. Please update your payment method to continue.';
     case 'suspended':
-      return 'Your account has been suspended. Contact desk@fredheimdesk.com for assistance.';
+      return 'Your account has been suspended. Contact contact@trovanttalent.com for assistance.';
     case 'founding_partner':
       return 'Founding Partner access has expired. Please set up billing to continue.';
     default:

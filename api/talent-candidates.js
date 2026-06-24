@@ -347,7 +347,7 @@ module.exports = async function handler(req, res) {
           type: 'candidate_confirmation',
           candidate_id: candidateId,
           recipient_email: email.toLowerCase(),
-          subject: 'Your Fredheim Desk profile is active',
+          subject: 'Your Trovant Talent profile is active',
           body_preview: `Hi ${first_name} — your profile is now active and being matched against open searches.`,
         });
       }

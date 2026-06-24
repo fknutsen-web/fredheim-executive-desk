@@ -35,8 +35,8 @@ module.exports = async function handler(req, res) {
   if (jobErr || !job) return res.status(404).json({ error: 'Job not found.' });
 
   const firmEmail  = job.firm_email;
-  const dashUrl    = 'https://fredheimdesk.com?view=recruiter-dash';
-  const adminUrl   = 'https://fredheimdesk.com?admin=true';
+  const dashUrl    = 'https://trovanttalent.com?view=recruiter-dash';
+  const adminUrl   = 'https://trovanttalent.com?admin=true';
 
   let firmResult = null;
 
@@ -44,17 +44,17 @@ module.exports = async function handler(req, res) {
     // Contact reveal — admin-approved (and payment-gated upstream). Revealing
     // the candidate's contact IS the deliverable here, so we surface failures.
     if (firmEmail) {
-      const subject = `Fredheim Introduction — Candidate for ${job.title}`;
+      const subject = `Trovant Introduction — Candidate for ${job.title}`;
       const body =
 `We are pleased to facilitate a formal introduction for your search — ${job.title}.
 
 Candidate contact: ${candidate_email}
 
-This candidate expressed interest in your posting and Fredheim has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.
+This candidate expressed interest in your posting and Trovant has reviewed and approved this introduction. All further communication is directly between your firm and the candidate.
 
 As a reminder, the platform introduction fee applies upon placement confirmation.
 
-Questions? desk@fredheimdesk.com`;
+Questions? contact@trovanttalent.com`;
       firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
     await sendAdminAlert({
@@ -69,11 +69,11 @@ Questions? desk@fredheimdesk.com`;
       const body =
 `A qualified executive has registered confidential interest in your search for ${job.title}.
 
-Their identity is confidential at this stage — Fredheim will review and facilitate a formal introduction if there is a mutual fit.
+Their identity is confidential at this stage — Trovant will review and facilitate a formal introduction if there is a mutual fit.
 
 View your dashboard: ${dashUrl}
 
-Questions? desk@fredheimdesk.com`;
+Questions? contact@trovanttalent.com`;
       firmResult = await sendEmail({ to: firmEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
     }
     // Admin alert carries full detail (admin is internal).

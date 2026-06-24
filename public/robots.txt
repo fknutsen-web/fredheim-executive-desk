@@ -1,5 +1,5 @@
-# Fredheim Desk — https://fredheimdesk.com
+# Trovant Talent — https://trovanttalent.com
 User-agent: *
 Allow: /
 
-Sitemap: https://fredheimdesk.com/sitemap.xml
+Sitemap: https://trovanttalent.com/sitemap.xml

@@ -31,7 +31,7 @@ function daysSince(dateStr) {
 // so a single bad address cannot abort a cron sweep.
 async function notify(payload) {
   if (!payload || !payload.to_email) return { ok: false, skipped: true };
-  const subject = payload.subject || 'Fredheim';
+  const subject = payload.subject || 'Trovant Talent';
   const body = payload.body || '';
   const result = await sendEmail({
     to: payload.to_email,
@@ -71,8 +71,8 @@ async function runColdEngagementCheckins() {
       days_engaged:   daysSince(eng.engaged_at),
       subject:        `Is your engagement with ${eng.talent_candidates?.first_name} still active?`,
       body:           `We noticed no activity on this engagement in 14 days. If the search has concluded, let us know — it helps us keep the platform current for all parties.`,
-      close_url:      `https://fredheimdesk.com?view=recruiter-talent&close=${eng.id}`,
-      keep_url:       `https://fredheimdesk.com?view=recruiter-talent&keep=${eng.id}`,
+      close_url:      `https://trovanttalent.com?view=recruiter-talent&close=${eng.id}`,
+      keep_url:       `https://trovanttalent.com?view=recruiter-talent&keep=${eng.id}`,
     });
 
     await supabase.from('talent_matches')
@@ -108,9 +108,9 @@ async function runAutoArchive() {
       to_email:       eng.talent_recruiters?.email,
       recruiter_name: eng.talent_recruiters?.contact_name,
       candidate_name: eng.talent_candidates?.first_name,
-      subject:        `Fredheim engagement archived — ${eng.talent_candidates?.first_name}`,
+      subject:        `Trovant engagement archived — ${eng.talent_candidates?.first_name}`,
       body:           `This engagement has reached its 90-day window and has been archived. If a placement was made, reporting it earns a credit toward a future curated introduction.`,
-      report_url:     `https://fredheimdesk.com?view=recruiter-talent&report=${eng.id}`,
+      report_url:     `https://trovanttalent.com?view=recruiter-talent&report=${eng.id}`,
     });
 
     archived++;
@@ -139,8 +139,8 @@ async function runCandidateInterestNotifications() {
   for (const m of pending || []) {
     if (m.talent_candidates?.status === 'archived') continue;
 
-    const acceptUrl  = `https://fredheimdesk.com?view=talent-accept&match=${m.id}`;
-    const declineUrl = `https://fredheimdesk.com?view=talent-decline&match=${m.id}`;
+    const acceptUrl  = `https://trovanttalent.com?view=talent-accept&match=${m.id}`;
+    const declineUrl = `https://trovanttalent.com?view=talent-decline&match=${m.id}`;
 
     await notify({
       type:           'recruiter_interest',
@@ -212,7 +212,7 @@ async function runIntroductionReminders() {
         match_id:       m.id,
         subject:        `Quick status check on ${m.talent_candidates?.first_name}?`,
         body:           `Light reminder: a one-tap status update on this introduction helps our matching intelligence and keeps the relationship from ghosting.`,
-        update_url:     `https://fredheimdesk.com?view=recruiter-talent&match=${m.id}`,
+        update_url:     `https://trovanttalent.com?view=recruiter-talent&match=${m.id}`,
       });
       await supabase.from('talent_matches').update({ [bucket.key]: new Date().toISOString() }).eq('id', m.id);
       reminders++;
@@ -243,7 +243,7 @@ async function runJobListingExpiration() {
       to_email:       j.firm_email,
       subject:        `Search expired: ${j.title}`,
       body:           `Your search for ${j.title} reached its 90-day window. Repost as-is, update, close, or archive from your dashboard.`,
-      dashboard_url:  'https://fredheimdesk.com?view=recruiter-dash',
+      dashboard_url:  'https://trovanttalent.com?view=recruiter-dash',
     });
     expired++;
     prompted++;
@@ -271,7 +271,7 @@ async function runFoundingCapCheck() {
   if ([5, 2, 1].includes(remaining) || (daysToDeadline > 0 && daysToDeadline <= 30)) {
     await notify({
       type:             'founding_cap_alert',
-      to_email:         process.env.ADMIN_EMAIL || 'desk@fredheimdesk.com',
+      to_email:         process.env.ADMIN_EMAIL || 'contact@trovanttalent.com',
       subject:          `Founding Partner Program — ${remaining} spots remaining`,
       body:             `${count} of ${FOUNDING_CAP} founding partner spots are filled. ${remaining} remaining. Deadline: ${FOUNDING_DEADLINE.toDateString()} (${daysToDeadline} days).`,
       remaining,
@@ -324,7 +324,7 @@ async function handlePlacementReport(matchId, recruiterId) {
     credit_amount:  `$${creditAmount}`,
     subject:        `Placement confirmed — $${creditAmount} credit applied to your account`,
     body:           `Thank you for reporting this placement. A $${creditAmount} credit has been applied to your account and will be applied to a future curated introduction.`,
-    dashboard_url:  'https://fredheimdesk.com?view=recruiter-talent&tab=billing',
+    dashboard_url:  'https://trovanttalent.com?view=recruiter-talent&tab=billing',
   });
 
   return { success: true, credit_amount: creditAmount };

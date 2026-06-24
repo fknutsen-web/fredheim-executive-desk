@@ -1,2 +1,2 @@
-# availis
-Availis — confidential talent marketplace
+# trovant-talent
+Trovant Talent — confidential talent marketplace
