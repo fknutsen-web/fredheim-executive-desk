@@ -8254,13 +8254,13 @@ function TermsPage() {
       <h1 className="legal-title">Terms of Service</h1>
       <div className="legal-meta">
         Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
-        Trovant Talent LLC &nbsp;·&nbsp; Houston, Texas
+        Fredheim LLC &nbsp;·&nbsp; Houston, Texas
       </div>
 
       <div className="legal-body">
         <p>
           These Terms of Service govern your access to and use of the Trovant Talent
-          platform, operated by Trovant Talent LLC. By accessing or using the platform,
+          platform, operated by Fredheim LLC, doing business as Trovant Talent. By accessing or using the platform,
           you agree to be bound by these Terms.
         </p>
 
@@ -8270,7 +8270,7 @@ function TermsPage() {
           professionals at every career level &mdash; from emerging talent to executive leadership &mdash;
           in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained
           search firms and with companies hiring directly for their own roles (each, and together,
-          a "Search Firm" for the purposes of these Terms). Trovant Talent LLC facilitates introductions — we are not a
+          a "Search Firm" for the purposes of these Terms). Fredheim LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
         </p>
@@ -8362,7 +8362,7 @@ function TermsPage() {
         <h3>3.3 Curated Introduction Fee</h3>
         <div className="legal-clause">
           <strong>Curated Introduction Fee.</strong> A one-time platform fee is due from the Search
-          Firm to Trovant Talent LLC at the moment the Search Firm confirms a curated
+          Firm to Fredheim LLC at the moment the Search Firm confirms a curated
           introduction with a Candidate Member through the Platform. The fee is tiered by the
           Candidate Member's scope and seniority as determined by the Platform's scope classification
           model, and is charged at the point of introduction confirmation — <strong>not</strong> on
@@ -8412,16 +8412,16 @@ function TermsPage() {
 
         <h2>5. Disclaimers</h2>
         <p className="legal-caps">
-          THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. TROVANT TALENT
-          LLC DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED OR ERROR-FREE. TROVANT
+          THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. FREDHEIM
+          LLC DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED OR ERROR-FREE. FREDHEIM LLC
           MAKES NO REPRESENTATIONS REGARDING THE ACCURACY OF POSTINGS, QUALIFICATIONS OF
           CANDIDATES, OR THE OUTCOME OF ANY INTRODUCTION.
         </p>
 
         <h2>6. Limitation of Liability</h2>
         <p className="legal-caps">
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, TROVANT TALENT LLC SHALL NOT BE LIABLE
-          FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES. TROVANT'S
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, FREDHEIM LLC SHALL NOT BE LIABLE
+          FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES. FREDHEIM LLC'S
           TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID IN THE TWELVE MONTHS PRECEDING
           THE CLAIM.
         </p>
@@ -8441,7 +8441,7 @@ function TermsPage() {
 
         <div className="legal-contact-box">
           <h3>Contact</h3>
-          <p>Trovant Talent LLC</p>
+          <p>Fredheim LLC</p>
           <p>Houston, Texas</p>
           <p><a href="mailto:contact@trovanttalent.com">contact@trovanttalent.com</a></p>
           <p><a href="https://trovanttalent.com">trovanttalent.com</a></p>
@@ -8465,7 +8465,7 @@ function PrivacyPage() {
       <h1 className="legal-title">Privacy Policy</h1>
       <div className="legal-meta">
         Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
-        Trovant Talent LLC &nbsp;·&nbsp; Houston, Texas
+        Fredheim LLC &nbsp;·&nbsp; Houston, Texas
       </div>
 
       <div className="legal-body">
@@ -8604,7 +8604,7 @@ function PrivacyPage() {
 
         <div className="legal-contact-box">
           <h3>Privacy Questions & Requests</h3>
-          <p>Trovant Talent LLC</p>
+          <p>Fredheim LLC</p>
           <p>Houston, Texas</p>
           <p><a href="mailto:contact@trovanttalent.com">contact@trovanttalent.com</a></p>
           <p>We aim to respond to all privacy requests within 10 business days.</p>
@@ -9487,7 +9487,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                         <td>{latest ? new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
                         <td>
                           <div style={{display:'flex',gap:'0.375rem'}}>
-                            <a href={`mailto:${latest?.email}?subject=Trovant Talent — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Trovant Talent Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0ATrovant Talent LLC%0ATrovant Talent%0Acontact@trovanttalent.com`} style={{textDecoration:'none'}}>
+                            <a href={`mailto:${latest?.email}?subject=Trovant Talent — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Trovant Talent Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim LLC%0ATrovant Talent%0Acontact@trovanttalent.com`} style={{textDecoration:'none'}}>
                               <button className="admin-action-btn">Email</button>
                             </a>
                           </div>
@@ -10693,7 +10693,7 @@ function AdminLogin({ onLogin }) {
           {loading ? 'Checking…' : 'Access Control Room'}
         </button>
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.75rem',textAlign:'center'}}>
-          Trovant Talent LLC — Internal Use Only
+          Fredheim LLC — Internal Use Only
         </p>
       </div>
     </div>
@@ -14310,7 +14310,7 @@ function BriefModal({ onClose, showToast }) {
             </div>
             <div style={{background:'var(--paper)',border:'1px solid var(--rule)',padding:'1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.65'}}>
               By continuing you agree that: day rate ranges are accurate and will be published,
-              a $1,500 introduction fee is payable to Trovant Talent LLC on confirmed engagements
+              a $1,500 introduction fee is payable to Fredheim LLC on confirmed engagements
               within 12 months of introduction, and consultant contact information will not be shared
               outside this engagement without their consent.
             </div>
@@ -14562,7 +14562,7 @@ function AboutPage({ setActiveView }) {
       <div className="legal-eyebrow">About</div>
       <h1 className="legal-title">Trovant Talent</h1>
       <div className="legal-meta">
-        A Trovant Talent product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; trovanttalent.com
+        A Fredheim LLC company &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; trovanttalent.com
       </div>
 
       <div className="legal-body">
@@ -14681,7 +14681,7 @@ function AboutPage({ setActiveView }) {
 
         <h2>Built By</h2>
         <p>
-          Trovant Talent is a product of Trovant Talent LLC —
+          Trovant Talent is a product of Fredheim LLC —
           a team with 25+ years of combined experience in maritime, energy, and logistics,
           spanning terminal operations, vessel chartering, bulk commodity trade, and
           commercial strategy across the Gulf Coast, Gulf Region, and international markets.
@@ -15465,7 +15465,7 @@ function App() {
               <span className="footer-mark"><BrandMark light /></span>
               <div>
                 <div className="footer-brand-name">Trovant Talent</div>
-                <div className="footer-brand-sub">A Trovant Talent Product</div>
+                <div className="footer-brand-sub">A Fredheim LLC Company</div>
               </div>
             </div>
             <p className="footer-desc">
@@ -15505,7 +15505,7 @@ function App() {
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copy">© 2026 Trovant Talent LLC. All rights reserved. <span className="footer-gold">·</span> trovanttalent.com</div>
+          <div className="footer-copy">© 2026 Fredheim LLC. All rights reserved. <span className="footer-gold">·</span> trovanttalent.com</div>
           <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>
