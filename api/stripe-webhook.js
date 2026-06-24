@@ -1,7 +1,7 @@
 // api/stripe-webhook.js
 // Handles all Stripe payment events for Trovant Talent:
 //   - Candidate confidential subscriptions ($299/yr)
-//   - Recruiter subscriptions: Pro ($499/mo) | Founding ($7,500/yr annual)
+//   - Recruiter subscriptions: Standard ($199/mo) | Pro ($499/mo) | Founding ($7,500/yr)
 //   - Engagement unlock fees (match-age-tiered: fresh/warm/aging — one-time)
 //   - Renewals and cancellations
 
@@ -145,10 +145,10 @@ module.exports = async function handler(req, res) {
           ? meta.tier
           : recruiterTierFromPrice(priceId);
 
-        if (recruiterTier && ['founding', 'pro'].includes(recruiterTier)) {
+        if (recruiterTier && ['founding', 'pro', 'standard'].includes(recruiterTier)) {
           const recruiterId = meta.recruiter_id || null;
 
-          // Founding is annual; Pro is monthly
+          // Founding is annual; Pro and Standard are monthly
           const tierExpiry = recruiterTier === 'founding' ? expiryOneYear() : expiryOneMonth();
 
           const upsertData = {
@@ -179,14 +179,19 @@ module.exports = async function handler(req, res) {
 
           console.log(`✓ Recruiter subscribed as ${recruiterTier}: ${email}`);
 
-          const feeLabel = recruiterTier === 'founding' ? '$7,500/yr' : '$499/mo';
+          const feeLabel = recruiterTier === 'founding' ? '$7,500/yr'
+                         : recruiterTier === 'pro'      ? '$499/mo'
+                         : '$199/mo';
+          const accessName = recruiterTier === 'founding' ? 'Founding Partner'
+                           : recruiterTier === 'pro'      ? 'Pro'
+                           : 'Standard';
 
           await notify({
             to_email:      email,
-            subject:       `Welcome to Trovant Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
+            subject:       `Welcome to Trovant Talent Match — ${accessName} access active`,
             body:          (recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
-              : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
+              : `Your ${accessName} access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
               + `\n\nYour dashboard: https://trovanttalent.com?view=recruiter-dash`,
           });
           await revenueAlert(

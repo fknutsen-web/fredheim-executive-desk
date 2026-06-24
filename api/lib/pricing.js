@@ -57,6 +57,7 @@ function candidateTierFromPrice(priceId) {
 function recruiterTierFromPrice(priceId) {
   if (priceId === process.env.PRICE_RECRUITER_FOUNDING) return 'founding';
   if (priceId === process.env.PRICE_RECRUITER_PRO)      return 'pro';
+  if (priceId === process.env.PRICE_RECRUITER_STANDARD) return 'standard';
   return null;
 }
 
