@@ -3,19 +3,31 @@
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "desk.fredheimtech.com" }],
-      "destination": "https://fredheimdesk.com/:path*",
+      "destination": "https://trovanttalent.com/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.fredheimtech.com" }],
-      "destination": "https://fredheimdesk.com/:path*",
+      "destination": "https://trovanttalent.com/:path*",
       "permanent": true
     },
     {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "fredheimtech.com" }],
-      "destination": "https://fredheimdesk.com/:path*",
+      "destination": "https://trovanttalent.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.fredheimdesk.com" }],
+      "destination": "https://trovanttalent.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "fredheimdesk.com" }],
+      "destination": "https://trovanttalent.com/:path*",
       "permanent": true
     }
   ],

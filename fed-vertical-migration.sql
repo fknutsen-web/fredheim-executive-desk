@@ -1,5 +1,5 @@
 -- ============================================================================
--- Fredheim Desk — industry vertical migration
+-- Trovant Talent — industry vertical migration
 -- ----------------------------------------------------------------------------
 -- Migrates stored free-text industry values from the legacy taxonomy
 -- (operational verticals + 9 standalone technology verticals) to the current

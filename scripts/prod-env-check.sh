@@ -9,13 +9,13 @@
 # published prices. Safe to run against production: read-only, no writes.
 #
 # Usage:
-#   BASE_URL=https://fredheimdesk.com ADMIN_PASSWORD=… ./scripts/prod-env-check.sh
+#   BASE_URL=https://trovanttalent.com ADMIN_PASSWORD=… ./scripts/prod-env-check.sh
 #
 # Or, if you already minted an admin Bearer token (POST /api/admin-auth):
-#   BASE_URL=https://fredheimdesk.com ADMIN_TOKEN=… ./scripts/prod-env-check.sh
+#   BASE_URL=https://trovanttalent.com ADMIN_TOKEN=… ./scripts/prod-env-check.sh
 #
 # Env:
-#   BASE_URL         deployment origin (default https://fredheimdesk.com)
+#   BASE_URL         deployment origin (default https://trovanttalent.com)
 #   ADMIN_PASSWORD   admin password — exchanged for a short-lived token
 #   ADMIN_TOKEN      pre-minted Bearer token (skips the password exchange)
 #   LIVE             1 (default) runs live Stripe validation; 0 = presence only
@@ -28,7 +28,7 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing dependency: $1" >&2;
 need curl
 need jq
 
-BASE_URL="${BASE_URL:-https://fredheimdesk.com}"
+BASE_URL="${BASE_URL:-https://trovanttalent.com}"
 LIVE="${LIVE:-1}"
 
 token="${ADMIN_TOKEN:-}"

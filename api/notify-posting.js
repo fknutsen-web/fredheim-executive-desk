@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
   const body = req.body || {};
   const isIntern = body.type === 'intern_posting';
 
-  // Field-name normalization. The Fredheim Desk recruiter modal sends
+  // Field-name normalization. The Trovant Talent recruiter modal sends
   // {firm_name, contact_name, email, role_title, ...}. The Early Careers
   // InternEmployerModal spreads its own form object which uses
   // {employer_name, employer_email, title, compensation_display, ...} and
@@ -45,7 +45,7 @@ module.exports = async function handler(req, res) {
     return res.status(422).json({ error: guard.message, field_violations: guard.fieldViolations });
   }
 
-  const adminEmail  = process.env.ADMIN_EMAIL  || 'desk@fredheimdesk.com';
+  const adminEmail  = process.env.ADMIN_EMAIL  || 'contact@trovanttalent.com';
 
   // -- ACTIVE SEARCH LIMIT GUARD --
   // Cap concurrent active searches per firm. Default 5 for standard tier.
@@ -85,7 +85,7 @@ module.exports = async function handler(req, res) {
 
       if ((count || 0) >= effectiveLimit) {
         return res.status(429).json({
-          error: `Active search limit reached - ${count} of ${effectiveLimit} concurrent searches in use. Close or archive an existing search, or contact desk@fredheimdesk.com about enterprise tier.`,
+          error: `Active search limit reached - ${count} of ${effectiveLimit} concurrent searches in use. Close or archive an existing search, or contact contact@trovanttalent.com about enterprise tier.`,
           active_count: count,
           limit: effectiveLimit,
           tier,
@@ -115,7 +115,7 @@ Firm: ${firm_name || 'Unknown'}
 Contact: ${contact_name || 'n/a'} <${email || 'no email'}>
 Role: ${role_title || 'Untitled'}${role_level ? `\nLevel: ${role_level}` : ''}${industry ? `\nIndustry: ${industry}` : ''}${location ? `\nLocation: ${location}` : ''}${salary_range ? `\nCompensation: ${salary_range}` : ''}${notes ? `\nNotes: ${notes}` : ''}
 
-Review: https://fredheimdesk.com?admin=true`,
+Review: https://trovanttalent.com?admin=true`,
   });
 
   // ── 2. Submitter confirmation ─────────────────────────────────
@@ -124,11 +124,11 @@ Review: https://fredheimdesk.com?admin=true`,
     submitterResult = await send({
       to:      email,
       subject: isIntern
-        ? 'Fredheim Early Careers — Internship submission received'
-        : 'Fredheim Desk — Submission received',
+        ? 'Trovant Early Careers — Internship submission received'
+        : 'Trovant Talent — Submission received',
       body: isIntern
-        ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Fredheim Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at desk@fredheimdesk.com.\n\nFredheim Early Careers\ndesk@fredheimdesk.com`
-        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at desk@fredheimdesk.com.\n\nFredheim Desk\ndesk@fredheimdesk.com`,
+        ? `Hi ${contact_name || 'there'},\n\nYour internship posting for ${role_title} has been received. We'll review it within 24 hours. Once approved, your internship will be live and qualified student candidates will begin matching based on their structured profiles.\n\nReminder: Trovant Early Careers uses structured candidate profiles — resume exchange occurs after mutual interest and is handled directly between the parties.\n\nQuestions? Reply to this email or reach us at contact@trovanttalent.com.\n\nTrovant Early Careers\ncontact@trovanttalent.com`
+        : `Hi ${contact_name || 'there'},\n\nYour search posting for ${role_title} has been received. We'll review it and confirm within 24 hours. As a Founding Partner, this counts as your complimentary posting for the month.\n\nQuestions? Reply to this email or reach us at contact@trovanttalent.com.\n\nTrovant Talent\ncontact@trovanttalent.com`,
     });
   }
 

@@ -216,14 +216,14 @@ async function redirectToTierCheckout({ tier, email, showToast }) {
 
     if (!resp.ok || !data.url) {
       console.error('Checkout session failed:', data);
-      if (showToast) showToast(data.error || 'Payment redirect failed. Email desk@fredheimdesk.com to upgrade.');
+      if (showToast) showToast(data.error || 'Payment redirect failed. Email contact@trovanttalent.com to upgrade.');
       return;
     }
 
     window.location.href = data.url;
   } catch(e) {
     console.error('Checkout redirect error:', e);
-    if (showToast) showToast('Payment redirect failed. Email desk@fredheimdesk.com to upgrade.');
+    if (showToast) showToast('Payment redirect failed. Email contact@trovanttalent.com to upgrade.');
   }
 }
 
@@ -948,7 +948,7 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
     <div style={{maxWidth:640,margin:'0 auto',padding:'2rem 1.5rem'}}>
       {/* Platform notice */}
       <div className="intern-form-policy">
-        <strong>Fredheim Desk does not require resume uploads.</strong> Your structured profile is used for matching.
+        <strong>Trovant Talent does not require resume uploads.</strong> Your structured profile is used for matching.
         If you choose to engage with an employer, you may share additional materials directly — at your discretion.
         {isUpdate && (
           <><br/><br/><strong>Updating your existing profile.</strong> Your current information has been loaded — change only what you need.</>
@@ -1467,7 +1467,7 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
           <button className="admin-action-btn" style={{padding:'0.75rem 1.5rem',fontSize:'0.82rem'}} onClick={()=>setShowEmployerModal(true)}>Post an Internship</button>
         </div>
         <div className="intern-policy-note">
-          <strong>Fredheim Desk does not require resume uploads.</strong> Your structured profile is used for matching.
+          <strong>Trovant Talent does not require resume uploads.</strong> Your structured profile is used for matching.
           If you choose to engage with an employer, you may share a resume or additional materials directly at your discretion.
         </div>
       </div>
@@ -1528,7 +1528,7 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
 
           {/* Employer notice — no resume filters */}
           <div className="employer-notice" style={{marginTop:'1rem'}}>
-            <strong>Employer notice:</strong> Fredheim uses structured candidate profiles for initial matching. Filters are based on profile completeness, academic background, skills, availability, and work authorization — not resume availability.
+            <strong>Employer notice:</strong> Trovant uses structured candidate profiles for initial matching. Filters are based on profile completeness, academic background, skills, availability, and work authorization — not resume availability.
           </div>
         </div>
 
@@ -1694,7 +1694,7 @@ function InternEmployerModal({ onClose, showToast }) {
           Reviewed within 24 hours. Once approved, your internship will be live and candidates will begin matching based on structured profiles.
         </div>
         <div className="employer-notice">
-          <strong>Employer reminder:</strong> Fredheim uses structured candidate profiles for initial matching. Resume exchange occurs after mutual interest and is handled directly between the parties.
+          <strong>Employer reminder:</strong> Trovant uses structured candidate profiles for initial matching. Resume exchange occurs after mutual interest and is handled directly between the parties.
         </div>
         <button className="btn-primary" style={{marginTop:'1.5rem'}} onClick={onClose}>Close</button>
       </div>
@@ -1705,12 +1705,12 @@ function InternEmployerModal({ onClose, showToast }) {
     <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
       <div className="workflow-modal">
         <div className="workflow-modal-title">Post an Internship</div>
-        <div className="workflow-modal-sub">Fredheim Early Careers — Founding Employer Program 2026</div>
+        <div className="workflow-modal-sub">Trovant Early Careers — Founding Employer Program 2026</div>
         <div className="employer-notice">
-          <strong>Structured Profile Matching.</strong> Fredheim uses structured candidate profiles for initial matching. Resume exchange occurs after mutual interest and is handled directly between the parties unless a secure document-exchange feature is later enabled. You will not be able to filter candidates by resume availability through this platform.
+          <strong>Structured Profile Matching.</strong> Trovant uses structured candidate profiles for initial matching. Resume exchange occurs after mutual interest and is handled directly between the parties unless a secure document-exchange feature is later enabled. You will not be able to filter candidates by resume availability through this platform.
         </div>
         <div style={{fontSize:'0.82rem',color:'var(--ink-2)',lineHeight:'1.6',marginBottom:'1.25rem'}}>
-          By posting on Fredheim Early Careers, you agree to use the platform's structured matching workflow and not solicit candidates to share resumes or personal documents during the initial platform interaction.
+          By posting on Trovant Early Careers, you agree to use the platform's structured matching workflow and not solicit candidates to share resumes or personal documents during the initial platform interaction.
         </div>
         <div className="workflow-actions">
           <button className="workflow-close-btn" onClick={onClose}>Cancel</button>
@@ -2771,7 +2771,7 @@ function PaymentGateModal({ reason, onClose, onRequestInvoice }) {
           ))}
         </div>
         <div style={{fontSize:'0.78rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.5'}}>
-          Questions? <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
+          Questions? <a href="mailto:contact@trovanttalent.com" style={{color:'var(--gold)'}}>contact@trovanttalent.com</a>
         </div>
         <div className="workflow-actions">
           <button className="workflow-close-btn" onClick={onClose}>Close</button>
@@ -2819,7 +2819,7 @@ function RecruiterBillingSetup({ onClose, showToast, onSuccess }) {
         <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
         <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Invoice Billing Requested</div>
         <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem',lineHeight:'1.6'}}>
-          The Fredheim team will review your request within 24 hours. You'll receive an email confirmation at your billing contact email.
+          The Trovant team will review your request within 24 hours. You'll receive an email confirmation at your billing contact email.
           In the meantime, if you are within the 2026 Founding Partner period, you can continue posting.
         </div>
         <button className="btn-primary" onClick={onClose}>Close</button>
@@ -2834,7 +2834,7 @@ function RecruiterBillingSetup({ onClose, showToast, onSuccess }) {
           <div>
             <div className="workflow-modal-title">Set Up Billing</div>
             <div className="workflow-modal-sub">
-              Select how you'd like to handle billing for Fredheim Desk.
+              Select how you'd like to handle billing for Trovant Talent.
               Subscriptions and prepaid packages open January 2027.
             </div>
             <div style={{display:'grid',gap:'0.75rem',marginBottom:'1.5rem'}}>
@@ -3712,7 +3712,7 @@ function StretchOpportunityModal({ job, confidence, onProceed, onCancel }) {
         )}
 
         <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'0.875rem 1rem',marginBottom:'1.25rem',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.5'}}>
-          Fredheim Desk focuses on high-conversion introductions. Expressing interest in misaligned roles reduces your signal quality on the platform. You may proceed — but we recommend reviewing roles where compatibility is stronger.
+          Trovant Talent focuses on high-conversion introductions. Expressing interest in misaligned roles reduces your signal quality on the platform. You may proceed — but we recommend reviewing roles where compatibility is stronger.
         </div>
 
         <div className="workflow-actions">
@@ -3836,7 +3836,7 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── BRAND MARK ───────────────────────────────────────────────────────────────
-// Abstract identity for Fredheim Desk: a navigation compass inside a global
+// Abstract identity for Trovant Talent: a navigation compass inside a global
 // ring with network waypoints (one gold) — global connections, trade routes,
 // and precision. `light` renders for dark surfaces (footer). Mirrors the
 // artwork in /public/favicon.svg and /public/icon.svg.
@@ -3846,7 +3846,7 @@ function BrandMark({ light = false }) {
   const accent = light ? '#d4a93c' : '#b8922a';
   const op     = light ? 0.85 : 1;
   return (
-    <svg viewBox="0 0 48 48" role="img" aria-label="Fredheim Desk" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 48 48" role="img" aria-label="Trovant Talent" xmlns="http://www.w3.org/2000/svg">
       <circle cx="24" cy="24" r="20.5" fill="none" stroke={stroke} strokeWidth="1.5" strokeOpacity={op} />
       <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill={stroke} />
       <circle cx="9.5" cy="9.5" r="2.4" fill={node} fillOpacity={op} />
@@ -3870,8 +3870,8 @@ function NavBar({ activeView, setActiveView, goToView, openRecruiterModal, authU
       <div className="nav-brand" onClick={() => { setMenuOpen(false); go('jobs'); }}>
         <div className="nav-mark"><BrandMark /></div>
         <div className="nav-name-wrap">
-          <div className="brand-word">Fredheim</div>
-          <div className="brand-word-2">Desk</div>
+          <div className="brand-word">Trovant</div>
+          <div className="brand-word-2">Talent</div>
         </div>
       </div>
       <button
@@ -3922,7 +3922,7 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
         <div>
           <div className="hero-eyebrow">
             <div className="eyebrow-line" />
-            <span className="eyebrow-text">Fredheim Desk</span>
+            <span className="eyebrow-text">Trovant Talent</span>
           </div>
           <h1 className="hero-title">
             Where maritime talent<br />
@@ -3935,7 +3935,7 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             Your identity protected until you choose to engage.
           </p>
           <div className="hero-positioning">
-            Fredheim Desk evaluates operational scope, leadership complexity,
+            Trovant Talent evaluates operational scope, leadership complexity,
             and organizational fit &mdash; not just titles and keywords.
           </div>
           <div className="hero-actions">
@@ -4137,7 +4137,7 @@ function TosModal({ onAgree, onCancel }) {
         <div className="tos-eyebrow">Platform Terms — Search Firms &amp; Employers</div>
         <h2 className="tos-title">Platform Terms &amp; Curated Introduction Agreement</h2>
         <div className="tos-body">
-          <p>Before posting a search, please review and agree to the Fredheim Desk
+          <p>Before posting a search, please review and agree to the Trovant Talent
           platform terms. These terms protect both the platform and the integrity of the
           talent community.</p>
 
@@ -4171,7 +4171,7 @@ function TosModal({ onAgree, onCancel }) {
             platform may not be shared outside the search engagement for which they were
             accessed, used to solicit candidates for other roles without express consent, or
             used to bypass the platform's curated introduction process. Off-platform contact
-            attempts (including LinkedIn outreach using information first surfaced on Fredheim)
+            attempts (including LinkedIn outreach using information first surfaced on Trovant)
             are grounds for suspension.
           </div>
         </div>
@@ -5983,7 +5983,7 @@ function RecruiterModal({ onClose, showToast }) {
             {submitted && (
               <div className="intake-submit-footer">
                 Reviewed within 24 hours. Salary transparency is non-negotiable. Introduction fee terms apply.<br/>
-                Questions? <a href='mailto:desk@fredheimdesk.com' style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
+                Questions? <a href='mailto:contact@trovanttalent.com' style={{color:'var(--gold)'}}>contact@trovanttalent.com</a>
               </div>
             )}
           </>
@@ -6011,7 +6011,7 @@ function RecruiterModal({ onClose, showToast }) {
 //   11. Match Transparency (rendered when a candidate views a match - not in
 //       the profile builder itself)
 //
-// Positioning: "Fredheim Desk evaluates your actual scope, operating
+// Positioning: "Trovant Talent evaluates your actual scope, operating
 // environment, leadership complexity, and career intent - not just your
 // current title."
 // -----------------------------------------------------------------------------
@@ -6231,7 +6231,7 @@ function CandidateOperatingProfile({ value, onChange }) {
     <div className="candprofile">
       <div className="candprofile-eyebrow">Executive Operating Profile</div>
       <h3 className="candprofile-headline">
-        Fredheim Desk evaluates your actual scope, operating environment,
+        Trovant Talent evaluates your actual scope, operating environment,
         leadership complexity, and career intent - not just your current title.
       </h3>
 
@@ -6598,7 +6598,7 @@ function CandidateMatchTransparencyCard({ match, profile, onExpressInterest, onC
         <button className="intake-btn-primary" onClick={onExpressInterest}>Express Interest</button>
       </div>
       <div className="match-transparency-fineprint">
-        Fredheim Desk surfaces fewer, better introductions. We prefer one confirmed mutual interest to twenty cold applications.
+        Trovant Talent surfaces fewer, better introductions. We prefer one confirmed mutual interest to twenty cold applications.
       </div>
     </div>
   );
@@ -6940,7 +6940,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
     <div className="success-box">
       <div className="success-title">Profile Created</div>
       <div className="success-desc" style={{marginTop:'0.5rem'}}>
-        Welcome to Fredheim Desk.
+        Welcome to Trovant Talent.
         {visibility === 'discreet'
           ? ' Your profile is confidential — you initiate all contact.'
           : ' Your profile is visible to posting search firms and employers.'
@@ -7159,7 +7159,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
         <>
           <div className="modal-section-title" style={{marginBottom:'0.5rem'}}>Scope &amp; Complexity</div>
           <p style={{fontSize:'0.82rem',color:'var(--ink-4)',marginBottom:'1.25rem',lineHeight:'1.6'}}>
-            Fredheim matches on what you actually do — not what your business card says.
+            Trovant matches on what you actually do — not what your business card says.
             Titles in industrial, maritime, and logistics environments are inconsistent.
             Operational scope is not. The data below is the platform's primary matching
             signal and the basis for the Equivalent Leadership Mapping shown on your
@@ -7534,7 +7534,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
           ))}
 
           <p style={{fontSize:'0.72rem',color:'var(--ink-4)',lineHeight:'1.6',marginTop:'0.5rem'}}>
-            Scores are self-reported. Fredheim Desk prohibits use of personality data
+            Scores are self-reported. Trovant Talent prohibits use of personality data
             as a screening or disqualification criterion. See our Terms of Service.
           </p>
 
@@ -7922,14 +7922,14 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
       // No "$0" display - it would unintentionally cheapen the positioning.
       priceDisplay: 'By Application',
       period: 'Limited founding cohort through ' + (cfg.founding_partner_window_end || '2026-12-31'),
-      desc: 'A small, vetted founding cohort of search firms and direct-hiring employers shaping the platform alongside the Fredheim team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
+      desc: 'A small, vetted founding cohort of search firms and direct-hiring employers shaping the platform alongside the Trovant team. Subscription and introduction fees are waived during the founding window. Preferred pricing offered when the window closes.',
       features: [
         'Limited initial partner group - admission by review',
         'Subscription fees waived through ' + (cfg.founding_partner_window_end || '2026-12-31'),
         'No introduction fees during the founding window',
         String(cfg.founding_partner_monthly_postings || 1) +
           ' posting' + ((cfg.founding_partner_monthly_postings || 1) === 1 ? '' : 's') + ' per month at no charge',
-        'Direct access to the Fredheim team and product roadmap input',
+        'Direct access to the Trovant team and product roadmap input',
         'Preferred pricing offered when the founding window closes',
       ],
       muted: [],
@@ -8040,7 +8040,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           Pay per curated introduction.<br />No placement fees. No surprises.
         </h1>
         <p className="pricing-hero-desc">
-          Fredheim Desk charges a fee when a curated introduction is confirmed -
+          Trovant Talent charges a fee when a curated introduction is confirmed -
           not on speculative outreach, and never on the eventual hire. Subscription gives
           you access to the marketplace; introductions are billed individually so the
           economics stay aligned with match quality.
@@ -8052,9 +8052,9 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           understands that the matching signal is operational scope, not
           title - which is why this statement leads. */}
       <div className="pricing-differentiator">
-        <div className="pricing-differentiator-eyebrow">What Makes Fredheim Desk Different</div>
+        <div className="pricing-differentiator-eyebrow">What Makes Trovant Talent Different</div>
         <div className="pricing-differentiator-headline">
-          Fredheim Desk evaluates operational scope, leadership complexity,
+          Trovant Talent evaluates operational scope, leadership complexity,
           and organizational fit - not just titles and keywords.
         </div>
         <p className="pricing-differentiator-body">
@@ -8205,7 +8205,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </div>
             <div className="faq-item">
               <div className="faq-q">Can I post roles that are already live on other job boards?</div>
-              <div className="faq-a">Yes. Most searches run across multiple channels. Fredheim Desk is not exclusive - it is a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
+              <div className="faq-a">Yes. Most searches run across multiple channels. Trovant Talent is not exclusive - it is a complementary channel that reaches a pre-qualified senior audience in your specific verticals.</div>
             </div>
             <div className="faq-item">
               <div className="faq-q">What is the Founding Partner Program?</div>
@@ -8213,7 +8213,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             </div>
             <div className="faq-item">
               <div className="faq-q">How quickly are postings reviewed and published?</div>
-              <div className="faq-a">Standard postings are reviewed within 24 hours. Founding Partners receive priority review and direct access to the Fredheim team.</div>
+              <div className="faq-a">Standard postings are reviewed within 24 hours. Founding Partners receive priority review and direct access to the Trovant team.</div>
             </div>
           </>
         ) : (
@@ -8254,23 +8254,23 @@ function TermsPage() {
       <h1 className="legal-title">Terms of Service</h1>
       <div className="legal-meta">
         Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
-        Fredheim Technologies LLC &nbsp;·&nbsp; Houston, Texas
+        Trovant Talent LLC &nbsp;·&nbsp; Houston, Texas
       </div>
 
       <div className="legal-body">
         <p>
-          These Terms of Service govern your access to and use of the Fredheim Desk
-          platform, operated by Fredheim Technologies LLC. By accessing or using the platform,
+          These Terms of Service govern your access to and use of the Trovant Talent
+          platform, operated by Trovant Talent LLC. By accessing or using the platform,
           you agree to be bound by these Terms.
         </p>
 
         <h2>1. The Platform</h2>
         <p>
-          Fredheim Desk is a confidential talent marketplace connecting
+          Trovant Talent is a confidential talent marketplace connecting
           professionals at every career level &mdash; from emerging talent to executive leadership &mdash;
           in maritime, commodity trading, energy, logistics, ports and terminals, and offshore with retained
           search firms and with companies hiring directly for their own roles (each, and together,
-          a "Search Firm" for the purposes of these Terms). Fredheim Technologies LLC facilitates introductions — we are not a
+          a "Search Firm" for the purposes of these Terms). Trovant Talent LLC facilitates introductions — we are not a
           licensed placement agency, staffing firm, or recruiter. We do not conduct candidate
           searches, vetting, or placement services on behalf of any party.
         </p>
@@ -8294,7 +8294,7 @@ function TermsPage() {
         <h3>2.3 Personality Assessment Data</h3>
         <p>
           Big Five personality scores are entirely optional and self-reported. You control
-          whether to share this data. Fredheim makes no representations regarding accuracy
+          whether to share this data. Trovant makes no representations regarding accuracy
           or completeness of self-reported personality data.
         </p>
 
@@ -8330,14 +8330,14 @@ function TermsPage() {
 
         <h3>3.0 Founding Partner Program — 2026</h3>
         <div className="legal-highlight">
-          Search firms participating in the Fredheim Desk Founding Partner Program
+          Search firms participating in the Trovant Talent Founding Partner Program
           may post <strong>one (1) search per calendar month</strong> at no charge through
           <strong> December 31, 2026</strong>. No subscription is required during this period.
           The Introduction Fee described in Section 3.3 applies to all confirmed placements
           made during the Founding Partner period without exception. Founding Partner status
           does not constitute a waiver of any Introduction Fee obligation.
           Subscriptions open January 1, 2027. Founding partners receive preferred pricing
-          as recognition of early adoption. Fredheim reserves the right to modify or
+          as recognition of early adoption. Trovant reserves the right to modify or
           discontinue the Founding Partner Program with 30 days written notice.
         </div>
 
@@ -8362,7 +8362,7 @@ function TermsPage() {
         <h3>3.3 Curated Introduction Fee</h3>
         <div className="legal-clause">
           <strong>Curated Introduction Fee.</strong> A one-time platform fee is due from the Search
-          Firm to Fredheim Technologies LLC at the moment the Search Firm confirms a curated
+          Firm to Trovant Talent LLC at the moment the Search Firm confirms a curated
           introduction with a Candidate Member through the Platform. The fee is tiered by the
           Candidate Member's scope and seniority as determined by the Platform's scope classification
           model, and is charged at the point of introduction confirmation — <strong>not</strong> on
@@ -8412,16 +8412,16 @@ function TermsPage() {
 
         <h2>5. Disclaimers</h2>
         <p className="legal-caps">
-          THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. FREDHEIM TECHNOLOGIES
-          LLC DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED OR ERROR-FREE. FREDHEIM
+          THE PLATFORM IS PROVIDED "AS IS" WITHOUT WARRANTIES OF ANY KIND. TROVANT TALENT
+          LLC DOES NOT WARRANT THAT THE PLATFORM WILL BE UNINTERRUPTED OR ERROR-FREE. TROVANT
           MAKES NO REPRESENTATIONS REGARDING THE ACCURACY OF POSTINGS, QUALIFICATIONS OF
           CANDIDATES, OR THE OUTCOME OF ANY INTRODUCTION.
         </p>
 
         <h2>6. Limitation of Liability</h2>
         <p className="legal-caps">
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, FREDHEIM TECHNOLOGIES LLC SHALL NOT BE LIABLE
-          FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES. FREDHEIM'S
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, TROVANT TALENT LLC SHALL NOT BE LIABLE
+          FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES. TROVANT'S
           TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID IN THE TWELVE MONTHS PRECEDING
           THE CLAIM.
         </p>
@@ -8435,16 +8435,16 @@ function TermsPage() {
 
         <h2>8. Modifications</h2>
         <p>
-          Fredheim reserves the right to modify these Terms at any time. Material changes will
+          Trovant reserves the right to modify these Terms at any time. Material changes will
           be communicated via email. Continued use after the effective date constitutes acceptance.
         </p>
 
         <div className="legal-contact-box">
           <h3>Contact</h3>
-          <p>Fredheim Technologies LLC</p>
+          <p>Trovant Talent LLC</p>
           <p>Houston, Texas</p>
-          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
-          <p><a href="https://fredheimdesk.com">fredheimdesk.com</a></p>
+          <p><a href="mailto:contact@trovanttalent.com">contact@trovanttalent.com</a></p>
+          <p><a href="https://trovanttalent.com">trovanttalent.com</a></p>
         </div>
 
         <p className="attorney-note">
@@ -8465,7 +8465,7 @@ function PrivacyPage() {
       <h1 className="legal-title">Privacy Policy</h1>
       <div className="legal-meta">
         Last Updated: April 22, 2026 &nbsp;·&nbsp; Effective Date: April 22, 2026 &nbsp;·&nbsp;
-        Fredheim Technologies LLC &nbsp;·&nbsp; Houston, Texas
+        Trovant Talent LLC &nbsp;·&nbsp; Houston, Texas
       </div>
 
       <div className="legal-body">
@@ -8542,7 +8542,7 @@ function PrivacyPage() {
 
         <h2>3. Payment Information</h2>
         <p>
-          Payment processing is handled entirely by Stripe, Inc. Fredheim does not store
+          Payment processing is handled entirely by Stripe, Inc. Trovant does not store
           credit card numbers or sensitive payment information. We retain only transaction
           records for accounting purposes.
         </p>
@@ -8562,13 +8562,13 @@ function PrivacyPage() {
             <tr><th>Right</th><th>How to Exercise</th></tr>
           </thead>
           <tbody>
-            <tr><td>Access your data</td><td>Email desk@fredheimdesk.com</td></tr>
+            <tr><td>Access your data</td><td>Email contact@trovanttalent.com</td></tr>
             <tr><td>Correct inaccurate data</td><td>Update in your profile settings or email us</td></tr>
-            <tr><td>Delete your account</td><td>Email desk@fredheimdesk.com — honored within 30 days</td></tr>
+            <tr><td>Delete your account</td><td>Email contact@trovanttalent.com — honored within 30 days</td></tr>
             <tr><td>Change visibility</td><td>Toggle in your profile settings anytime</td></tr>
             <tr><td>Stop sharing Big Five data</td><td>Toggle off in your profile settings anytime</td></tr>
             <tr><td>Unsubscribe from alerts</td><td>Reply to any alert email</td></tr>
-            <tr><td>Data portability</td><td>Request export via desk@fredheimdesk.com</td></tr>
+            <tr><td>Data portability</td><td>Request export via contact@trovanttalent.com</td></tr>
           </tbody>
         </table>
 
@@ -8581,12 +8581,12 @@ function PrivacyPage() {
         <h2>7. California & GDPR Rights</h2>
         <p>
           <strong>California (CCPA):</strong> We do not sell personal information. To exercise
-          California privacy rights, email desk@fredheimdesk.com.
+          California privacy rights, email contact@trovanttalent.com.
         </p>
         <p>
           <strong>EEA/UK (GDPR):</strong> Our lawful basis for processing is contract performance
           and legitimate interests. You have rights to access, rectify, erase, and port your data.
-          Contact desk@fredheimdesk.com to exercise GDPR rights.
+          Contact contact@trovanttalent.com to exercise GDPR rights.
         </p>
 
         <h2>8. Data Retention</h2>
@@ -8604,9 +8604,9 @@ function PrivacyPage() {
 
         <div className="legal-contact-box">
           <h3>Privacy Questions & Requests</h3>
-          <p>Fredheim Technologies LLC</p>
+          <p>Trovant Talent LLC</p>
           <p>Houston, Texas</p>
-          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
+          <p><a href="mailto:contact@trovanttalent.com">contact@trovanttalent.com</a></p>
           <p>We aim to respond to all privacy requests within 10 business days.</p>
         </div>
       </div>
@@ -8629,7 +8629,7 @@ const CLOSE_REASONS = [
 ];
 
 const CLOSE_CERT_TEXT =
-  'I certify that this position has not been filled through any candidate introduced, matched, viewed, unlocked, contacted, or engaged through Fredheim Desk.';
+  'I certify that this position has not been filled through any candidate introduced, matched, viewed, unlocked, contacted, or engaged through Trovant Talent.';
 
 function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
   const [reason, setReason]   = useState('');
@@ -8671,7 +8671,7 @@ function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
         {job.has_introductions && (
           <div className="warning-box">
             <strong>⚠ Candidate introductions on record</strong>
-            This job has had candidate introductions via Fredheim. If you filled this role
+            This job has had candidate introductions via Trovant. If you filled this role
             using an introduced candidate, please use "Mark as Filled" instead.
             The 12-month tail period applies to all introduced candidates.
           </div>
@@ -8719,7 +8719,7 @@ function CloseJobModal({ job, onClose, showToast, onJobStatusChange }) {
 
 // ── MARK AS FILLED MODAL ─────────────────────────────────────────────────────
 const EXTERNAL_CERT_TEXT =
-  'I certify that the selected candidate was not introduced, matched, viewed, unlocked, contacted, shortlisted, messaged, or engaged through Fredheim Desk for this role or a substantially similar role.';
+  'I certify that the selected candidate was not introduced, matched, viewed, unlocked, contacted, shortlisted, messaged, or engaged through Trovant Talent for this role or a substantially similar role.';
 
 function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
   const [step, setStep]         = useState('source');  // 'source' | 'platform' | 'external' | 'done'
@@ -8797,7 +8797,7 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
           <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
           <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Submitted</div>
           <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem'}}>
-            The Fredheim team has been notified and will follow up within 24 hours.
+            The Trovant team has been notified and will follow up within 24 hours.
           </div>
           <button className="btn-primary" onClick={onClose}>Close</button>
         </div>
@@ -8813,14 +8813,14 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
         {step === 'source' && (
           <div>
             <div className="workflow-modal-sub">
-              Was the candidate who filled this role sourced through Fredheim Desk?
+              Was the candidate who filled this role sourced through Trovant Talent?
             </div>
             <div className="workflow-radio-group" style={{gap:'0.75rem'}}>
               {[
-                { v:'platform', label:'Yes — candidate was found or engaged through Fredheim',
+                { v:'platform', label:'Yes — candidate was found or engaged through Trovant',
                   desc:'You will provide candidate and placement details. An invoice will be issued.' },
                 { v:'external', label:'No — candidate was sourced entirely outside the platform',
-                  desc:'You will certify that no introduced Fredheim candidate was involved.' },
+                  desc:'You will certify that no introduced Trovant candidate was involved.' },
                 { v:'pending', label:'Not sure / still being finalised',
                   desc:'Admin will review and follow up to determine the correct status.' },
               ].map(o => (
@@ -8893,7 +8893,7 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
             {job.has_introductions && (
               <div className="warning-box">
                 <strong>⚠ Introductions on record</strong>
-                Fredheim has records of candidate introductions for this job posting.
+                Trovant has records of candidate introductions for this job posting.
                 If any introduced candidate was involved in this hire, a platform fee may be due.
                 This submission will be reviewed by admin before final acceptance.
               </div>
@@ -8918,7 +8918,7 @@ function MarkFilledModal({ job, onClose, showToast, onJobStatusChange }) {
           <div>
             <div className="workflow-modal-sub">
               This job will be paused from active matching and queued for admin review.
-              The Fredheim team will follow up within 24 hours to clarify the sourcing status.
+              The Trovant team will follow up within 24 hours to clarify the sourcing status.
             </div>
             <div className="workflow-actions">
               <button className="workflow-close-btn" onClick={()=>setStep('source')}>← Back</button>
@@ -8987,7 +8987,7 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
         <div style={{fontSize:'2rem',marginBottom:'1rem'}}>✓</div>
         <div className="workflow-modal-title" style={{marginBottom:'0.5rem'}}>Thank you</div>
         <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'2rem'}}>
-          Your feedback helps us maintain a high-quality recruiter network. It is reviewed by the Fredheim team only.
+          Your feedback helps us maintain a high-quality recruiter network. It is reviewed by the Trovant team only.
         </div>
         <button className="btn-primary" onClick={onClose}>Close</button>
       </div>
@@ -9009,7 +9009,7 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
       <div className="workflow-modal">
         <div className="workflow-modal-title">Rate Your Experience</div>
         <div className="workflow-modal-sub">
-          Your feedback is confidential and reviewed by Fredheim only. It helps us maintain a high-quality recruiter network.
+          Your feedback is confidential and reviewed by Trovant only. It helps us maintain a high-quality recruiter network.
         </div>
 
         <div className="workflow-section">
@@ -9050,7 +9050,7 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
             Report Issues (admin review only)
           </div>
           {[
-            { k:'attempted_bypass',     label:'Did the search firm or employer attempt to bypass Fredheim for this engagement?' },
+            { k:'attempted_bypass',     label:'Did the search firm or employer attempt to bypass Trovant for this engagement?' },
             { k:'misrepresented_role',  label:'Did the search firm or employer misrepresent the role, compensation, company, or process?' },
           ].map(q => (
             <label key={q.k} style={{display:'flex',alignItems:'flex-start',gap:'0.5rem',marginBottom:'0.625rem',cursor:'pointer'}}>
@@ -9275,7 +9275,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
             Admin Control Room
           </div>
-          <div className="admin-title">Fredheim Desk</div>
+          <div className="admin-title">Trovant Talent</div>
         </div>
         <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
           <button className="admin-refresh" onClick={loadAll} disabled={refreshing}>
@@ -9487,7 +9487,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                         <td>{latest ? new Date(latest.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
                         <td>
                           <div style={{display:'flex',gap:'0.375rem'}}>
-                            <a href={`mailto:${latest?.email}?subject=Fredheim Desk — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Fredheim Desk Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0AFredheim Technologies LLC%0AFredheim Desk%0Adesk@fredheimdesk.com`} style={{textDecoration:'none'}}>
+                            <a href={`mailto:${latest?.email}?subject=Trovant Talent — Founding Partner Update&body=Hi ${latest?.contact_name || 'there'},%0A%0AThank you for participating in the Trovant Talent Founding Partner Program.%0A%0AYour searches have generated real candidate interest data that I'd love to share with you.%0A%0AAs a reminder, you have ${atLimit ? 'used your' : 'one available'} monthly posting slot for ${now.toLocaleString('default',{month:'long'})} 2026.%0A%0ASubscriptions open January 2027 — founding partners receive preferred pricing.%0A%0ABest,%0ATrovant Talent LLC%0ATrovant Talent%0Acontact@trovanttalent.com`} style={{textDecoration:'none'}}>
                               <button className="admin-action-btn">Email</button>
                             </a>
                           </div>
@@ -9736,7 +9736,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                           <span style={{fontSize:'0.72rem',color:'var(--green)'}}>✓ Introduced</span>
                         )}
                         <a
-                          href={`mailto:${i.anon_email}?subject=Fredheim Desk — Your interest in ${job?.title || 'a search'}`}
+                          href={`mailto:${i.anon_email}?subject=Trovant Talent — Your interest in ${job?.title || 'a search'}`}
                           style={{textDecoration:'none'}}
                         >
                           <button className="admin-action-btn">Email Candidate</button>
@@ -10693,7 +10693,7 @@ function AdminLogin({ onLogin }) {
           {loading ? 'Checking…' : 'Access Control Room'}
         </button>
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.75rem',textAlign:'center'}}>
-          Fredheim Technologies LLC — Internal Use Only
+          Trovant Talent LLC — Internal Use Only
         </p>
       </div>
     </div>
@@ -10796,7 +10796,7 @@ function SignInPage({ onBack, returnView }) {
     setError('');
     const err = await sendMagicLink(email, returnView);
     if (err) {
-      setError('Could not send link. Please try again or email desk@fredheimdesk.com.');
+      setError('Could not send link. Please try again or email contact@trovanttalent.com.');
     } else {
       setSent(true);
     }
@@ -12325,7 +12325,7 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
               ))}
             </div>
             <div style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6',padding:'0.875rem 1rem',background:'var(--paper-2)',border:'1px solid var(--rule)'}}>
-              Fredheim admin sees your full identity for vetting purposes only.
+              Trovant admin sees your full identity for vetting purposes only.
               Recruiters never bypass the introduction gate - paying the fee is
               the only path to your name, employer, and contact details.
             </div>
@@ -12560,7 +12560,7 @@ function RecruiterSignInPage({ onBack }) {
       options: { emailRedirectTo: redirectUrl }
     });
     if (err) {
-      setError('Could not send link. Please try again or email desk@fredheimdesk.com.');
+      setError('Could not send link. Please try again or email contact@trovanttalent.com.');
     } else {
       setSent(true);
     }
@@ -12949,7 +12949,7 @@ function RecruiterMatchTab({ jobs, matches, userEmail, showToast, onMatchUpdate 
       })}
 
       <div style={{marginTop:'1.5rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.75rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
-        Candidate identities are protected until mutual interest is confirmed. Once mutual, Fredheim facilitates the introduction. Introduction fees apply upon placement.
+        Candidate identities are protected until mutual interest is confirmed. Once mutual, Trovant facilitates the introduction. Introduction fees apply upon placement.
       </div>
     </div>
   );
@@ -13420,8 +13420,8 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                       ))}
                       <div style={{fontSize:'0.72rem',color:'var(--ink-4)',marginTop:'0.625rem',lineHeight:'1.5'}}>
                         To request an introduction to any of these candidates, contact{' '}
-                        <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>.
-                        Fredheim facilitates all introductions — candidate identities are only shared after platform review.
+                        <a href="mailto:contact@trovanttalent.com" style={{color:'var(--gold)'}}>contact@trovanttalent.com</a>.
+                        Trovant facilitates all introductions — candidate identities are only shared after platform review.
                       </div>
                     </div>
                   )}
@@ -13464,7 +13464,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
 
       <div style={{marginTop:'2rem',padding:'1rem 1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
         Questions about your account or a posting?{' '}
-        <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>
+        <a href="mailto:contact@trovanttalent.com" style={{color:'var(--gold)'}}>contact@trovanttalent.com</a>
       </div>
 
       {/* Close account */}
@@ -13581,7 +13581,7 @@ function ReferenceStatus({ email, showToast }) {
       <p style={{fontSize:'0.7rem',color:'var(--ink-4)',marginTop:'0.75rem',lineHeight:'1.55'}}>
         References receive a secure 5-minute questionnaire link by email. No login required.
         Completed references are shown to verified search firms and employers with your consent.
-        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>fredheimdesk.com?ref=[token]</code>
+        The questionnaire link: <code style={{fontSize:'0.65rem',background:'var(--paper-2)',padding:'0.1rem 0.3rem'}}>trovanttalent.com?ref=[token]</code>
       </p>
     </div>
   );
@@ -13640,7 +13640,7 @@ function QuestionnairePage({ token }) {
       if (!resp.ok) throw new Error('submit failed');
       setSubmitted(true);
     } catch(e) {
-      alert('Submission failed. Please try again or email desk@fredheimdesk.com.');
+      alert('Submission failed. Please try again or email contact@trovanttalent.com.');
     }
     setSubmitting(false);
   }
@@ -13695,12 +13695,12 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Desk
+            Trovant Talent
           </div>
           <div className="questionnaire-title">Link Unavailable</div>
         </div>
         <div style={{background:'var(--paper-2)',border:'1px solid var(--rule)',borderLeft:'3px solid var(--red)',padding:'1.25rem',color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.65'}}>
-          {error} If you believe this is an error, please email <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold)'}}>desk@fredheimdesk.com</a>.
+          {error} If you believe this is an error, please email <a href="mailto:contact@trovanttalent.com" style={{color:'var(--gold)'}}>contact@trovanttalent.com</a>.
         </div>
       </div>
     </div>
@@ -13711,7 +13711,7 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Desk
+            Trovant Talent
           </div>
           <div className="questionnaire-title">Thank You</div>
         </div>
@@ -13731,11 +13731,11 @@ function QuestionnairePage({ token }) {
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
-            Fredheim Desk — Confidential Reference
+            Trovant Talent — Confidential Reference
           </div>
           <div className="questionnaire-title">Professional Reference</div>
           <p className="questionnaire-desc">
-            You have been listed as a professional reference on Fredheim Desk —
+            You have been listed as a professional reference on Trovant Talent —
             a confidential talent marketplace for maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
             This takes approximately 5 minutes. Your responses are confidential and shared
             only with verified search firms and employers, with the candidate's consent.
@@ -13859,7 +13859,7 @@ function QuestionnairePage({ token }) {
         </button>
 
         <p style={{fontSize:'0.72rem',color:'var(--ink-4)',textAlign:'center',marginTop:'1rem',lineHeight:'1.6'}}>
-          Your responses are confidential. Fredheim Desk · desk@fredheimdesk.com
+          Your responses are confidential. Trovant Talent · contact@trovanttalent.com
         </p>
       </div>
     </div>
@@ -13983,7 +13983,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
       <div className="consulting-hero">
         <div>
           <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold-lt)',marginBottom:'0.75rem'}}>
-            Fredheim Consulting
+            Trovant Consulting
           </div>
           <div className="consulting-hero-title">
             Senior expertise,<br/><em>on demand.</em>
@@ -14212,7 +14212,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
                 </div>
               ) : interestSent[selectedBrief.id] ? (
                 <div style={{background:'var(--green-bg)',border:'1px solid rgba(26,122,74,0.2)',borderLeft:'3px solid var(--green)',padding:'1rem 1.25rem',color:'var(--green)',fontSize:'0.875rem'}}>
-                  ✓ Interest registered. Fredheim will be in touch to facilitate the introduction.
+                  ✓ Interest registered. Trovant will be in touch to facilitate the introduction.
                 </div>
               ) : (
                 <button className="submit-btn" onClick={()=>expressInterest(selectedBrief)}>
@@ -14302,7 +14302,7 @@ function BriefModal({ onClose, showToast }) {
             <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem',fontWeight:300}}>
               Reach senior executives available for interim, advisory, and project-based
               engagements in maritime, commodity trading, energy, logistics, ports and terminals, and offshore.
-              Day rate required. Introductions facilitated by Fredheim.
+              Day rate required. Introductions facilitated by Trovant.
             </p>
             <div style={{background:'var(--gold-bg)',border:'1px solid var(--gold-rule)',borderLeft:'3px solid var(--gold)',padding:'0.875rem 1.25rem',marginBottom:'1.5rem',fontSize:'0.82rem',color:'var(--ink-3)',lineHeight:'1.65'}}>
               ✦ Founding Partner Program 2026 — one brief per month, complimentary through December 31.
@@ -14310,7 +14310,7 @@ function BriefModal({ onClose, showToast }) {
             </div>
             <div style={{background:'var(--paper)',border:'1px solid var(--rule)',padding:'1rem',marginBottom:'1.5rem',fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:'1.65'}}>
               By continuing you agree that: day rate ranges are accurate and will be published,
-              a $1,500 introduction fee is payable to Fredheim Technologies LLC on confirmed engagements
+              a $1,500 introduction fee is payable to Trovant Talent LLC on confirmed engagements
               within 12 months of introduction, and consultant contact information will not be shared
               outside this engagement without their consent.
             </div>
@@ -14482,7 +14482,7 @@ function IndustrialTechLanding({ goToView, jobs }) {
       <div className="legal-eyebrow">Industrial Technology</div>
       <h1 className="legal-title">Industrial Technology Leadership</h1>
       <p className="hero-positioning" style={{maxWidth:780,marginBottom:'2rem'}}>
-        Fredheim Desk surfaces the rare commercial-technical leaders who can
+        Trovant Talent surfaces the rare commercial-technical leaders who can
         translate maritime, ports, energy, and industrial operations into
         software, AI, and platform businesses &mdash; and the operators who can
         run them.
@@ -14560,16 +14560,16 @@ function AboutPage({ setActiveView }) {
   return (
     <div className="legal-page">
       <div className="legal-eyebrow">About</div>
-      <h1 className="legal-title">Fredheim Desk</h1>
+      <h1 className="legal-title">Trovant Talent</h1>
       <div className="legal-meta">
-        A Fredheim Technologies product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; fredheimdesk.com
+        A Trovant Talent product &nbsp;·&nbsp; Houston, Texas &nbsp;·&nbsp; trovanttalent.com
       </div>
 
       <div className="legal-body">
 
         <h2>What We Built</h2>
         <p>
-          Fredheim Desk is a confidential talent marketplace
+          Trovant Talent is a confidential talent marketplace
           for commercial, operational, and technical professionals across global trade,
           maritime & shipping, commodity trading, energy, logistics & supply chain, ports
           & terminals, and offshore — at every career level, from emerging talent to
@@ -14626,8 +14626,8 @@ function AboutPage({ setActiveView }) {
 
         <h2>How Introductions Work</h2>
         <p>
-          Fredheim is not a job board. When a candidate expresses interest in a search
-          or consulting brief, Fredheim facilitates a personal introduction — verifying
+          Trovant is not a job board. When a candidate expresses interest in a search
+          or consulting brief, Trovant facilitates a personal introduction — verifying
           fit on both sides before contact details are shared. This keeps the quality
           of every interaction high and protects both parties from wasted time.
         </p>
@@ -14661,7 +14661,7 @@ function AboutPage({ setActiveView }) {
         <h2>The Founding Partner Program</h2>
         <div className="legal-highlight">
           Search firms, direct-hiring employers, and companies posting consulting briefs may participate in the
-          Fredheim Founding Partner Program through December 31, 2026.
+          Trovant Founding Partner Program through December 31, 2026.
           One posting per month, complimentary. No subscription required.
           Introduction fees apply on confirmed placements and engagements.
           Founding partners receive preferred pricing when subscriptions open January 2027.
@@ -14681,7 +14681,7 @@ function AboutPage({ setActiveView }) {
 
         <h2>Built By</h2>
         <p>
-          Fredheim Desk is a product of Fredheim Technologies LLC —
+          Trovant Talent is a product of Trovant Talent LLC —
           a team with 25+ years of combined experience in maritime, energy, and logistics,
           spanning terminal operations, vessel chartering, bulk commodity trade, and
           commercial strategy across the Gulf Coast, Gulf Region, and international markets.
@@ -14695,7 +14695,7 @@ function AboutPage({ setActiveView }) {
         <div className="legal-contact-box">
           <h3>Get in Touch</h3>
           <p>For questions about the platform, partnerships, or founding partner onboarding:</p>
-          <p><a href="mailto:desk@fredheimdesk.com">desk@fredheimdesk.com</a></p>
+          <p><a href="mailto:contact@trovanttalent.com">contact@trovanttalent.com</a></p>
           <p>Houston, Texas</p>
         </div>
       </div>
@@ -14889,12 +14889,12 @@ function App() {
       if (tier === 'intern_featured') {
         showToast(confirmed
           ? '✓ Featured Student Profile activated!'
-          : 'Payment received — your Featured Student Profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimdesk.com.');
+          : 'Payment received — your Featured Student Profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email contact@trovanttalent.com.');
         setActiveView('intern-myprofile');
       } else {
         showToast(confirmed
           ? '✓ Confidential profile activated.'
-          : 'Payment received — your confidential profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email desk@fredheimdesk.com.');
+          : 'Payment received — your confidential profile is being activated. This can take a moment; refresh shortly. If it doesn’t update, email contact@trovanttalent.com.');
         setActiveView('myprofile');
       }
 
@@ -15052,7 +15052,7 @@ function App() {
       return (
         <div style={{minHeight:'100vh',background:'var(--paper)'}}>
           <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Desk — Admin</div>
+            <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Trovant Talent — Admin</div>
             <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
           </div>
           <AdminLogin onLogin={() => setAdminAuthed(true)} />
@@ -15062,7 +15062,7 @@ function App() {
     return (
       <div style={{minHeight:'100vh',background:'var(--paper)'}}>
         <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Fredheim Desk — Admin</div>
+          <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Trovant Talent — Admin</div>
           <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
         </div>
         <div style={{maxWidth:'1280px',margin:'0 auto',padding:'2rem'}}>
@@ -15106,7 +15106,7 @@ function App() {
           <div className="manifesto">
             <p className="manifesto-text">
               Hiring in this industry has always been opaque by design.{' '}
-              <strong>Fredheim Desk is built differently</strong> —
+              <strong>Trovant Talent is built differently</strong> —
               salary ranges published, search firms and employers named, your identity protected until you choose to move.{' '}
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
@@ -15151,7 +15151,7 @@ function App() {
                 color:'var(--gold)',
                 marginBottom:'0.375rem',
               }}>
-                Fredheim Consulting
+                Trovant Consulting
               </div>
               <div style={{
                 fontFamily:"'Playfair Display',serif",
@@ -15464,16 +15464,16 @@ function App() {
             <div className="footer-brand">
               <span className="footer-mark"><BrandMark light /></span>
               <div>
-                <div className="footer-brand-name">Fredheim Desk</div>
-                <div className="footer-brand-sub">A Fredheim Technologies Product</div>
+                <div className="footer-brand-name">Trovant Talent</div>
+                <div className="footer-brand-sub">A Trovant Talent Product</div>
               </div>
             </div>
             <p className="footer-desc">
               Connecting commercial, operational, and technical professionals across global trade, maritime, energy, logistics, commodity trading, and port infrastructure. Built with and for the professionals who move global trade.
             </p>
             <p style={{marginTop:'1rem',fontSize:'0.78rem',color:'rgba(250,250,248,0.4)'}}>
-              <a href="mailto:desk@fredheimdesk.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
-                desk@fredheimdesk.com
+              <a href="mailto:contact@trovanttalent.com" style={{color:'var(--gold-lt)',textDecoration:'none'}}>
+                contact@trovanttalent.com
               </a>
             </p>
           </div>
@@ -15500,12 +15500,12 @@ function App() {
           <div>
             <div className="footer-col-title">Company</div>
             <ul className="footer-links">
-              <li onClick={()=>goToView('about')} style={{cursor:'pointer'}}>About Fredheim</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:desk@fredheimdesk.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
+              <li onClick={()=>goToView('about')} style={{cursor:'pointer'}}>About Trovant</li><li onClick={()=>goToView('terms')} style={{cursor:'pointer'}}>Terms of Service</li><li onClick={()=>goToView('privacy')} style={{cursor:'pointer'}}>Privacy Policy</li><li><a href='mailto:contact@trovanttalent.com' style={{color:'inherit',textDecoration:'none'}}>Contact</a></li>
             </ul>
           </div>
         </div>
         <div className="footer-bottom">
-          <div className="footer-copy">© 2026 Fredheim Technologies LLC. All rights reserved. <span className="footer-gold">·</span> fredheimdesk.com</div>
+          <div className="footer-copy">© 2026 Trovant Talent LLC. All rights reserved. <span className="footer-gold">·</span> trovanttalent.com</div>
           <div className="footer-copy">Houston, TX <span className="footer-gold">·</span> Maritime · Ports · Energy · Industrial Logistics</div>
         </div>
       </footer>

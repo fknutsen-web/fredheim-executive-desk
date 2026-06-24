@@ -1,5 +1,5 @@
 // api/stripe-webhook.js
-// Handles all Stripe payment events for Fredheim Desk:
+// Handles all Stripe payment events for Trovant Talent:
 //   - Candidate confidential subscriptions ($299/yr)
 //   - Recruiter subscriptions: Pro ($499/mo) | Founding ($7,500/yr annual)
 //   - Engagement unlock fees (match-age-tiered: fresh/warm/aging — one-time)
@@ -58,7 +58,7 @@ const isEngagementPrice = isIntroductionPrice;
 // event whose database side effects have already been applied.
 async function notify(payload) {
   if (!payload || !payload.to_email) return { ok: false, skipped: true };
-  const subject = payload.subject || 'Fredheim Desk';
+  const subject = payload.subject || 'Trovant Talent';
   return sendEmail({
     to:      payload.to_email,
     subject,
@@ -112,7 +112,7 @@ module.exports = async function handler(req, res) {
           : candidateTierFromPrice(priceId);
 
         if (candidateTier === 'confidential') {
-          // Update fed_profiles (Fredheim Desk) — this is the table index.html reads
+          // Update fed_profiles (Trovant Talent) — this is the table index.html reads
           const expiry = new Date();
           expiry.setFullYear(expiry.getFullYear() + 1);
           const { error } = await supabase
@@ -130,7 +130,7 @@ module.exports = async function handler(req, res) {
 
           await notify({
             to_email: email,
-            subject: 'Your Fredheim confidential executive profile is now active',
+            subject: 'Your Trovant confidential executive profile is now active',
             body:    'Your confidential profile is active. Your name, employer, location, and graduation year are hidden from recruiters until you approve a connection. You control every reveal.',
           });
           await revenueAlert(
@@ -183,11 +183,11 @@ module.exports = async function handler(req, res) {
 
           await notify({
             to_email:      email,
-            subject:       `Welcome to Fredheim Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
+            subject:       `Welcome to Trovant Talent Match — ${recruiterTier === 'founding' ? 'Founding Partner' : 'Pro'} access active`,
             body:          (recruiterTier === 'founding'
               ? `Your Founding Partner access is confirmed at ${feeLabel}. You have priority candidate visibility, enhanced match limits, and early access to new platform features.`
               : `Your Pro access is confirmed at ${feeLabel}. You now have full access to the candidate pool, AI-powered matching, and curated introductions.`)
-              + `\n\nYour dashboard: https://fredheimdesk.com?view=recruiter-dash`,
+              + `\n\nYour dashboard: https://trovanttalent.com?view=recruiter-dash`,
           });
           await revenueAlert(
             `Revenue — recruiter subscription activated (${recruiterTier}, ${feeLabel})`,
@@ -242,7 +242,7 @@ module.exports = async function handler(req, res) {
 
           await notify({
             to_email: email,
-            subject: 'Your Fredheim Featured Student Profile is now active',
+            subject: 'Your Trovant Featured Student Profile is now active',
             body:    'Your Featured Student Profile is active. You now have priority placement in employer matches, profile analytics, and the optimization checklist. The subscription renews annually at $49/yr until cancelled.',
           });
           await revenueAlert(
@@ -470,7 +470,7 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     recipientEmail: match.candidate_email, role: 'candidate', type: 'paid_unlocked',
     matchId, jobId: match.job_id,
     title: `Curated introduction confirmed — ${jobTitle}`,
-    body:  `${firmName} has completed a paid curated introduction for ${jobTitle}. The introduction is now active; Fredheim has shared your contact with the firm and they will reach out directly.`,
+    body:  `${firmName} has completed a paid curated introduction for ${jobTitle}. The introduction is now active; Trovant has shared your contact with the firm and they will reach out directly.`,
   });
   await createPaymentNotification(supabase, {
     recipientEmail: recruiterEmail, role: 'recruiter', type: 'paid_unlocked',
@@ -496,7 +496,7 @@ async function handleIntroductionPaid(matchId, bracket, feeAmount, custId, recru
     `Introduction fee paid and contact unlocked.\n\nRecruiter: ${recruiterEmail}\nCandidate: ${match.candidate_email}\nRole: ${jobTitle}\nFirm: ${firmName}\nAmount: ${feeDisplay}\nMatch: ${matchId}\nStripe session: ${session?.id || 'n/a'}`
   );
 
-  console.log(`Fredheim curated introduction paid: match ${matchId} -> paid_unlocked (${feeDisplay})`);
+  console.log(`Trovant curated introduction paid: match ${matchId} -> paid_unlocked (${feeDisplay})`);
 }
 
 // ── ENGAGEMENT UNLOCK PAID HANDLER (legacy talent_matches) ─────
@@ -542,7 +542,7 @@ async function handleEngagementPaid(matchId, bracket, feeAmount, custId, recruit
   // (Stripe must get a 200), but each delivery result is logged.
   if (rEmail) {
     const subject = `Curated introduction confirmed — ${cName}`;
-    const body = `Your curated introduction has been confirmed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Fredheim is not party to subsequent conversations.`;
+    const body = `Your curated introduction has been confirmed (${feeAmount || 'complimentary'}). ${cName} has agreed to connect. Their email: ${cEmail}. All further communication is between you directly — Trovant is not party to subsequent conversations.`;
     await sendEmail({ to: rEmail, subject, text: body, html: brandedHtml(body, { heading: subject }) });
   }
   if (cEmail) {

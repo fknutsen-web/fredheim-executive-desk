@@ -18,7 +18,7 @@ const supabase = createClient(
 async function sendNotification(payload) {
   const to = payload.to_email;
   if (!to) return { ok: false, error: 'No recipient email' };
-  const subject = payload.subject || 'Fredheim Talent Match';
+  const subject = payload.subject || 'Trovant Talent Match';
   const body = payload.body || '';
   return sendEmail({
     to,
@@ -58,7 +58,7 @@ async function dispatchRealtimeAlerts() {
     const recruiter = n.talent_recruiters;
     const toEmail = role?.notify_email || recruiter?.email;
     const toPhone = role?.notify_phone || recruiter?.phone;
-    const matchUrl = `https://fredheimdesk.com?view=recruiter-talent&candidate=${n.candidate_id}&role=${n.role_id}`;
+    const matchUrl = `https://trovanttalent.com?view=recruiter-talent&candidate=${n.candidate_id}&role=${n.role_id}`;
 
     const badges = [
       c?.badge_seasoned_exec ? 'Seasoned Executive' : null,
@@ -134,7 +134,7 @@ async function dispatchDailyDigests() {
     const payload = {
       type: 'daily_digest',
       to_email: recruiter.email,
-      subject: `Your Fredheim Talent Digest — ${matches.length} new match${matches.length !== 1 ? 'es' : ''}`,
+      subject: `Your Trovant Talent Digest — ${matches.length} new match${matches.length !== 1 ? 'es' : ''}`,
       body:
 `${recruiter.contact_name || recruiter.firm_name},
 
@@ -142,7 +142,7 @@ You have ${matches.length} new match${matches.length !== 1 ? 'es' : ''} as of ${
 
 ${digestLines}
 
-Review your matches: https://fredheimdesk.com?view=recruiter-talent`,
+Review your matches: https://trovanttalent.com?view=recruiter-talent`,
     };
 
     try {
@@ -202,7 +202,7 @@ async function dispatchWeeklySummaries() {
     const payload = {
       type: 'weekly_summary',
       to_email: recruiter.email,
-      subject: `Fredheim Weekly Talent Report — Week of ${lastWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`,
+      subject: `Trovant Weekly Talent Report — Week of ${lastWeek.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}`,
       body:
 `${recruiter.contact_name || recruiter.firm_name},
 
@@ -218,7 +218,7 @@ Awaiting your review: ${unreviewed}
 
 Active searches: ${(roles?.map(r => r.title) || []).join(', ') || 'none'}
 
-Review your matches: https://fredheimdesk.com?view=recruiter-talent`,
+Review your matches: https://trovanttalent.com?view=recruiter-talent`,
     };
 
     try {
@@ -261,13 +261,13 @@ async function dispatchCandidateNotifications() {
 
   let sent = 0;
   for (const n of pending || []) {
-    const confirmUrl = `https://fredheimdesk.com?view=talent-confirm&cid=${n.candidate_id}`;
+    const confirmUrl = `https://trovanttalent.com?view=talent-confirm&cid=${n.candidate_id}`;
 
     const payload = {
       type: n.type,
       to_email: n.recipient_email,
       subject: n.subject,
-      body: `${n.body_preview || ''}\n\nConfirm: ${confirmUrl}\nReactivate: https://fredheimdesk.com?view=talent-reactivate&cid=${n.candidate_id}`,
+      body: `${n.body_preview || ''}\n\nConfirm: ${confirmUrl}\nReactivate: https://trovanttalent.com?view=talent-reactivate&cid=${n.candidate_id}`,
     };
 
     try {

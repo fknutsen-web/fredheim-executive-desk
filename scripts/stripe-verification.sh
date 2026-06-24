@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Stripe checkout / webhook verification runbook for Fredheim Desk.
+# Stripe checkout / webhook verification runbook for Trovant Talent.
 #
 # Covers the verification matrix that can't be run from the Claude sandbox
 # (no Checkout Sessions / Events / Webhook Endpoints over the MCP, and the

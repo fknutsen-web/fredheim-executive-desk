@@ -1,5 +1,5 @@
 // api/lib/email.js
-// Centralized native email delivery for Fredheim Desk.
+// Centralized native email delivery for Trovant Talent.
 // Replaces the retired Zapier webhook integration.
 //
 // Exports:
@@ -16,13 +16,13 @@
 
 const { Resend } = require('resend');
 
-// All platform email originates from the Fredheim Desk domain. Default sender
-// is notifications@fredheimdesk.com (override via FROM_EMAIL). Brand is always
-// "Fredheim Desk — Confidential Talent Marketplace".
-const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Fredheim Desk <notifications@fredheimdesk.com>';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'desk@fredheimdesk.com';
-const APP_URL     = process.env.APP_URL     || 'https://fredheimdesk.com';
-const BRAND_NAME    = 'Fredheim Desk';
+// All platform email originates from the Trovant Talent domain. Default sender
+// is notifications@trovanttalent.com (override via FROM_EMAIL). Brand is always
+// "Trovant Talent — Confidential Talent Marketplace".
+const FROM_EMAIL  = process.env.FROM_EMAIL  || 'Trovant Talent <notifications@trovanttalent.com>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@trovanttalent.com';
+const APP_URL     = process.env.APP_URL     || 'https://trovanttalent.com';
+const BRAND_NAME    = 'Trovant Talent';
 const BRAND_TAGLINE = 'Confidential Talent Marketplace';
 
 // Lazy singleton so a missing key never crashes module load.
