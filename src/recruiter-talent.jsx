@@ -49,7 +49,7 @@ function freshnessInfo(candidate) {
 function ScoreRing({ pct }) {
   const r = 28; const circ = 2 * Math.PI * r;
   const fill = circ - (pct / 100) * circ;
-  const color = pct >= 85 ? '#b8922a' : pct >= 70 ? '#d4a93c' : '#8fa0b4';
+  const color = pct >= 85 ? '#0e9f6e' : pct >= 70 ? '#0891b2' : '#94a3b8';
   return (
     <div className="score-ring">
       <svg width="64" height="64" viewBox="0 0 64 64">
@@ -163,7 +163,7 @@ function NotificationsPanel({ prefs, onSave }) {
 
   return (
     <div className="notif-panel">
-      <h2 style={{fontFamily:'Playfair Display',fontSize:'1.5rem',marginBottom:'0.5rem'}}>Notification Preferences</h2>
+      <h2 style={{fontFamily:'Inter Tight',fontSize:'1.5rem',marginBottom:'0.5rem'}}>Notification Preferences</h2>
       <p style={{color:'var(--ink-3)',fontSize:'0.875rem',marginBottom:'2rem'}}>
         Control how and when you're notified of new matches. Changes apply to all active searches unless overridden per role.
       </p>
@@ -226,7 +226,7 @@ function NotificationsPanel({ prefs, onSave }) {
 
       <button
         onClick={() => onSave(p)}
-        style={{background:'var(--ink)',color:'var(--white)',border:'none',padding:'0.85rem 2.5rem',fontFamily:'Figtree',fontSize:'0.85rem',fontWeight:'600',cursor:'pointer'}}
+        style={{background:'var(--gold)',color:'var(--white)',border:'none',padding:'0.85rem 2rem',borderRadius:'10px',fontFamily:'Inter',fontSize:'0.9rem',fontWeight:'600',cursor:'pointer',boxShadow:'0 1px 2px rgba(16,24,40,0.06), 0 4px 12px rgba(14,159,110,0.18)'}}
       >
         Save Preferences
       </button>
@@ -429,7 +429,7 @@ function App() {
               <div className="toolbar">
                 <div>
                   <div className="toolbar-title">Candidate Pipeline</div>
-                  <div style={{fontFamily:'DM Mono',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
+                  <div style={{fontFamily:'Inter',fontSize:'0.62rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
                     {loading ? 'Loading…' : `${filteredMatches.length} of ${matches.length} candidates`}
                   </div>
                 </div>
@@ -528,7 +528,7 @@ function App() {
 
       {/* TOAST */}
       {toast && (
-        <div style={{position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',background:'var(--ink)',color:'var(--white)',padding:'0.75rem 2rem',fontFamily:'DM Mono',fontSize:'0.7rem',letterSpacing:'0.1em',textTransform:'uppercase',zIndex:999}}>
+        <div style={{position:'fixed',bottom:'2rem',left:'50%',transform:'translateX(-50%)',background:'var(--ink)',color:'var(--white)',padding:'0.75rem 2rem',fontFamily:'Inter',fontSize:'0.7rem',letterSpacing:'0.1em',textTransform:'uppercase',zIndex:999}}>
           {toast}
         </div>
       )}
