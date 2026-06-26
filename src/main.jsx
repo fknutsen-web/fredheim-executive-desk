@@ -3984,6 +3984,82 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
   );
 }
 
+// ── PRODUCT PREVIEW (dashboard module) ───────────────────────────────────────
+// Illustrative, product-first dashboard mock — gives the public homepage the
+// "recruiting software" feel (pipeline, match scores, stages). Static by design.
+function ProductPreview() {
+  const candidates = [
+    { initials: 'A.K.', av: '#0e9f6e', role: 'Chartering Manager · Tankers', meta: 'Singapore', stage: 'Interview', stageClass: 'stage-interview', match: 96 },
+    { initials: 'M.R.', av: '#0d9488', role: 'Head of Operations · Dry Bulk', meta: 'Rotterdam', stage: 'Offer', stageClass: 'stage-offer', match: 92 },
+    { initials: 'S.T.', av: '#2563eb', role: 'Commercial Director · LNG', meta: 'Houston, TX', stage: 'Screening', stageClass: 'stage-screen', match: 88 },
+    { initials: 'J.P.', av: '#7c3aed', role: 'Port Captain · Terminals', meta: 'Dubai', stage: 'Screening', stageClass: 'stage-screen', match: 84 },
+  ];
+  return (
+    <section className="product-section">
+      <div className="product-inner">
+        <div className="product-head">
+          <span className="product-eyebrow">● Built for recruiters</span>
+          <h2 className="product-title">See every match before you reach out.</h2>
+          <p className="product-desc">
+            Scope-based matching ranks candidates on operational scope, leadership complexity,
+            and fit — not just titles and keywords. Track every conversation from first signal to offer.
+          </p>
+        </div>
+
+        <div className="dashboard" role="img" aria-label="Trovant Talent recruiter dashboard preview">
+          <div className="dash-chrome">
+            <span className="dash-dot" style={{background:'#ff5f57'}} />
+            <span className="dash-dot" style={{background:'#febc2e'}} />
+            <span className="dash-dot" style={{background:'#28c840'}} />
+            <span className="dash-urlbar">app.trovanttalent.com / pipeline</span>
+          </div>
+          <div className="dash-body">
+            <aside className="dash-side">
+              <div className="dash-side-label">Workspace</div>
+              <div className="dash-nav active"><span className="dash-nav-ico" /> Pipeline</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Searches</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Candidates</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Messages</div>
+              <div className="dash-side-label">Insights</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Analytics</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Benchmarks</div>
+            </aside>
+            <div className="dash-main">
+              <div className="dash-toolbar">
+                <div>
+                  <div className="dash-h">Senior Chartering Search</div>
+                  <div className="dash-h-sub">24 matched · 4 in conversation</div>
+                </div>
+                <div style={{display:'flex',gap:'0.6rem',alignItems:'center'}}>
+                  <span className="dash-search">⌕ Filter candidates</span>
+                  <span className="dash-pill">Scope match ✓</span>
+                </div>
+              </div>
+              {candidates.map((c, i) => (
+                <div className="cand" key={i}>
+                  <div className="cand-id">
+                    <span className="cand-av" style={{background:c.av}}>{c.initials}</span>
+                    <div>
+                      <div className="cand-name">Confidential candidate</div>
+                      <div className="cand-role">{c.role}</div>
+                    </div>
+                  </div>
+                  <div className="cand-meta">{c.meta}</div>
+                  <div><span className={`cand-stage ${c.stageClass}`}>{c.stage}</span></div>
+                  <div className="cand-match">
+                    <span className="match-num">{c.match}</span>
+                    <span className="match-bar"><span style={{width:`${c.match}%`}} /></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── JOB CARD ─────────────────────────────────────────────────────────────────
 function JobCard({ job, onClick }) {
   const tags = parseJson(job.tags);
@@ -15115,6 +15191,7 @@ function App() {
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
           </div>
+          <ProductPreview />
         </>
       )}
 
@@ -15135,11 +15212,12 @@ function App() {
           <div style={{display:'flex',gap:'2rem',alignItems:'flex-start',flex:1}}>
             {/* Icon */}
             <div style={{
-              width:'48px',height:'48px',background:'var(--ink)',
+              width:'52px',height:'52px',background:'var(--gold-bg)',
+              border:'1px solid var(--gold-rule)',borderRadius:'14px',
               display:'flex',alignItems:'center',justifyContent:'center',
               flexShrink:0,
             }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,248,0.8)" strokeWidth="1.5">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
