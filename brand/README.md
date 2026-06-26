@@ -62,5 +62,5 @@ fields per person.
 
 ## Contact (current)
 
-Fredrik Knutsen · Founder & CEO
-+1 281 734 9119 · fredrik@trovanttalent.com · trovanttalent.com · Houston, Texas, USA
+Fredrik Knutsen · Managing Director
++1 832-866-3421 · fredrik@trovanttalent.com · trovanttalent.com · Houston, Texas, USA

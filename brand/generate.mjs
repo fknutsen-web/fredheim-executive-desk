@@ -22,6 +22,7 @@ console.log('Generating Trovant Talent brand assets…');
 render(b('logo-horizontal.svg'),      b('png/logo-horizontal.png'),       1120);
 render(b('logo-horizontal-dark.svg'), b('png/logo-horizontal-dark.png'),  1120);
 render(b('logo-mark.svg'),            b('png/logo-mark.png'),              512);
+render(b('linkedin-logo.svg'),        b('png/linkedin-logo.png'),          800);
 render(b('linkedin-banner.svg'),      b('png/linkedin-banner.png'),        1584);
 render(b('business-card-front.svg'),  b('png/business-card-front.png'),    1050);
 render(b('business-card-back.svg'),   b('png/business-card-back.png'),     1050);
