@@ -21,13 +21,13 @@
 
   <!-- Name + title -->
   <text x="80" y="240" font-family="'Inter Tight','Inter','Helvetica Neue',Arial,sans-serif" font-size="50" font-weight="700" letter-spacing="-1" fill="#ffffff">Fredrik Knutsen</text>
-  <text x="82" y="278" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="3" fill="#a7f3d0">FOUNDER &amp; CEO</text>
+  <text x="82" y="278" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="3" fill="#a7f3d0">MANAGING DIRECTOR</text>
 
   <rect x="82" y="306" width="90" height="3" rx="1.5" fill="#a7f3d0"/>
 
   <!-- Contact -->
   <g font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="24" fill="#eafff7">
-    <text x="82" y="372">+1 281 734 9119</text>
+    <text x="82" y="372">+1 832-866-3421</text>
     <text x="82" y="418">fredrik@trovanttalent.com</text>
     <text x="82" y="464">www.trovanttalent.com</text>
     <text x="82" y="510">Houston, Texas, USA</text>
