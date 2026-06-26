@@ -16,17 +16,20 @@ injectVercelAnalytics()
 
 const { useState, useEffect, useCallback } = React;
 
-// Trovant Talent brand mark — global ring, navigation compass, network
-// waypoints (one gold). Matches /public/favicon.svg.
+// Trovant Talent brand mark — modern "T" monogram on a rounded emerald tile.
+// Matches /public/favicon.svg.
 function BrandMark() {
   return (
     <svg viewBox="0 0 48 48" role="img" aria-label="Trovant Talent" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="24" cy="24" r="20.5" fill="none" stroke="#0f1c2e" strokeWidth="1.5" />
-      <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill="#0f1c2e" />
-      <circle cx="9.5" cy="9.5" r="2.4" fill="#0f1c2e" />
-      <circle cx="38.5" cy="38.5" r="2.4" fill="#0f1c2e" />
-      <circle cx="9.5" cy="38.5" r="2.4" fill="#0f1c2e" />
-      <circle cx="38.5" cy="9.5" r="2.4" fill="#b8922a" />
+      <defs>
+        <linearGradient id="tg-mark-tm" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#10b981" />
+          <stop offset="1" stopColor="#0d9488" />
+        </linearGradient>
+      </defs>
+      <rect x="3" y="3" width="42" height="42" rx="13" fill="url(#tg-mark-tm)" />
+      <path d="M14 17 H34 M24 17 V35" stroke="#ffffff" strokeWidth="4.4" strokeLinecap="round" />
+      <circle cx="31.5" cy="32" r="3" fill="#a7f3d0" />
     </svg>
   );
 }
@@ -661,10 +664,10 @@ function App() {
 
             <div className="success-detail" style={{marginBottom:'1.5rem'}}>
               <div className="score-row"><span className="score-label">Name</span><span className="score-value" style={{color:'var(--ink)'}}>{identity.first_name}</span></div>
-              <div className="score-row"><span className="score-label">Email</span><span className="score-value" style={{color:'var(--ink)',fontFamily:'Figtree'}}>{identity.email}</span></div>
+              <div className="score-row"><span className="score-label">Email</span><span className="score-value" style={{color:'var(--ink)',fontFamily:'Inter'}}>{identity.email}</span></div>
               <div className="score-row"><span className="score-label">Questions answered</span><span className="score-value">{answeredCount} / {TOTAL_Q}</span></div>
-              <div className="score-row"><span className="score-label">Career intent</span><span className="score-value" style={{color:'var(--ink-2)',fontSize:'0.78rem',fontFamily:'Figtree'}}>{CAREER_INTENT_OPTIONS.find(o => o.key === careerIntent)?.text || '—'}</span></div>
-              <div className="score-row"><span className="score-label">Availability</span><span className="score-value" style={{color:'var(--ink-2)',fontFamily:'Figtree'}}>{STATUS_OPTIONS.find(s => s.key === candidateStatus)?.label}</span></div>
+              <div className="score-row"><span className="score-label">Career intent</span><span className="score-value" style={{color:'var(--ink-2)',fontSize:'0.78rem',fontFamily:'Inter'}}>{CAREER_INTENT_OPTIONS.find(o => o.key === careerIntent)?.text || '—'}</span></div>
+              <div className="score-row"><span className="score-label">Availability</span><span className="score-value" style={{color:'var(--ink-2)',fontFamily:'Inter'}}>{STATUS_OPTIONS.find(s => s.key === candidateStatus)?.label}</span></div>
             </div>
 
             <p style={{fontSize:'0.78rem',color:'var(--ink-4)',lineHeight:1.7,marginBottom:'1rem'}}>
@@ -702,7 +705,7 @@ function App() {
       </div>
 
       <footer style={{borderTop:'1px solid var(--rule)',padding:'2rem 3rem',textAlign:'center'}}>
-        <p style={{fontFamily:'DM Mono, monospace',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
+        <p style={{fontFamily:'Inter, sans-serif',fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
           Trovant Talent · trovanttalent.com · Confidential by default
         </p>
       </footer>

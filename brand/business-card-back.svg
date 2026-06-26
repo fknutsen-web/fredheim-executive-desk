@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 600" role="img" aria-label="Trovant Talent business card back">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f766e"/>
+      <stop offset="0.55" stop-color="#0d9488"/>
+      <stop offset="1" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <rect width="1050" height="600" fill="url(#bg)"/>
+  <!-- Subtle large mark watermark -->
+  <g opacity="0.10" transform="translate(720 250)">
+    <path d="M40 60 H300 M170 60 V300" stroke="#ffffff" stroke-width="34" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mark -->
+  <g transform="translate(80 80)">
+    <rect width="72" height="72" rx="20" fill="#ffffff"/>
+    <path d="M20 27 H52 M36 27 V56" stroke="#0d9488" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="47" cy="50" r="4.6" fill="#0d9488"/>
+  </g>
+
+  <!-- Name + title -->
+  <text x="80" y="240" font-family="'Inter Tight','Inter','Helvetica Neue',Arial,sans-serif" font-size="50" font-weight="700" letter-spacing="-1" fill="#ffffff">Fredrik Knutsen</text>
+  <text x="82" y="278" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="21" font-weight="600" letter-spacing="3" fill="#a7f3d0">FOUNDER &amp; CEO</text>
+
+  <rect x="82" y="306" width="90" height="3" rx="1.5" fill="#a7f3d0"/>
+
+  <!-- Contact -->
+  <g font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="24" fill="#eafff7">
+    <text x="82" y="372">+1 281 734 9119</text>
+    <text x="82" y="418">fredrik@trovanttalent.com</text>
+    <text x="82" y="464">www.trovanttalent.com</text>
+    <text x="82" y="510">Houston, Texas, USA</text>
+  </g>
+</svg>

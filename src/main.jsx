@@ -382,7 +382,7 @@ function LeaderboardSection() {
       <div className="leaderboard-header">
         <div>
           <div className="leaderboard-title">Top Firms &amp; Employers</div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginTop:'0.25rem'}}>
             Verified platform placements only
           </div>
         </div>
@@ -915,7 +915,7 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
   if (!authUser?.email) {
     return (
       <div style={{maxWidth:600,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center'}}>
-        <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'0.75rem'}}>
+        <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'0.75rem'}}>
           Sign in to build your Student Profile
         </div>
         <div style={{fontSize:'0.875rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.6'}}>
@@ -965,10 +965,10 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
       {/* Step 1 — Academic Background */}
       {step === 1 && (
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
             Step 1 of {TOTAL_STEPS}
           </div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Academic Background</h2>
+          <h2 style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Academic Background</h2>
           <div style={{display:'grid',gap:'0.875rem'}}>
             <div className="form-group">
               <label className="form-label">School / University *</label>
@@ -1032,10 +1032,10 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
       {/* Step 2 — Availability & Location */}
       {step === 2 && (
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
             Step 2 of {TOTAL_STEPS}
           </div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Availability & Location</h2>
+          <h2 style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Availability & Location</h2>
           <div style={{display:'grid',gap:'0.875rem'}}>
             <div>
               <div className="form-label" style={{marginBottom:'0.5rem'}}>Internship Season Availability</div>
@@ -1113,10 +1113,10 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
       {/* Step 3 — Interests */}
       {step === 3 && (
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
             Step 3 of {TOTAL_STEPS}
           </div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Industry & Function Interests</h2>
+          <h2 style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Industry & Function Interests</h2>
           <div style={{display:'grid',gap:'1.25rem'}}>
             <div>
               <div className="form-label" style={{marginBottom:'0.625rem'}}>Industries I'm Interested In</div>
@@ -1147,10 +1147,10 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
       {/* Step 4 — Experience & Projects (replaces resume) */}
       {step === 4 && (
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
             Step 4 of {TOTAL_STEPS}
           </div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'0.5rem',fontWeight:400}}>Experience &amp; Projects</h2>
+          <h2 style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'0.5rem',fontWeight:400}}>Experience &amp; Projects</h2>
           <p style={{fontSize:'0.8rem',color:'var(--ink-4)',marginBottom:'1.5rem',lineHeight:'1.6'}}>
             This section replaces a resume for initial matching. Describe your actual work — projects, coursework, and skills tell employers what you can do.
           </p>
@@ -1181,7 +1181,7 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
               {(form.project_experience||[]).map((p,i)=>(
                 <div key={i} style={{border:'1px solid var(--rule)',padding:'1rem',marginBottom:'0.625rem',background:'var(--paper-2)'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'0.625rem'}}>
-                    <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-3)',letterSpacing:'0.1em'}}>PROJECT {i+1}</span>
+                    <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-3)',letterSpacing:'0.1em'}}>PROJECT {i+1}</span>
                     <button onClick={()=>removeProject(i)} style={{background:'none',border:'none',color:'var(--ink-4)',cursor:'pointer',fontSize:'0.75rem'}}>Remove</button>
                   </div>
                   {[{k:'title',ph:'Project title',rows:1},{k:'description',ph:'What did you do? What was the problem you solved?',rows:2},{k:'outcomes',ph:'Results, impact, or what you learned',rows:2},{k:'technologies',ph:'Tools, software, or methods used',rows:1},{k:'url',ph:'GitHub, demo link, or project page (optional)',rows:1}].map(f=>(
@@ -1226,10 +1226,10 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
       {/* Step 5 — Links & Visibility */}
       {step === 5 && (
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>
             Step 5 of {TOTAL_STEPS}
           </div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Links &amp; Visibility</h2>
+          <h2 style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:'var(--ink)',marginBottom:'1.5rem',fontWeight:400}}>Links &amp; Visibility</h2>
           <div style={{display:'grid',gap:'0.875rem',marginBottom:'1.5rem'}}>
             <div className="form-group">
               <label className="form-label">Portfolio URL (optional)</label>
@@ -1288,8 +1288,8 @@ function InternProfileForm({ authUser, showToast, onComplete, requestSignIn }) {
               ].map(t => (
                 <div key={t.v} className={`tier-card ${tier===t.v?'selected':''}`} onClick={()=>setTier(t.v)}
                   style={{padding:'1.25rem',background:'var(--paper)',cursor:'pointer',border:`2px solid ${tier===t.v?'var(--ink)':'transparent'}`}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1rem',color:'var(--ink)',marginBottom:'0.25rem'}}>{t.label}</div>
-                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.8rem',color:'var(--gold)',marginBottom:'0.875rem'}}>{t.price}</div>
+                  <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1rem',color:'var(--ink)',marginBottom:'0.25rem'}}>{t.label}</div>
+                  <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.8rem',color:'var(--gold)',marginBottom:'0.875rem'}}>{t.price}</div>
                   {t.features.map(f=><div key={f} style={{fontSize:'0.75rem',color:'var(--ink-3)',marginBottom:'0.2rem'}}>✓ {f}</div>)}
                   {t.v === 'featured' && (
                     <div style={{fontSize:'0.68rem',color:'var(--ink-4)',marginTop:'0.5rem',fontStyle:'italic'}}>
@@ -1547,7 +1547,7 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
             </div>
           )}
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1rem',flexWrap:'wrap',gap:'0.5rem'}}>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>
               {loading ? 'Loading…' : `${filtered.length} Internship${filtered.length!==1?'s':''}${filtered.length<jobs.length?` of ${jobs.length}`:''}`}
             </div>
             {authUser && (
@@ -1577,7 +1577,7 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
       {selectedJob && (
         <div className="modal-overlay" onClick={e=>{if(e.target===e.currentTarget)setSelectedJob(null);}}>
           <div className="workflow-modal" style={{maxWidth:580}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'0.25rem'}}>{selectedJob.title}</div>
+            <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'0.25rem'}}>{selectedJob.title}</div>
             <div style={{fontSize:'0.82rem',color:'var(--ink-3)',marginBottom:'1rem'}}>
               {selectedJob.employer_confidential ? 'Confidential Employer' : selectedJob.employer_display||selectedJob.employer_name} · {selectedJob.industry} · {selectedJob.location}
             </div>
@@ -1591,13 +1591,13 @@ function EarlyCareersLanding({ authUser, goToView, showToast, requestSignIn }) {
             {selectedJob.role_summary && <div style={{fontSize:'0.875rem',color:'var(--ink-2)',lineHeight:'1.6',marginBottom:'1rem'}}>{selectedJob.role_summary}</div>}
             {selectedJob.project_description && (
               <div style={{marginBottom:'1rem'}}>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.375rem'}}>Project / Work Description</div>
+                <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.375rem'}}>Project / Work Description</div>
                 <div style={{fontSize:'0.82rem',color:'var(--ink-2)',lineHeight:'1.6'}}>{selectedJob.project_description}</div>
               </div>
             )}
             {selectedJob.required_skills?.length > 0 && (
               <div style={{marginBottom:'1rem'}}>
-                <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.375rem'}}>Skills Required</div>
+                <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.375rem'}}>Skills Required</div>
                 <div className="intern-job-tags">{selectedJob.required_skills.map(s=><span key={s} className="intern-tag">{s}</span>)}</div>
               </div>
             )}
@@ -1853,7 +1853,7 @@ function InternCandidateSection({ authUser, showToast, goToView }) {
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'0.75rem'}}>
           <div>
             <div style={{display:'flex',alignItems:'center',gap:'0.625rem',marginBottom:'0.375rem'}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1rem',color:'var(--ink)'}}>
+              <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1rem',color:'var(--ink)'}}>
                 {profile.school_university || 'Student Profile'}
               </div>
               {profile.tier === 'featured' && <span className="intern-featured-badge">★ Featured</span>}
@@ -1865,8 +1865,8 @@ function InternCandidateSection({ authUser, showToast, goToView }) {
             {profile.location && <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.2rem'}}>{profile.location}</div>}
           </div>
           <div style={{textAlign:'right'}}>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',color:'var(--ink-4)',marginBottom:'0.25rem'}}>PROFILE COMPLETENESS</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',color:completePct>=75?'var(--green)':'var(--gold)'}}>{completePct}%</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.1em',color:'var(--ink-4)',marginBottom:'0.25rem'}}>PROFILE COMPLETENESS</div>
+            <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',color:completePct>=75?'var(--green)':'var(--gold)'}}>{completePct}%</div>
             <button className="admin-action-btn" style={{marginTop:'0.375rem',fontSize:'0.65rem'}} onClick={()=>goToView('intern-profile')}>
               Update Profile
             </button>
@@ -1932,7 +1932,7 @@ function InternCandidateSection({ authUser, showToast, goToView }) {
             <div key={m.id} style={{borderBottom:'1px solid var(--rule-lt)',paddingBottom:'0.875rem',marginBottom:'0.875rem'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'0.75rem',flexWrap:'wrap'}}>
                 <div>
-                  <div style={{fontSize:'0.9rem',color:'var(--ink)',fontFamily:"'Playfair Display',serif"}}>{job?.title||'Role'}</div>
+                  <div style={{fontSize:'0.9rem',color:'var(--ink)',fontFamily:"'Inter Tight','Inter',sans-serif"}}>{job?.title||'Role'}</div>
                   <div style={{fontSize:'0.75rem',color:'var(--ink-4)'}}>{job?.employer_confidential?'Confidential Employer':job?.employer_display||job?.employer_name} · {job?.industry}</div>
                 </div>
                 <span className={`match-status-badge ${m.status==='mutual_interest'?'mutual':m.status==='employer_interested'?'recruiter-interested':m.status==='candidate_interested'?'candidate-interested':''}`}>
@@ -2015,10 +2015,10 @@ function CandidateCompPositioning({ profile, matches, jobs }) {
       <div className="comp-position-title">Compensation Positioning</div>
       {total > 0 && (
         <div style={{display:'flex',gap:'0.875rem',flexWrap:'wrap',marginBottom:'0.75rem'}}>
-          {aligned  > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--green)'}}>{aligned}</div><div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Aligned</div></div>}
-          {premium  > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--gold)'}}>{premium}</div><div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Premium</div></div>}
-          {outOfRange > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'#c0392b'}}>{outOfRange}</div><div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Out of Range</div></div>}
-          {insufficient > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink-4)'}}>{insufficient}</div><div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>No Data</div></div>}
+          {aligned  > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--green)'}}>{aligned}</div><div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Aligned</div></div>}
+          {premium  > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--gold)'}}>{premium}</div><div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Premium</div></div>}
+          {outOfRange > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'#c0392b'}}>{outOfRange}</div><div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Out of Range</div></div>}
+          {insufficient > 0 && <div style={{textAlign:'center'}}><div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--ink-4)'}}>{insufficient}</div><div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>No Data</div></div>}
         </div>
       )}
       <div className="comp-position-advisory">{advisory}</div>
@@ -2098,7 +2098,7 @@ function AdminCompBenchmarksTab({ showToast }) {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'0.75rem'}}>
         <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.1rem',color:'var(--ink)'}}>Compensation Benchmarks</div>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.1rem',color:'var(--ink)'}}>Compensation Benchmarks</div>
           <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.2rem'}}>
             Admin-configurable reference ranges. Used as secondary source when job postings lack explicit comp ranges.
             Primary source is always the job posting's comp_base_min/max. Candidates and recruiters cannot view this table directly.
@@ -2171,7 +2171,7 @@ function AdminCompBenchmarksTab({ showToast }) {
                 </select>
               </div>
             </div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>Base Salary Percentiles ($)</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>Base Salary Percentiles ($)</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.75rem',marginBottom:'1rem'}}>
               {[['base_p25','P25'],['base_p50','P50 (Median)'],['base_p75','P75']].map(([k,l])=>(
                 <div key={k} className="form-group">
@@ -2180,7 +2180,7 @@ function AdminCompBenchmarksTab({ showToast }) {
                 </div>
               ))}
             </div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>Total Compensation Percentiles ($)</div>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>Total Compensation Percentiles ($)</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'0.75rem',marginBottom:'1rem'}}>
               {[['total_comp_p25','P25'],['total_comp_p50','P50'],['total_comp_p75','P75']].map(([k,l])=>(
                 <div key={k} className="form-group">
@@ -3606,7 +3606,7 @@ function ScoreRing({ pct }) {
   const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
   const r = 26, circ = 2 * Math.PI * r;
   const offset = circ - (p / 100) * circ;
-  const color = p >= 80 ? '#1b5e20' : p >= 60 ? '#b8922a' : p >= 40 ? '#bf360c' : '#8fa0b4';
+  const color = p >= 80 ? '#0e9f6e' : p >= 60 ? '#0891b2' : p >= 40 ? '#d97706' : '#94a3b8';
   return (
     <div className="score-ring">
       <svg width="60" height="60" viewBox="0 0 60 60">
@@ -3653,7 +3653,7 @@ function MatchConfidenceBadge({ score, reasons, gaps, compact, hidePct }) {
     <div>
       <div style={{display:'flex',alignItems:'center',gap:'0.625rem',flexWrap:'wrap'}}>
         <span className={`match-confidence-badge ${conf.level}`}>{conf.label}</span>
-        {!hidePct && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)'}}>{score}% fit</span>}
+        {!hidePct && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-4)'}}>{score}% fit</span>}
       </div>
       {!compact && conf.gapDescriptions.length > 0 && (
         <div className="match-gap-list">
@@ -3686,7 +3686,7 @@ function StretchOpportunityModal({ job, confidence, onProceed, onCancel }) {
 
         {confidence.gapDescriptions.length > 0 && (
           <div style={{marginBottom:'1.25rem'}}>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
               Compatibility Gaps Identified
             </div>
             {confidence.gapDescriptions.map(g => (
@@ -3700,7 +3700,7 @@ function StretchOpportunityModal({ job, confidence, onProceed, onCancel }) {
 
         {confidence.strengths.length > 0 && (
           <div style={{marginBottom:'1.25rem'}}>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
               Alignment Points
             </div>
             {confidence.strengths.map(s => (
@@ -3796,7 +3796,7 @@ function NotificationBell({ userEmail, userType }) {
         <div className="notif-dropdown">
           <div className="notif-header">
             <span className="notif-header-title">Notifications</span>
-            {unread > 0 && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',color:'var(--gold)'}}>
+            {unread > 0 && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',color:'var(--gold)'}}>
               {unread} unread
             </span>}
           </div>
@@ -3836,23 +3836,27 @@ function DemoBanner({ onDismiss }) {
 }
 
 // ── BRAND MARK ───────────────────────────────────────────────────────────────
-// Abstract identity for Trovant Talent: a navigation compass inside a global
-// ring with network waypoints (one gold) — global connections, trade routes,
-// and precision. `light` renders for dark surfaces (footer). Mirrors the
-// artwork in /public/favicon.svg and /public/icon.svg.
+// Identity for Trovant Talent: a modern "T" monogram on a rounded emerald
+// tile with an accent dot — clean, product-first, SaaS. `light` renders a
+// white-knockout variant for dark surfaces (footer). Mirrors the artwork in
+// /public/favicon.svg and /public/icon.svg.
 function BrandMark({ light = false }) {
-  const stroke = light ? '#f4f3f0' : '#0f1c2e';
-  const node   = light ? '#f4f3f0' : '#0f1c2e';
-  const accent = light ? '#d4a93c' : '#b8922a';
-  const op     = light ? 0.85 : 1;
+  // Modern Trovant monogram — a rounded emerald tile with a "T" glyph and an
+  // accent dot. `light` renders a white-knockout variant for dark surfaces.
+  const tile  = light ? '#ffffff' : 'url(#tg-mark)';
+  const glyph = light ? '#0b1220' : '#ffffff';
+  const dot   = light ? '#0e9f6e' : '#a7f3d0';
   return (
     <svg viewBox="0 0 48 48" role="img" aria-label="Trovant Talent" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="24" cy="24" r="20.5" fill="none" stroke={stroke} strokeWidth="1.5" strokeOpacity={op} />
-      <path d="M24 10.5 L27 21 L37.5 24 L27 27 L24 37.5 L21 27 L10.5 24 L21 21 Z" fill={stroke} />
-      <circle cx="9.5" cy="9.5" r="2.4" fill={node} fillOpacity={op} />
-      <circle cx="38.5" cy="38.5" r="2.4" fill={node} fillOpacity={op} />
-      <circle cx="9.5" cy="38.5" r="2.4" fill={node} fillOpacity={op} />
-      <circle cx="38.5" cy="9.5" r="2.4" fill={accent} />
+      <defs>
+        <linearGradient id="tg-mark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#10b981" />
+          <stop offset="1" stopColor="#0d9488" />
+        </linearGradient>
+      </defs>
+      <rect x="3" y="3" width="42" height="42" rx="13" fill={tile} />
+      <path d="M14 17 H34 M24 17 V35" stroke={glyph} strokeWidth="4.4" strokeLinecap="round" />
+      <circle cx="31.5" cy="32" r="3" fill={dot} />
     </svg>
   );
 }
@@ -3971,12 +3975,88 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
           </div>
           <div className="hero-stat" style={{cursor:'pointer',borderTop:'1px solid var(--rule)',textAlign:'left',padding:'1rem'}}
             onClick={onGoToConsulting}>
-            <div className="stat-value" style={{color:'var(--gold)',fontSize:'1.4rem',fontFamily:"'Playfair Display',serif",fontWeight:600,lineHeight:1,marginBottom:'0.3rem'}}>→</div>
+            <div className="stat-value" style={{color:'var(--gold)',fontSize:'1.4rem',fontFamily:"'Inter Tight','Inter',sans-serif",fontWeight:600,lineHeight:1,marginBottom:'0.3rem'}}>→</div>
             <div className="stat-label">Consulting</div>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+// ── PRODUCT PREVIEW (dashboard module) ───────────────────────────────────────
+// Illustrative, product-first dashboard mock — gives the public homepage the
+// "recruiting software" feel (pipeline, match scores, stages). Static by design.
+function ProductPreview() {
+  const candidates = [
+    { initials: 'A.K.', av: '#0e9f6e', role: 'Chartering Manager · Tankers', meta: 'Singapore', stage: 'Interview', stageClass: 'stage-interview', match: 96 },
+    { initials: 'M.R.', av: '#0d9488', role: 'Head of Operations · Dry Bulk', meta: 'Rotterdam', stage: 'Offer', stageClass: 'stage-offer', match: 92 },
+    { initials: 'S.T.', av: '#2563eb', role: 'Commercial Director · LNG', meta: 'Houston, TX', stage: 'Screening', stageClass: 'stage-screen', match: 88 },
+    { initials: 'J.P.', av: '#7c3aed', role: 'Port Captain · Terminals', meta: 'Dubai', stage: 'Screening', stageClass: 'stage-screen', match: 84 },
+  ];
+  return (
+    <section className="product-section">
+      <div className="product-inner">
+        <div className="product-head">
+          <span className="product-eyebrow">● Built for recruiters</span>
+          <h2 className="product-title">See every match before you reach out.</h2>
+          <p className="product-desc">
+            Scope-based matching ranks candidates on operational scope, leadership complexity,
+            and fit — not just titles and keywords. Track every conversation from first signal to offer.
+          </p>
+        </div>
+
+        <div className="dashboard" role="img" aria-label="Trovant Talent recruiter dashboard preview">
+          <div className="dash-chrome">
+            <span className="dash-dot" style={{background:'#ff5f57'}} />
+            <span className="dash-dot" style={{background:'#febc2e'}} />
+            <span className="dash-dot" style={{background:'#28c840'}} />
+            <span className="dash-urlbar">app.trovanttalent.com / pipeline</span>
+          </div>
+          <div className="dash-body">
+            <aside className="dash-side">
+              <div className="dash-side-label">Workspace</div>
+              <div className="dash-nav active"><span className="dash-nav-ico" /> Pipeline</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Searches</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Candidates</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Messages</div>
+              <div className="dash-side-label">Insights</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Analytics</div>
+              <div className="dash-nav"><span className="dash-nav-ico" /> Benchmarks</div>
+            </aside>
+            <div className="dash-main">
+              <div className="dash-toolbar">
+                <div>
+                  <div className="dash-h">Senior Chartering Search</div>
+                  <div className="dash-h-sub">24 matched · 4 in conversation</div>
+                </div>
+                <div style={{display:'flex',gap:'0.6rem',alignItems:'center'}}>
+                  <span className="dash-search">⌕ Filter candidates</span>
+                  <span className="dash-pill">Scope match ✓</span>
+                </div>
+              </div>
+              {candidates.map((c, i) => (
+                <div className="cand" key={i}>
+                  <div className="cand-id">
+                    <span className="cand-av" style={{background:c.av}}>{c.initials}</span>
+                    <div>
+                      <div className="cand-name">Confidential candidate</div>
+                      <div className="cand-role">{c.role}</div>
+                    </div>
+                  </div>
+                  <div className="cand-meta">{c.meta}</div>
+                  <div><span className={`cand-stage ${c.stageClass}`}>{c.stage}</span></div>
+                  <div className="cand-match">
+                    <span className="match-num">{c.match}</span>
+                    <span className="match-bar"><span style={{width:`${c.match}%`}} /></span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -7515,7 +7595,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
               </div>
               <div className="trait-desc">{t.desc}</div>
               {t.key === 'emotional_stability' && (
-                <div style={{fontSize:'0.72rem',color:'var(--gold)',marginBottom:'0.375rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>
+                <div style={{fontSize:'0.72rem',color:'var(--gold)',marginBottom:'0.375rem',fontFamily:"'Inter',sans-serif",letterSpacing:'0.06em'}}>
                   ↑ Lower percentile = calmer and more emotionally stable
                 </div>
               )}
@@ -7582,7 +7662,7 @@ function ProfileForm({ showToast, onComplete, authUserEmail }) {
                         background: selected ? 'var(--ink)' : 'var(--paper)',
                         color: selected ? 'var(--white)' : 'var(--ink-3)',
                         border: `1px solid ${selected ? 'var(--ink)' : 'var(--rule)'}`,
-                        fontFamily: "'DM Mono', monospace",
+                        fontFamily: "'Inter', sans-serif",
                         fontSize: '0.62rem',
                         letterSpacing: '0.08em',
                         textTransform: 'uppercase',
@@ -8121,7 +8201,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
             <div className="plan-name">{plan.name}</div>
             <div className="plan-price">
               {plan.priceDisplay
-                ? <span style={{fontSize:'1.5rem',fontFamily:"'Playfair Display',serif",fontStyle:'italic',color:'var(--ink-2)',fontWeight:500}}>{plan.priceDisplay}</span>
+                ? <span style={{fontSize:'1.5rem',fontFamily:"'Inter Tight','Inter',sans-serif",fontStyle:'italic',color:'var(--ink-2)',fontWeight:500}}>{plan.priceDisplay}</span>
                 : <><sup>$</sup>{plan.price}</>
               }
             </div>
@@ -8164,7 +8244,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           </p>
         </div>
         <div className="intro-fee-amount" style={{textAlign:'left',minWidth:'16rem'}}>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.7rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'0.6rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.7rem',color:'var(--ink-4)',letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:'0.6rem'}}>
             Per confirmed introduction
           </div>
           {[
@@ -8175,7 +8255,7 @@ function PricingPage({ setActiveView, openRecruiterModal, authUser, showToast })
           ].map(([band, fee]) => (
             <div key={band} style={{display:'flex',justifyContent:'space-between',gap:'1.5rem',padding:'0.4rem 0',borderBottom:'1px solid rgba(0,0,0,0.08)'}}>
               <span style={{fontSize:'0.85rem',color:'var(--ink-3)'}}>{band}</span>
-              <span style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',fontWeight:500,lineHeight:1}}>{fee}</span>
+              <span style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--ink)',fontWeight:500,lineHeight:1}}>{fee}</span>
             </div>
           ))}
           <div style={{fontSize:'0.78rem',color:'var(--ink-3)',marginTop:'0.875rem',lineHeight:1.55}}>
@@ -9024,7 +9104,7 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
         </div>
 
         <div className="workflow-section">
-          <div className="workflow-section-title" style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.75rem'}}>
+          <div className="workflow-section-title" style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.75rem'}}>
             Additional Questions
           </div>
           {[
@@ -9046,7 +9126,7 @@ function FeedbackModal({ recruiterEmail, jobId, matchId, trigger, onClose, showT
         </div>
 
         <div className="workflow-section">
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--red,#c0392b)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--red,#c0392b)',marginBottom:'0.75rem'}}>
             Report Issues (admin review only)
           </div>
           {[
@@ -9272,7 +9352,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
     <div className="admin-page">
       <div className="admin-header">
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
             Admin Control Room
           </div>
           <div className="admin-title">Trovant Talent</div>
@@ -9317,7 +9397,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
         </div>
       </div>
       {traffic && (
-        <div style={{margin:'-0.5rem 0 1.5rem',fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.06em',color:'var(--ink-4)',textTransform:'uppercase'}}>
+        <div style={{margin:'-0.5rem 0 1.5rem',fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.06em',color:'var(--ink-4)',textTransform:'uppercase'}}>
           Today: {Number(traffic.visitors_today||0).toLocaleString()} visitors · {Number(traffic.pageviews_today||0).toLocaleString()} views &nbsp;·&nbsp;
           7d: {Number(traffic.visitors_7d||0).toLocaleString()} visitors · {Number(traffic.pageviews_7d||0).toLocaleString()} views &nbsp;·&nbsp;
           All-time: {Number(traffic.visitors_total||0).toLocaleString()} visitors · {Number(traffic.pageviews_total||0).toLocaleString()} views
@@ -9427,7 +9507,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
           {/* Program status banner */}
           <div style={{background: programActive ? 'var(--gold-bg)' : 'var(--paper-2)', border:'1px solid var(--gold-rule)', borderLeft:'3px solid var(--gold)', padding:'1rem 1.5rem', marginBottom:'1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
             <div>
-              <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
+              <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.25rem'}}>
                 Founding Partner Program 2026
               </div>
               <div style={{fontSize:'0.875rem',color:'var(--ink-2)',fontWeight:500}}>
@@ -9438,8 +9518,8 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
               </div>
             </div>
             <div style={{textAlign:'right'}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.8rem',fontWeight:600,color:'var(--gold)',lineHeight:1}}>{uniqueFirms.length}</div>
-              <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>Partner Firms</div>
+              <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.8rem',fontWeight:600,color:'var(--gold)',lineHeight:1}}>{uniqueFirms.length}</div>
+              <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)'}}>Partner Firms</div>
             </div>
           </div>
 
@@ -9541,7 +9621,7 @@ function AdminDashboard({ onLogout, showToast, onJobPublished }) {
                     <td style={{textAlign:'center'}}>{j.view_count||0}</td>
                     <td style={{textAlign:'center'}}>{j.interest_count||0}</td>
                     <td><span className={`admin-pill ${j.status}`}>{j.status?.replace(/_/g,' ')}</span>
-                      {j.admin_flagged && <span style={{marginLeft:'0.375rem',fontSize:'0.6rem',color:'#c0392b',fontFamily:"'DM Mono',monospace"}}>⚠ FLAGGED</span>}
+                      {j.admin_flagged && <span style={{marginLeft:'0.375rem',fontSize:'0.6rem',color:'#c0392b',fontFamily:"'Inter',sans-serif"}}>⚠ FLAGGED</span>}
                     </td>
                     <td>{j.demo_post ? <span style={{color:'var(--gold)',fontSize:'0.72rem'}}>Demo</span> : '—'}</td>
                     <td>
@@ -9877,7 +9957,7 @@ function AdminActivityTab({ showToast }) {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'0.75rem'}}>
         <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.1rem',color:'var(--ink)'}}>Marketplace Activity Feed</div>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.1rem',color:'var(--ink)'}}>Marketplace Activity Feed</div>
           <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.2rem'}}>
             Admin-controlled. Only Published, non-suppressed items appear publicly.
           </div>
@@ -10234,7 +10314,7 @@ function AdminLeaderboardTab({ showToast }) {
     <div>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.5rem',flexWrap:'wrap',gap:'0.75rem'}}>
         <div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.1rem',color:'var(--ink)'}}>Leaderboard Management</div>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.1rem',color:'var(--ink)'}}>Leaderboard Management</div>
           <div style={{fontSize:'0.75rem',color:'var(--ink-4)',marginTop:'0.2rem'}}>Approve or suppress recruiter leaderboard visibility. Only verified, approved recruiters appear publicly.</div>
         </div>
         <button className="admin-action-btn" onClick={triggerSnapshot}>Save Snapshot</button>
@@ -10243,7 +10323,7 @@ function AdminLeaderboardTab({ showToast }) {
       {/* Live leaderboard preview */}
       {liveData?.leaderboard?.length > 0 && (
         <div style={{marginBottom:'1.5rem',background:'var(--paper-2)',border:'1px solid var(--rule)',padding:'1rem 1.25rem'}}>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.75rem'}}>
             Current Public Leaderboard (All Time)
           </div>
           {liveData.leaderboard.map((r,i) => (
@@ -11040,7 +11120,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
     <div style={{textAlign:'center',padding:'4rem'}}>
       {isRecruiter ? (
         <>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
             Welcome back, {user.email}
           </div>
           <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
@@ -11052,7 +11132,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
         </>
       ) : (
         <>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.3rem',color:'var(--ink)',marginBottom:'1rem'}}>
             No profile found for {user.email}
           </div>
           <p style={{color:'var(--ink-4)',fontSize:'0.875rem',marginBottom:'1.5rem'}}>
@@ -11268,7 +11348,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
               </div>
             ) : (
               <div style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
-                <span style={{fontSize:'0.7rem',color:profile.big_five_shared?'var(--green)':'var(--ink-4)',fontFamily:"'DM Mono',monospace",letterSpacing:'0.08em',textTransform:'uppercase'}}>
+                <span style={{fontSize:'0.7rem',color:profile.big_five_shared?'var(--green)':'var(--ink-4)',fontFamily:"'Inter',sans-serif",letterSpacing:'0.08em',textTransform:'uppercase'}}>
                   {profile.big_five_shared ? 'Shared' : 'Private'}
                 </span>
                 <button className="profile-edit-btn" onClick={startBigFiveEdit}>
@@ -11303,7 +11383,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
                       onChange={e => setBigFiveScore(k, e.target.value)}
                       className="trait-slider"
                     />
-                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.58rem',fontFamily:"'DM Mono',monospace",color:'var(--ink-4)',letterSpacing:'0.06em',marginTop:'0.25rem'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.58rem',fontFamily:"'Inter',sans-serif",color:'var(--ink-4)',letterSpacing:'0.06em',marginTop:'0.25rem'}}>
                       <span>0</span>
                       <input
                         type="number"
@@ -11311,7 +11391,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
                         max="100"
                         value={value}
                         onChange={e => setBigFiveScore(k, e.target.value)}
-                        style={{width:'62px',textAlign:'center',border:'1px solid var(--rule)',background:'var(--paper)',color:'var(--ink)',fontFamily:"'DM Mono',monospace",fontSize:'0.72rem',padding:'0.2rem'}}
+                        style={{width:'62px',textAlign:'center',border:'1px solid var(--rule)',background:'var(--paper)',color:'var(--ink)',fontFamily:"'Inter',sans-serif",fontSize:'0.72rem',padding:'0.2rem'}}
                       />
                       <span>100</span>
                     </div>
@@ -11378,7 +11458,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
             </div>
             {parsedCareer.filter(e=>e.title||e.company).map((e,i) => (
               <div key={i} style={{display:'flex',gap:'1.5rem',padding:'0.75rem 0',borderBottom:'1px solid var(--rule-lt)'}}>
-                <div style={{minWidth:'80px',fontFamily:"'DM Mono',monospace",fontSize:'0.65rem',color:'var(--ink-4)',letterSpacing:'0.06em'}}>
+                <div style={{minWidth:'80px',fontFamily:"'Inter',sans-serif",fontSize:'0.65rem',color:'var(--ink-4)',letterSpacing:'0.06em'}}>
                   {e.years_from}{e.years_from&&'–'}{e.current?'Present':e.years_to}
                 </div>
                 <div>
@@ -11410,7 +11490,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
           <div className="profile-card-header">
             <div className="profile-card-title">Executive Assessment</div>
             {talentProfile && (talentProfile.score_composite || 0) > 0 && (
-              <a href="/talent-match.html" style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--gold)',textDecoration:'none'}}>
+              <a href="/talent-match.html" style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--gold)',textDecoration:'none'}}>
                 Update Answers →
               </a>
             )}
@@ -11438,8 +11518,8 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
                   {label:'Background',     weight:'20%', desc:'Tenure, scope & geography'},
                 ].map(s => (
                   <div key={s.label} style={{background:'var(--paper)',border:'1px solid var(--rule)',padding:'0.875rem'}}>
-                    <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.25rem'}}>{s.label}</div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1rem',color:'var(--gold)',marginBottom:'0.2rem'}}>{s.weight}</div>
+                    <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-3)',marginBottom:'0.25rem'}}>{s.label}</div>
+                    <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1rem',color:'var(--gold)',marginBottom:'0.2rem'}}>{s.weight}</div>
                     <div style={{fontSize:'0.72rem',color:'var(--ink-4)'}}>{s.desc}</div>
                   </div>
                 ))}
@@ -11451,7 +11531,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
                 <div className="assessment-composite-score">{talentProfile.score_composite}%</div>
                 <div className="assessment-composite-label">Composite Match Score</div>
                 {talentProfile.last_answers_updated && (
-                  <div style={{fontSize:'0.65rem',color:'var(--ink-4)',marginTop:'0.5rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>
+                  <div style={{fontSize:'0.65rem',color:'var(--ink-4)',marginTop:'0.5rem',fontFamily:"'Inter',sans-serif",letterSpacing:'0.06em'}}>
                     Last updated {fmt(talentProfile.last_answers_updated)}
                   </div>
                 )}
@@ -11481,10 +11561,10 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
               </div>
               {(talentProfile.badge_seasoned_exec || talentProfile.badge_tech_forward || talentProfile.badge_pivot) ? (
                 <div className="assessment-badges">
-                  <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',alignSelf:'center',marginRight:'0.25rem'}}>Badges earned</span>
-                  {talentProfile.badge_seasoned_exec && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid var(--gold-rule)',background:'var(--gold-bg)',color:'var(--gold)'}}>⭐ Seasoned Executive</span>}
-                  {talentProfile.badge_tech_forward  && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid #b2dfc6',background:'var(--green-bg)',color:'var(--green)'}}>⚡ Tech Forward</span>}
-                  {talentProfile.badge_pivot         && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid #b0c4d8',background:'#eef2f7',color:'var(--ink-2)'}}>↗ Pivot Candidate</span>}
+                  <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',alignSelf:'center',marginRight:'0.25rem'}}>Badges earned</span>
+                  {talentProfile.badge_seasoned_exec && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid var(--gold-rule)',background:'var(--gold-bg)',color:'var(--gold)'}}>⭐ Seasoned Executive</span>}
+                  {talentProfile.badge_tech_forward  && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid #b2dfc6',background:'var(--green-bg)',color:'var(--green)'}}>⚡ Tech Forward</span>}
+                  {talentProfile.badge_pivot         && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',padding:'0.25rem 0.625rem',border:'1px solid #b0c4d8',background:'#eef2f7',color:'var(--ink-2)'}}>↗ Pivot Candidate</span>}
                 </div>
               ) : (
                 <div style={{marginTop:'1rem',paddingTop:'1rem',borderTop:'1px solid var(--rule-lt)',fontSize:'0.75rem',color:'var(--ink-4)'}}>
@@ -11499,7 +11579,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
         <div className="profile-card full-width">
           <div className="profile-card-header">
             <div className="profile-card-title">Professional References</div>
-            <span style={{fontSize:'0.7rem',color:'var(--ink-4)',fontFamily:"'DM Mono',monospace",letterSpacing:'0.08em',textTransform:'uppercase'}}>
+            <span style={{fontSize:'0.7rem',color:'var(--ink-4)',fontFamily:"'Inter',sans-serif",letterSpacing:'0.08em',textTransform:'uppercase'}}>
               Strengthen your profile
             </span>
           </div>
@@ -11510,7 +11590,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
         <div className="profile-card full-width">
           <div className="profile-card-header">
             <div className="profile-card-title">Searches You've Expressed Interest In</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{interests.length} TOTAL</span>
+            <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{interests.length} TOTAL</span>
           </div>
           {interests.length === 0 ? (
             <div className="profile-field-empty">No interest signals yet. Browse opportunities and click "Register Confidential Interest" on any search.</div>
@@ -11543,7 +11623,7 @@ function MyProfilePage({ user, onSignOut, showToast, onCreateProfile, onUpgrade,
         <div className="profile-card full-width" style={{padding:0,overflow:'hidden'}}>
           <div className="profile-card-header" style={{padding:'1rem 1.5rem 0.75rem'}}>
             <div className="profile-card-title">Platform Activity</div>
-            <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>VERIFIED ONLY</span>
+            <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>VERIFIED ONLY</span>
           </div>
           <ActivityFeed location="candidate" limit={4} />
         </div>
@@ -11677,7 +11757,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
     <div className="profile-card full-width">
       <div className="profile-card-header">
         <div className="profile-card-title">Matching Job Posts</div>
-        <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{counts.all} MATCHES</span>
+        <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>{counts.all} MATCHES</span>
       </div>
 
       {/* Compensation positioning advisory.
@@ -11734,7 +11814,7 @@ function CandidateMatchSection({ userEmail, profile, showToast }) {
               <div key={match.id} className={`job-match-card ${isMutual ? 'mutual' : ''} ${isReceived ? 'recruiter-interested' : ''}`}>
                 <div className="job-match-left">
                   <div style={{display:'flex',alignItems:'center',gap:'0.625rem',marginBottom:'0.375rem'}}>
-                    <div style={{width:28,height:28,background:'var(--ink)',color:'var(--paper)',fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <div style={{width:28,height:28,background:'var(--ink)',color:'var(--paper)',fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                       {job.firm_code || 'FH'}
                     </div>
                     <div>
@@ -11937,7 +12017,7 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
     <div className="profile-card full-width">
       <div className="profile-card-header">
         <div className="profile-card-title">Executive Preferences</div>
-        <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>
+        <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',color:'var(--ink-4)',letterSpacing:'0.1em'}}>
           Used for matching. Private — never shared without permission.
         </span>
       </div>
@@ -12212,7 +12292,7 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
       {tab === 'nonneg' && (
         <div>
           <div className="prefs-non-neg-box" style={{marginBottom:'1.25rem'}}>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',color:'var(--gold)',marginBottom:'0.5rem'}}>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.1em',color:'var(--gold)',marginBottom:'0.5rem'}}>
               NON-NEGOTIABLES
             </div>
             <div style={{fontSize:'0.8rem',color:'var(--ink-2)',lineHeight:'1.6'}}>
@@ -12285,7 +12365,7 @@ function CandidatePreferencesSection({ userEmail, showToast }) {
               borderRadius:'4px',
             }}>
               <div style={{
-                fontFamily:"'DM Mono',monospace",
+                fontFamily:"'Inter',sans-serif",
                 fontSize:'0.62rem',
                 color:'var(--gold)',
                 textTransform:'uppercase',
@@ -13019,8 +13099,8 @@ function RecruiterPostingsTab({ jobs, userEmail, showToast, openPostModal, onJob
     <div className="recruiter-postings">
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'1.25rem'}}>
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',color:'var(--gold)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'0.35rem'}}>My Postings</div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.2rem',color:'var(--ink-1)'}}>Manage your active searches</div>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',color:'var(--gold)',textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'0.35rem'}}>My Postings</div>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.2rem',color:'var(--ink-1)'}}>Manage your active searches</div>
         </div>
         <button className="btn-primary" onClick={openPostModal}>Post a New Search</button>
       </div>
@@ -13258,7 +13338,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
           flexWrap:'wrap'
         }}>
           <div>
-            <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color: slotAvailable ? 'var(--green)' : 'var(--gold)',marginBottom:'0.25rem'}}>
+            <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.15em',textTransform:'uppercase',color: slotAvailable ? 'var(--green)' : 'var(--gold)',marginBottom:'0.25rem'}}>
               Founding Partner Program 2026
             </div>
             <div style={{fontSize:'0.875rem',color:'var(--ink-2)',fontWeight:500}}>
@@ -13400,7 +13480,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                   </div>
                   {jobInterests.length > 0 && (
                     <div style={{marginTop:'0.875rem',paddingTop:'0.875rem',borderTop:'1px solid var(--rule-lt)'}}>
-                      <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
+                      <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--ink-4)',marginBottom:'0.5rem'}}>
                         Interest Signals — candidate identities withheld pending introduction
                       </div>
                       {jobInterests.map((interest, idx) => (
@@ -13414,7 +13494,7 @@ function RecruiterDashboard({ user, onSignOut, showToast, openPostModal }) {
                             <span className={`admin-pill ${interest.status || 'pending'}`} style={{fontSize:'0.6rem'}}>
                               {interest.status || 'pending'}
                             </span>
-                            <span style={{color:'var(--ink-4)',fontFamily:"'DM Mono',monospace",fontSize:'0.65rem'}}>{fmt(interest.created_at)}</span>
+                            <span style={{color:'var(--ink-4)',fontFamily:"'Inter',sans-serif",fontSize:'0.65rem'}}>{fmt(interest.created_at)}</span>
                           </div>
                         </div>
                       ))}
@@ -13694,7 +13774,7 @@ function QuestionnairePage({ token }) {
     <div className="questionnaire-page">
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
             Trovant Talent
           </div>
           <div className="questionnaire-title">Link Unavailable</div>
@@ -13710,7 +13790,7 @@ function QuestionnairePage({ token }) {
     <div className="questionnaire-page">
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
             Trovant Talent
           </div>
           <div className="questionnaire-title">Thank You</div>
@@ -13730,7 +13810,7 @@ function QuestionnairePage({ token }) {
     <div className="questionnaire-page">
       <div className="questionnaire-inner">
         <div className="questionnaire-header">
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.62rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.75rem'}}>
             Trovant Talent — Confidential Reference
           </div>
           <div className="questionnaire-title">Professional Reference</div>
@@ -13982,7 +14062,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
       {/* Hero */}
       <div className="consulting-hero">
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold-lt)',marginBottom:'0.75rem'}}>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold-lt)',marginBottom:'0.75rem'}}>
             Trovant Consulting
           </div>
           <div className="consulting-hero-title">
@@ -14025,7 +14105,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
           </div>
           <div className="consulting-stat">
             <div className="consulting-stat-label">Founding Partner</div>
-            <div className="consulting-stat-value" style={{fontSize:'0.875rem',fontFamily:"'DM Mono',monospace",letterSpacing:'0.06em'}}>Free through Dec 31</div>
+            <div className="consulting-stat-value" style={{fontSize:'0.875rem',fontFamily:"'Inter',sans-serif",letterSpacing:'0.06em'}}>Free through Dec 31</div>
           </div>
         </div>
       </div>
@@ -14052,7 +14132,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
         {(filters.expertise||filters.duration||filters.urgency) && (
           <button className="filter-clear" onClick={()=>setFilters({expertise:'',duration:'',urgency:''})}>Clear</button>
         )}
-        <div style={{marginLeft:'auto',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)'}}>
+        <div style={{marginLeft:'auto',fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)'}}>
           {isDemo ? '3 example briefs' : `${filtered.length} of ${briefs.length} briefs`}
         </div>
       </div>
@@ -14079,7 +14159,7 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
                     {urgencyLabel[brief.urgency]||brief.urgency}
                   </span>
                 )}
-                {brief.demo && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',marginLeft:'0.5rem',border:'1px solid var(--rule)',padding:'0.15rem 0.4rem'}}>Example</span>}
+                {brief.demo && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',marginLeft:'0.5rem',border:'1px solid var(--rule)',padding:'0.15rem 0.4rem'}}>Example</span>}
                 <div className="brief-card-title">{brief.title}</div>
                 <div className="brief-card-company">{brief.company_display}</div>
                 <div className="brief-card-meta">
@@ -14127,8 +14207,8 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
       {/* Company CTA */}
       <div className="brief-cta">
         <div>
-          <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>For Companies</div>
-          <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.2rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.375rem'}}>Need specialist expertise?</div>
+          <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--gold)',marginBottom:'0.375rem'}}>For Companies</div>
+          <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.2rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.375rem'}}>Need specialist expertise?</div>
           <div style={{fontSize:'0.82rem',color:'var(--ink-4)',lineHeight:'1.6'}}>
             Post a brief. Day rate published. Founding Partner Program 2026 — free through December 31.
             $1,500 introduction fee on confirmed engagements.
@@ -14153,13 +14233,13 @@ function ConsultingBoard({ authUser, userType, onSignIn, openBriefModal, showToa
               </div>
               {selectedBrief.rate_min && (
                 <div style={{marginTop:'1rem',padding:'0.875rem',background:'rgba(250,250,248,0.06)',border:'1px solid rgba(250,250,248,0.12)'}}>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.4rem',fontWeight:600,color:'var(--gold-lt)'}}>
+                  <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.4rem',fontWeight:600,color:'var(--gold-lt)'}}>
                     ${selectedBrief.rate_min.toLocaleString()}
                     {selectedBrief.rate_max && selectedBrief.rate_max !== selectedBrief.rate_min
                       ? ` – $${selectedBrief.rate_max.toLocaleString()}`
                       : '+'}
                   </div>
-                  <div style={{fontFamily:"'DM Mono',monospace",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'rgba(250,250,248,0.4)'}}>
+                  <div style={{fontFamily:"'Inter',sans-serif",fontSize:'0.58rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'rgba(250,250,248,0.4)'}}>
                     Day Rate (USD) · {selectedBrief.engagement_type}
                   </div>
                 </div>
@@ -14430,7 +14510,7 @@ function BriefModal({ onClose, showToast }) {
         {step === 'done' && (
           <>
             <div style={{textAlign:'center',padding:'1.5rem 0'}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.5rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.75rem'}}>
+              <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.5rem',fontWeight:500,color:'var(--ink)',marginBottom:'0.75rem'}}>
                 Brief Received
               </div>
               <p style={{color:'var(--ink-3)',fontSize:'0.875rem',lineHeight:'1.7',marginBottom:'1.5rem'}}>
@@ -14514,8 +14594,8 @@ function IndustrialTechLanding({ goToView, jobs }) {
               <div key={item.id} style={{background:'var(--paper)',padding:'1.1rem 1.35rem',display:'flex',justifyContent:'space-between',gap:'1rem',flexWrap:'wrap',alignItems:'flex-start'}}>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:'0.5rem',flexWrap:'wrap'}}>
-                    <span style={{fontFamily:"'Playfair Display',serif",fontSize:'1rem',color:'var(--ink)'}}>{item.title}</span>
-                    {isDemoTech && <span style={{fontFamily:"'DM Mono',monospace",fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',border:'1px solid var(--rule)',padding:'0.1rem 0.4rem'}}>Example</span>}
+                    <span style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1rem',color:'var(--ink)'}}>{item.title}</span>
+                    {isDemoTech && <span style={{fontFamily:"'Inter',sans-serif",fontSize:'0.52rem',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--ink-4)',border:'1px solid var(--rule)',padding:'0.1rem 0.4rem'}}>Example</span>}
                   </div>
                   <div style={{fontSize:'0.8rem',color:'var(--ink-3)',margin:'0.25rem 0'}}>
                     {company}{item.industry ? ` · ${item.industry}` : ''}{item.location ? ` · ${item.location}` : ''}
@@ -14523,13 +14603,13 @@ function IndustrialTechLanding({ goToView, jobs }) {
                   {tags.length > 0 && (
                     <div style={{display:'flex',gap:'0.375rem',flexWrap:'wrap',marginTop:'0.375rem'}}>
                       {tags.slice(0,4).map(t => (
-                        <span key={t} style={{fontFamily:"'DM Mono',monospace",fontSize:'0.55rem',letterSpacing:'0.06em',padding:'0.15rem 0.5rem',border:'1px solid var(--rule)',color:'var(--ink-4)',background:'var(--paper-2)'}}>{t}</span>
+                        <span key={t} style={{fontFamily:"'Inter',sans-serif",fontSize:'0.55rem',letterSpacing:'0.06em',padding:'0.15rem 0.5rem',border:'1px solid var(--rule)',color:'var(--ink-4)',background:'var(--paper-2)'}}>{t}</span>
                       ))}
                     </div>
                   )}
                 </div>
                 {item.salary_display && (
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:'0.95rem',color:'var(--ink)',flexShrink:0}}>{item.salary_display}</div>
+                  <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'0.95rem',color:'var(--ink)',flexShrink:0}}>{item.salary_display}</div>
                 )}
               </div>
             );
@@ -15053,7 +15133,7 @@ function App() {
         <div style={{minHeight:'100vh',background:'var(--paper)'}}>
           <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
             <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Trovant Talent — Admin</div>
-            <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
+            <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
           </div>
           <AdminLogin onLogin={() => setAdminAuthed(true)} />
         </div>
@@ -15063,7 +15143,7 @@ function App() {
       <div style={{minHeight:'100vh',background:'var(--paper)'}}>
         <div style={{background:'var(--ink)',padding:'0.75rem 2rem',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'1rem',color:'var(--white)',fontWeight:600}}>Trovant Talent — Admin</div>
-          <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'DM Mono',monospace",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
+          <button onClick={()=>setShowAdmin(false)} style={{background:'none',border:'1px solid rgba(250,250,248,0.2)',color:'rgba(250,250,248,0.6)',fontFamily:"'Inter',sans-serif",fontSize:'0.6rem',letterSpacing:'0.1em',textTransform:'uppercase',padding:'0.3rem 0.75rem',cursor:'pointer'}}>← Back to Site</button>
         </div>
         <div style={{maxWidth:'1280px',margin:'0 auto',padding:'2rem'}}>
           <AdminDashboard
@@ -15111,6 +15191,7 @@ function App() {
               <span className="gold">Founding Partner Program 2026 — one search per month, free through December 31.</span>
             </p>
           </div>
+          <ProductPreview />
         </>
       )}
 
@@ -15131,11 +15212,12 @@ function App() {
           <div style={{display:'flex',gap:'2rem',alignItems:'flex-start',flex:1}}>
             {/* Icon */}
             <div style={{
-              width:'48px',height:'48px',background:'var(--ink)',
+              width:'52px',height:'52px',background:'var(--gold-bg)',
+              border:'1px solid var(--gold-rule)',borderRadius:'14px',
               display:'flex',alignItems:'center',justifyContent:'center',
               flexShrink:0,
             }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(250,250,248,0.8)" strokeWidth="1.5">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="1.6">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -15144,7 +15226,7 @@ function App() {
             </div>
             <div>
               <div style={{
-                fontFamily:"'DM Mono',monospace",
+                fontFamily:"'Inter',sans-serif",
                 fontSize:'0.6rem',
                 letterSpacing:'0.18em',
                 textTransform:'uppercase',
@@ -15154,7 +15236,7 @@ function App() {
                 Trovant Consulting
               </div>
               <div style={{
-                fontFamily:"'Playfair Display',serif",
+                fontFamily:"'Inter Tight','Inter',sans-serif",
                 fontSize:'1.2rem',
                 fontWeight:500,
                 color:'var(--ink)',
@@ -15220,7 +15302,7 @@ function App() {
 
         {activeView === 'intern-myprofile' && !authUser && (
           <div style={{maxWidth:600,margin:'4rem auto',padding:'0 1.5rem',textAlign:'center'}}>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'1rem'}}>Sign in to view your student profile</div>
+            <div style={{fontFamily:"'Inter Tight','Inter',sans-serif",fontSize:'1.25rem',color:'var(--ink)',marginBottom:'1rem'}}>Sign in to view your student profile</div>
             <button className="btn-primary" onClick={() => setActiveView('signin')}>Sign In</button>
           </div>
         )}
@@ -15295,7 +15377,7 @@ function App() {
                     textAlign:'center',
                   }}>
                     <div style={{
-                      fontFamily:"'DM Mono',monospace",
+                      fontFamily:"'Inter',sans-serif",
                       fontSize:'0.62rem',
                       color:'var(--gold)',
                       textTransform:'uppercase',
@@ -15303,7 +15385,7 @@ function App() {
                       marginBottom:'0.6rem',
                     }}>Curated marketplace</div>
                     <div style={{
-                      fontFamily:"'Playfair Display',serif",
+                      fontFamily:"'Inter Tight','Inter',sans-serif",
                       fontSize:'1.2rem',
                       color:'var(--ink-1)',
                       marginBottom:'0.5rem',

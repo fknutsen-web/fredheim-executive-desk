@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 600" role="img" aria-label="Trovant Talent business card front">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#0d9488"/>
+    </linearGradient>
+  </defs>
+  <rect width="1050" height="600" fill="#ffffff"/>
+  <rect x="0" y="0" width="1050" height="10" fill="url(#tile)"/>
+  <!-- Soft accent -->
+  <circle cx="980" cy="560" r="150" fill="#10b981" fill-opacity="0.06"/>
+
+  <!-- Centered lockup -->
+  <g transform="translate(400 196)">
+    <rect width="96" height="96" rx="26" fill="url(#tile)"/>
+    <path d="M27 36 H69 M48 36 V74" stroke="#ffffff" stroke-width="9.2" stroke-linecap="round"/>
+    <circle cx="63" cy="66" r="6" fill="#a7f3d0"/>
+  </g>
+  <text x="525" y="360" text-anchor="middle" font-family="'Inter Tight','Inter','Helvetica Neue',Arial,sans-serif" font-size="58" font-weight="700" letter-spacing="-2" fill="#0b1220">Trovant <tspan fill="#0e9f6e">Talent</tspan></text>
+  <text x="525" y="408" text-anchor="middle" font-family="'Inter','Helvetica Neue',Arial,sans-serif" font-size="20" font-weight="600" letter-spacing="6" fill="#5b6b85">PEOPLE · POTENTIAL · PERFORMANCE</text>
+</svg>
