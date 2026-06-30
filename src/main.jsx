@@ -3929,7 +3929,7 @@ function Hero({ jobCount, scrollToJobs, scrollToProfile, authUser, onGoToProfile
             <span className="eyebrow-text">Trovant Talent</span>
           </div>
           <h1 className="hero-title">
-            Where maritime talent<br />
+            Where talent<br />
             meets <em>opportunity</em>.
           </h1>
           <p className="hero-desc">
